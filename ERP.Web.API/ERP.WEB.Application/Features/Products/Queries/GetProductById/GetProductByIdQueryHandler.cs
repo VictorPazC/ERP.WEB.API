@@ -1,0 +1,36 @@
+using ERP.WEB.Application.DTOs;
+using ERP.WEB.Domain.Interfaces;
+using MediatR;
+
+namespace ERP.WEB.Application.Features.Products.Queries.GetProductById;
+
+public class GetProductByIdQueryHandler : IRequestHandler<GetProductByIdQuery, ProductDto?>
+{
+    private readonly IProductRepository _repository;
+
+    public GetProductByIdQueryHandler(IProductRepository repository)
+    {
+        _repository = repository;
+    }
+
+    public async Task<ProductDto?> Handle(GetProductByIdQuery request, CancellationToken cancellationToken)
+    {
+        var product = await _repository.GetByIdAsync(request.ProductId);
+        
+        if (product is null)
+            return null;
+
+        return new ProductDto(
+            product.ProductId,
+            product.Name,
+            product.Description,
+            product.Brand,
+            product.ReferenceLink,
+            product.PurchaseLocation,
+            product.Status,
+            product.CategoryId,
+            product.Category?.Name,
+            product.CreatedAt
+        );
+    }
+}

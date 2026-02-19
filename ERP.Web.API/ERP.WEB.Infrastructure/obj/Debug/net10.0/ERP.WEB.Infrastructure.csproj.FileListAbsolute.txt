@@ -1,0 +1,17 @@
+C:\Users\Kathia\source\repos\ERP.Web.API\ERP.WEB.Infrastructure\obj\Debug\net10.0\ERP.WEB.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Kathia\source\repos\ERP.Web.API\ERP.WEB.Infrastructure\obj\Debug\net10.0\ERP.WEB.Infrastructure.AssemblyInfoInputs.cache
+C:\Users\Kathia\source\repos\ERP.Web.API\ERP.WEB.Infrastructure\obj\Debug\net10.0\ERP.WEB.Infrastructure.AssemblyInfo.cs
+C:\Users\Kathia\source\repos\ERP.Web.API\ERP.WEB.Infrastructure\obj\Debug\net10.0\ERP.WEB.Infrastructure.csproj.CoreCompileInputs.cache
+C:\Users\Kathia\source\repos\ERP.Web.API\ERP.WEB.Infrastructure\obj\Debug\net10.0\ERP.WEB.Infrastructure.csproj.AssemblyReference.cache
+C:\Users\Kathia\source\repos\ERP.Web.API\ERP.WEB.Infrastructure\bin\Debug\net10.0\ERP.WEB.Infrastructure.deps.json
+C:\Users\Kathia\source\repos\ERP.Web.API\ERP.WEB.Infrastructure\bin\Debug\net10.0\ERP.WEB.Infrastructure.runtimeconfig.json
+C:\Users\Kathia\source\repos\ERP.Web.API\ERP.WEB.Infrastructure\bin\Debug\net10.0\ERP.WEB.Infrastructure.dll
+C:\Users\Kathia\source\repos\ERP.Web.API\ERP.WEB.Infrastructure\bin\Debug\net10.0\ERP.WEB.Infrastructure.pdb
+C:\Users\Kathia\source\repos\ERP.Web.API\ERP.WEB.Infrastructure\bin\Debug\net10.0\ERP.WEB.Domain.dll
+C:\Users\Kathia\source\repos\ERP.Web.API\ERP.WEB.Infrastructure\bin\Debug\net10.0\ERP.WEB.Domain.pdb
+C:\Users\Kathia\source\repos\ERP.Web.API\ERP.WEB.Infrastructure\obj\Debug\net10.0\ERP.WEB..311DEC4C.Up2Date
+C:\Users\Kathia\source\repos\ERP.Web.API\ERP.WEB.Infrastructure\obj\Debug\net10.0\ERP.WEB.Infrastructure.dll
+C:\Users\Kathia\source\repos\ERP.Web.API\ERP.WEB.Infrastructure\obj\Debug\net10.0\refint\ERP.WEB.Infrastructure.dll
+C:\Users\Kathia\source\repos\ERP.Web.API\ERP.WEB.Infrastructure\obj\Debug\net10.0\ERP.WEB.Infrastructure.pdb
+C:\Users\Kathia\source\repos\ERP.Web.API\ERP.WEB.Infrastructure\obj\Debug\net10.0\ERP.WEB.Infrastructure.genruntimeconfig.cache
+C:\Users\Kathia\source\repos\ERP.Web.API\ERP.WEB.Infrastructure\obj\Debug\net10.0\ref\ERP.WEB.Infrastructure.dll

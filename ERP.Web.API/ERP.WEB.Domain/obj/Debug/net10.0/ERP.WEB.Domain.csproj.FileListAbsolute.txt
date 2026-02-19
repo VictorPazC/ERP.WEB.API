@@ -1,0 +1,11 @@
+C:\Users\Kathia\source\repos\ERP.Web.API\ERP.WEB.Domain\bin\Debug\net10.0\ERP.WEB.Domain.deps.json
+C:\Users\Kathia\source\repos\ERP.Web.API\ERP.WEB.Domain\bin\Debug\net10.0\ERP.WEB.Domain.dll
+C:\Users\Kathia\source\repos\ERP.Web.API\ERP.WEB.Domain\bin\Debug\net10.0\ERP.WEB.Domain.pdb
+C:\Users\Kathia\source\repos\ERP.Web.API\ERP.WEB.Domain\obj\Debug\net10.0\ERP.WEB.Domain.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Kathia\source\repos\ERP.Web.API\ERP.WEB.Domain\obj\Debug\net10.0\ERP.WEB.Domain.AssemblyInfoInputs.cache
+C:\Users\Kathia\source\repos\ERP.Web.API\ERP.WEB.Domain\obj\Debug\net10.0\ERP.WEB.Domain.AssemblyInfo.cs
+C:\Users\Kathia\source\repos\ERP.Web.API\ERP.WEB.Domain\obj\Debug\net10.0\ERP.WEB.Domain.csproj.CoreCompileInputs.cache
+C:\Users\Kathia\source\repos\ERP.Web.API\ERP.WEB.Domain\obj\Debug\net10.0\ERP.WEB.Domain.dll
+C:\Users\Kathia\source\repos\ERP.Web.API\ERP.WEB.Domain\obj\Debug\net10.0\refint\ERP.WEB.Domain.dll
+C:\Users\Kathia\source\repos\ERP.Web.API\ERP.WEB.Domain\obj\Debug\net10.0\ERP.WEB.Domain.pdb
+C:\Users\Kathia\source\repos\ERP.Web.API\ERP.WEB.Domain\obj\Debug\net10.0\ref\ERP.WEB.Domain.dll
