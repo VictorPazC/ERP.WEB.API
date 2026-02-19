@@ -16,10 +16,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\ERP.WEB.Application\ERP.WEB.Application.csproj" />
     <ProjectReference Include="..\ERP.WEB.Infrastructure\ERP.WEB.Infrastructure.csproj" />
   </ItemGroup>

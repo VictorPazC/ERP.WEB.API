@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "3a87zZM3f3o=",
+  "dgSpecHash": "Vy9IgC3QCs8=",
   "success": true,
-  "projectFilePath": "C:\\Users\\Kathia\\source\\repos\\ERP.Web.API\\ERP.WEB.Application\\ERP.WEB.Application.csproj",
+  "projectFilePath": "C:\\Users\\Kathia\\Documents\\GitHub\\ERP.WEB.API\\ERP.Web.API\\ERP.WEB.Application\\ERP.WEB.Application.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Kathia\\.nuget\\packages\\mediatr\\14.0.0\\mediatr.14.0.0.nupkg.sha512",
     "C:\\Users\\Kathia\\.nuget\\packages\\mediatr.contracts\\2.0.1\\mediatr.contracts.2.0.1.nupkg.sha512",

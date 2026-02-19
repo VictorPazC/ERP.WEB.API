@@ -30,12 +30,20 @@ namespace ERP.WEB.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CategoryId"));
 
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<int?>("ParentCategoryId")
+                        .HasColumnType("int");
+
                     b.HasKey("CategoryId");
+
+                    b.HasIndex("ParentCategoryId");
 
                     b.ToTable("Categories");
                 });
@@ -87,6 +95,16 @@ namespace ERP.WEB.Infrastructure.Migrations
                     b.ToTable("Products");
                 });
 
+            modelBuilder.Entity("ERP.WEB.Domain.Entities.Category", b =>
+                {
+                    b.HasOne("ERP.WEB.Domain.Entities.Category", "ParentCategory")
+                        .WithMany("SubCategories")
+                        .HasForeignKey("ParentCategoryId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("ParentCategory");
+                });
+
             modelBuilder.Entity("ERP.WEB.Domain.Entities.Product", b =>
                 {
                     b.HasOne("ERP.WEB.Domain.Entities.Category", "Category")
@@ -100,6 +118,8 @@ namespace ERP.WEB.Infrastructure.Migrations
             modelBuilder.Entity("ERP.WEB.Domain.Entities.Category", b =>
                 {
                     b.Navigation("Products");
+
+                    b.Navigation("SubCategories");
                 });
 #pragma warning restore 612, 618
         }

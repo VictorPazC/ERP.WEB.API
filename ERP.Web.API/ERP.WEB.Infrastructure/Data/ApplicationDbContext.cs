@@ -31,6 +31,12 @@ public class ApplicationDbContext : DbContext
         {
             entity.HasKey(e => e.CategoryId);
             entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+            
+            // Configuración de la relación jerárquica (self-referencing)
+            entity.HasOne(e => e.ParentCategory)
+                  .WithMany(c => c.SubCategories)
+                  .HasForeignKey(e => e.ParentCategoryId)
+                  .OnDelete(DeleteBehavior.Restrict); // Evita eliminar si tiene subcategorías
         });
     }
 }

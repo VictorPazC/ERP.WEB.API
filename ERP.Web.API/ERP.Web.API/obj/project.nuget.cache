@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "FFf3eAF2u5g=",
+  "dgSpecHash": "muYLQhrG2uA=",
   "success": true,
-  "projectFilePath": "C:\\Users\\Kathia\\source\\repos\\ERP.Web.API\\ERP.Web.API\\ERP.Web.API.csproj",
+  "projectFilePath": "C:\\Users\\Kathia\\Documents\\GitHub\\ERP.WEB.API\\ERP.Web.API\\ERP.Web.API\\ERP.Web.API.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Kathia\\.nuget\\packages\\azure.core\\1.47.1\\azure.core.1.47.1.nupkg.sha512",
     "C:\\Users\\Kathia\\.nuget\\packages\\azure.identity\\1.14.2\\azure.identity.1.14.2.nupkg.sha512",

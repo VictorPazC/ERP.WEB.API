@@ -1,0 +1,14 @@
+﻿using ERP.WEB.Domain.Entities;
+
+namespace ERP.WEB.Domain.Interfaces;
+
+public interface ICategoryRepository
+{
+	Task<IEnumerable<Category>> GetAllAsync();
+	Task<Category?> GetByIdAsync(int id);
+	Task<IEnumerable<Category>> GetMainCategoriesAsync(); // Categorías principales (sin padre)
+	Task<IEnumerable<Category>> GetSubCategoriesAsync(int parentId); // Subcategorías de una categoría
+	Task<Category> AddAsync(Category category);
+	Task UpdateAsync(Category category);
+	Task DeleteAsync(int id);
+}

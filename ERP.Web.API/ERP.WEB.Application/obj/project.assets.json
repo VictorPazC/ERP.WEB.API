@@ -400,11 +400,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Kathia\\source\\repos\\ERP.Web.API\\ERP.WEB.Application\\ERP.WEB.Application.csproj",
+      "projectUniqueName": "C:\\Users\\Kathia\\Documents\\GitHub\\ERP.WEB.API\\ERP.Web.API\\ERP.WEB.Application\\ERP.WEB.Application.csproj",
       "projectName": "ERP.WEB.Application",
-      "projectPath": "C:\\Users\\Kathia\\source\\repos\\ERP.Web.API\\ERP.WEB.Application\\ERP.WEB.Application.csproj",
+      "projectPath": "C:\\Users\\Kathia\\Documents\\GitHub\\ERP.WEB.API\\ERP.Web.API\\ERP.WEB.Application\\ERP.WEB.Application.csproj",
       "packagesPath": "C:\\Users\\Kathia\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Kathia\\source\\repos\\ERP.Web.API\\ERP.WEB.Application\\obj\\",
+      "outputPath": "C:\\Users\\Kathia\\Documents\\GitHub\\ERP.WEB.API\\ERP.Web.API\\ERP.WEB.Application\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -426,8 +426,8 @@
         "net10.0": {
           "targetAlias": "net10.0",
           "projectReferences": {
-            "C:\\Users\\Kathia\\source\\repos\\ERP.Web.API\\ERP.WEB.Domain\\ERP.WEB.Domain.csproj": {
-              "projectPath": "C:\\Users\\Kathia\\source\\repos\\ERP.Web.API\\ERP.WEB.Domain\\ERP.WEB.Domain.csproj"
+            "C:\\Users\\Kathia\\Documents\\GitHub\\ERP.WEB.API\\ERP.Web.API\\ERP.WEB.Domain\\ERP.WEB.Domain.csproj": {
+              "projectPath": "C:\\Users\\Kathia\\Documents\\GitHub\\ERP.WEB.API\\ERP.Web.API\\ERP.WEB.Domain\\ERP.WEB.Domain.csproj"
             }
           }
         }
