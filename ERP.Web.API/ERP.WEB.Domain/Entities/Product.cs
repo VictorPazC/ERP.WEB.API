@@ -33,4 +33,12 @@ public class Product
 
     [ForeignKey(nameof(CategoryId))]
     public Category? Category { get; set; }
+
+    public Inventory? Inventory { get; set; }
+
+    public ICollection<Tag> Tags { get; set; } = new List<Tag>();
+
+    public ICollection<Promotion> Promotions { get; set; } = new List<Promotion>();
+
+    public ICollection<ProductImage> Images { get; set; } = new List<ProductImage>();
 }

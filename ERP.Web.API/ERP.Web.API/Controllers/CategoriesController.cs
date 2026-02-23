@@ -6,7 +6,7 @@ using ERP.WEB.Application.Features.Categories.Queries.GetAllCategories;
 using ERP.WEB.Application.Features.Categories.Queries.GetCategoryById;
 using ERP.WEB.Application.Features.Categories.Queries.GetMainCategories;
 using ERP.WEB.Application.Features.Categories.Queries.GetSubCategories;
-using MediatR;
+using Mediator;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ERP.Web.API.Controllers;

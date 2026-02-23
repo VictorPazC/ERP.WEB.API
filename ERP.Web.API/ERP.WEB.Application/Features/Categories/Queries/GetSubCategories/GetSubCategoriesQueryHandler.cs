@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using ERP.WEB.Application.DTOs;
 using ERP.WEB.Domain.Interfaces;
-using MediatR;
+using Mediator;
 
 namespace ERP.WEB.Application.Features.Categories.Queries.GetSubCategories;
 
@@ -16,10 +13,10 @@ public class GetSubCategoriesQueryHandler : IRequestHandler<GetSubCategoriesQuer
         _repository = repository;
     }
 
-    public async Task<IEnumerable<CategoryDto>> Handle(GetSubCategoriesQuery request, CancellationToken cancellationToken)
+    public async ValueTask<IEnumerable<CategoryDto>> Handle(GetSubCategoriesQuery request, CancellationToken cancellationToken)
     {
         var categories = await _repository.GetSubCategoriesAsync(request.ParentCategoryId);
-        
+
         return categories.Select(c => new CategoryDto(
             c.CategoryId,
             c.Name,

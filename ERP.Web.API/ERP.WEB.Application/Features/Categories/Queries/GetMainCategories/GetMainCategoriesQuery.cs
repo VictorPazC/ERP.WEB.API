@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using ERP.WEB.Application.DTOs;
-using MediatR;
+using Mediator;
 
 namespace ERP.WEB.Application.Features.Categories.Queries.GetMainCategories;
 

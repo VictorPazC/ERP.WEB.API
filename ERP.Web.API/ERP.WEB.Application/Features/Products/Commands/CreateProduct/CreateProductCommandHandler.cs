@@ -1,6 +1,5 @@
 using ERP.WEB.Application.DTOs;
-
-using MediatR;
+using Mediator;
 using ERP.WEB.Application.Features.Products.Commands.CreateProduct;
 using ERP.WEB.Domain.Entities;
 using ERP.WEB.Domain.Interfaces;
@@ -16,7 +15,7 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
         _repository = repository;
     }
 
-    public async Task<ProductDto> Handle(CreateProductCommand request, CancellationToken cancellationToken)
+    public async ValueTask<ProductDto> Handle(CreateProductCommand request, CancellationToken cancellationToken)
     {
         var product = new Product
         {

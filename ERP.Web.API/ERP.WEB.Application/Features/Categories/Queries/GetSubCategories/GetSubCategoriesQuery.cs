@@ -1,6 +1,5 @@
-﻿using System.Collections.Generic;
 using ERP.WEB.Application.DTOs;
-using MediatR;
+using Mediator;
 
 namespace ERP.WEB.Application.Features.Categories.Queries.GetSubCategories;
 

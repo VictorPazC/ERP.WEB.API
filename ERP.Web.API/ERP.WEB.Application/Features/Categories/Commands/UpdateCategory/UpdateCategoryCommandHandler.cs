@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using ERP.WEB.Application.DTOs;
 using ERP.WEB.Domain.Interfaces;
-using MediatR;
+using Mediator;
 
 namespace ERP.WEB.Application.Features.Categories.Commands.UpdateCategory;
 
@@ -16,10 +13,10 @@ public class UpdateCategoryCommandHandler : IRequestHandler<UpdateCategoryComman
         _repository = repository;
     }
 
-    public async Task<CategoryDto?> Handle(UpdateCategoryCommand request, CancellationToken cancellationToken)
+    public async ValueTask<CategoryDto?> Handle(UpdateCategoryCommand request, CancellationToken cancellationToken)
     {
         var category = await _repository.GetByIdAsync(request.CategoryDto.CategoryId);
-        
+
         if (category is null)
             return null;
 

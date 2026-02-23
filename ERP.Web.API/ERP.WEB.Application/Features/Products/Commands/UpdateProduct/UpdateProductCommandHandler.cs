@@ -1,7 +1,7 @@
 using ERP.WEB.Application.Features.Products.Commands.UpdateProduct;
 using ERP.WEB.Application.DTOs;
 using ERP.WEB.Domain.Interfaces;
-using MediatR;
+using Mediator;
 
 namespace ERP.WEB.Application.Features.Products.Commands.UpdateProduct;
 
@@ -14,10 +14,10 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
         _repository = repository;
     }
 
-    public async Task<ProductDto?> Handle(UpdateProductCommand request, CancellationToken cancellationToken)
+    public async ValueTask<ProductDto?> Handle(UpdateProductCommand request, CancellationToken cancellationToken)
     {
         var product = await _repository.GetByIdAsync(request.ProductDto.ProductId);
-        
+
         if (product is null)
             return null;
 

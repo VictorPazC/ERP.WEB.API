@@ -1,5 +1,5 @@
 using ERP.WEB.Domain.Interfaces;
-using MediatR;
+using Mediator;
 
 namespace ERP.WEB.Application.Features.Categories.Commands.DeleteCategory;
 
@@ -12,10 +12,10 @@ public class DeleteCategoryCommandHandler : IRequestHandler<DeleteCategoryComman
         _repository = repository;
     }
 
-    public async Task<bool> Handle(DeleteCategoryCommand request, CancellationToken cancellationToken)
+    public async ValueTask<bool> Handle(DeleteCategoryCommand request, CancellationToken cancellationToken)
     {
         var category = await _repository.GetByIdAsync(request.CategoryId);
-        
+
         if (category is null)
             return false;
 

@@ -1,6 +1,6 @@
 using ERP.WEB.Application.DTOs;
 using ERP.WEB.Domain.Interfaces;
-using MediatR;
+using Mediator;
 
 namespace ERP.WEB.Application.Features.Products.Queries.GetProductById;
 
@@ -13,10 +13,10 @@ public class GetProductByIdQueryHandler : IRequestHandler<GetProductByIdQuery, P
         _repository = repository;
     }
 
-    public async Task<ProductDto?> Handle(GetProductByIdQuery request, CancellationToken cancellationToken)
+    public async ValueTask<ProductDto?> Handle(GetProductByIdQuery request, CancellationToken cancellationToken)
     {
         var product = await _repository.GetByIdAsync(request.ProductId);
-        
+
         if (product is null)
             return null;
 

@@ -4,7 +4,7 @@ using ERP.WEB.Application.Features.Products.Commands.DeleteProduct;
 using ERP.WEB.Application.Features.Products.Commands.UpdateProduct;
 using ERP.WEB.Application.Features.Products.Queries.GetAllProducts;
 using ERP.WEB.Application.Features.Products.Queries.GetProductById;
-using MediatR;
+using Mediator;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ERP.WEB.API.Controllers;

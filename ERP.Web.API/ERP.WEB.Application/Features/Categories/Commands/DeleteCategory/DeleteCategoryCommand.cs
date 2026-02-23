@@ -1,4 +1,4 @@
-using MediatR;
+using Mediator;
 
 namespace ERP.WEB.Application.Features.Categories.Commands.DeleteCategory;
 

@@ -1,4 +1,4 @@
-using MediatR;
+using Mediator;
 
 namespace ERP.WEB.Application.Features.Products.Commands.DeleteProduct;
 

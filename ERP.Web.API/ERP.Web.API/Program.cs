@@ -1,4 +1,3 @@
-using ERP.WEB.Application.Features.Products.Queries.GetAllProducts;
 using ERP.WEB.Domain.Interfaces;
 using ERP.WEB.Infrastructure.Data;
 using ERP.WEB.Infrastructure.Repositories;
@@ -15,13 +14,16 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// MediatR
-builder.Services.AddMediatR(cfg => 
-    cfg.RegisterServicesFromAssembly(typeof(GetAllProductsQueryHandler).Assembly));
+// Mediator
+builder.Services.AddMediator();
 
 // Repositories
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+builder.Services.AddScoped<IInventoryRepository, InventoryRepository>();
+builder.Services.AddScoped<ITagRepository, TagRepository>();
+builder.Services.AddScoped<IPromotionRepository, PromotionRepository>();
+builder.Services.AddScoped<IProductImageRepository, ProductImageRepository>();
 
 var app = builder.Build();
 

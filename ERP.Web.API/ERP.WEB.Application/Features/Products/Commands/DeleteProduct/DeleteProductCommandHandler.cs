@@ -1,6 +1,6 @@
 using ERP.WEB.Application.Features.Products.Commands.DeleteProduct;
 using ERP.WEB.Domain.Interfaces;
-using MediatR;
+using Mediator;
 
 namespace ERP.WEB.Application.Features.Products.Commands.DeleteProduct;
 
@@ -13,10 +13,10 @@ public class DeleteProductCommandHandler : IRequestHandler<DeleteProductCommand,
         _repository = repository;
     }
 
-    public async Task<bool> Handle(DeleteProductCommand request, CancellationToken cancellationToken)
+    public async ValueTask<bool> Handle(DeleteProductCommand request, CancellationToken cancellationToken)
     {
         var product = await _repository.GetByIdAsync(request.ProductId);
-        
+
         if (product is null)
             return false;
 
