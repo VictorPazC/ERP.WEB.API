@@ -202,7 +202,11 @@
       "Bash(xargs:*)",
       "Bash(dotnet build:*)",
       "Bash(dotnet:*)",
-      "Bash(winget install:*)"
+      "Bash(winget install:*)",
+      "Bash(timeout:*)",
+      "Bash(ping:*)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)"
     ]
   }
 }

@@ -14,8 +14,11 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Mediator
-builder.Services.AddMediator();
+// Mediator (Scoped lifetime so handlers can consume scoped DbContext/repositories)
+builder.Services.AddMediator(options =>
+{
+    options.ServiceLifetime = ServiceLifetime.Scoped;
+});
 
 // Repositories
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
