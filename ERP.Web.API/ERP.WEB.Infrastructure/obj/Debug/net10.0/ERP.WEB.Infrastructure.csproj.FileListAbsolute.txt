@@ -50,3 +50,4 @@ C:\Users\vpaz1\Desktop\ERP.WEB.API\ERP.Web.API\ERP.WEB.Infrastructure\obj\Debug\
 C:\Users\vpaz1\Desktop\ERP.WEB.API\ERP.Web.API\ERP.WEB.Infrastructure\obj\Debug\net10.0\ERP.WEB.Infrastructure.pdb
 C:\Users\vpaz1\Desktop\ERP.WEB.API\ERP.Web.API\ERP.WEB.Infrastructure\obj\Debug\net10.0\ERP.WEB.Infrastructure.genruntimeconfig.cache
 C:\Users\vpaz1\Desktop\ERP.WEB.API\ERP.Web.API\ERP.WEB.Infrastructure\obj\Debug\net10.0\ref\ERP.WEB.Infrastructure.dll
+C:\Users\Kathia\Documents\GitHub\ERP.WEB.API\ERP.Web.API\ERP.WEB.Infrastructure\obj\Debug\net10.0\ERP.WEB.Infrastructure.sourcelink.json

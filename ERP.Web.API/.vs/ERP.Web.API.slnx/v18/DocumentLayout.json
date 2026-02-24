@@ -3,32 +3,16 @@
   "WorkspaceRootPath": "C:\\Users\\Kathia\\Documents\\GitHub\\ERP.WEB.API\\ERP.Web.API\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Kathia\\Documents\\GitHub\\ERP.WEB.API\\ERP.Web.API\\ERP.WEB.Infrastructure\\Migrations\\20260219043736_AddCategoryHierarchy.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:ERP.WEB.Infrastructure\\Migrations\\20260219043736_AddCategoryHierarchy.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{32604253-6AEF-B114-FC33-45FC8D4697D1}|ERP.Web.API\\ERP.Web.API.csproj|c:\\users\\kathia\\documents\\github\\erp.web.api\\erp.web.api\\erp.web.api\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{32604253-6AEF-B114-FC33-45FC8D4697D1}|ERP.Web.API\\ERP.Web.API.csproj|solutionrelative:erp.web.api\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{32604253-6AEF-B114-FC33-45FC8D4697D1}|ERP.Web.API\\ERP.Web.API.csproj|c:\\users\\kathia\\documents\\github\\erp.web.api\\erp.web.api\\erp.web.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{32604253-6AEF-B114-FC33-45FC8D4697D1}|ERP.Web.API\\ERP.Web.API.csproj|solutionrelative:erp.web.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{32604253-6AEF-B114-FC33-45FC8D4697D1}|ERP.Web.API\\ERP.Web.API.csproj|c:\\users\\kathia\\documents\\github\\erp.web.api\\erp.web.api\\erp.web.api\\controllers\\categoriescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{32604253-6AEF-B114-FC33-45FC8D4697D1}|ERP.Web.API\\ERP.Web.API.csproj|solutionrelative:erp.web.api\\controllers\\categoriescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{5C6FCD5A-8D29-01B7-FB1F-16AA0B9721D8}|ERP.WEB.Infrastructure\\ERP.WEB.Infrastructure.csproj|c:\\users\\kathia\\documents\\github\\erp.web.api\\erp.web.api\\erp.web.infrastructure\\data\\applicationdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{5C6FCD5A-8D29-01B7-FB1F-16AA0B9721D8}|ERP.WEB.Infrastructure\\ERP.WEB.Infrastructure.csproj|solutionrelative:erp.web.infrastructure\\data\\applicationdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{5C6FCD5A-8D29-01B7-FB1F-16AA0B9721D8}|ERP.WEB.Infrastructure\\ERP.WEB.Infrastructure.csproj|c:\\users\\kathia\\documents\\github\\erp.web.api\\erp.web.api\\erp.web.infrastructure\\repositories\\categoryrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{5C6FCD5A-8D29-01B7-FB1F-16AA0B9721D8}|ERP.WEB.Infrastructure\\ERP.WEB.Infrastructure.csproj|solutionrelative:erp.web.infrastructure\\repositories\\categoryrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{98009C49-CE8C-FF6E-1838-D0BC312AAE48}|ERP.WEB.Application\\ERP.WEB.Application.csproj|c:\\users\\kathia\\documents\\github\\erp.web.api\\erp.web.api\\erp.web.application\\features\\categories\\commands\\deletecategory\\deletecategorycommandhandler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{98009C49-CE8C-FF6E-1838-D0BC312AAE48}|ERP.WEB.Application\\ERP.WEB.Application.csproj|solutionrelative:erp.web.application\\features\\categories\\commands\\deletecategory\\deletecategorycommandhandler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{98009C49-CE8C-FF6E-1838-D0BC312AAE48}|ERP.WEB.Application\\ERP.WEB.Application.csproj|c:\\users\\kathia\\documents\\github\\erp.web.api\\erp.web.api\\erp.web.application\\features\\categories\\commands\\deletecategory\\deletecategorycommand.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{98009C49-CE8C-FF6E-1838-D0BC312AAE48}|ERP.WEB.Application\\ERP.WEB.Application.csproj|solutionrelative:erp.web.application\\features\\categories\\commands\\deletecategory\\deletecategorycommand.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Kathia\\Documents\\GitHub\\ERP.WEB.API\\ERP.Web.API\\ERP.WEB.Infrastructure\\Migrations\\20260224022341_AllTables.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:ERP.WEB.Infrastructure\\Migrations\\20260224022341_AllTables.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -43,14 +27,27 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "20260219043736_AddCategoryHierarchy.cs",
-              "DocumentMoniker": "C:\\Users\\Kathia\\Documents\\GitHub\\ERP.WEB.API\\ERP.Web.API\\ERP.WEB.Infrastructure\\Migrations\\20260219043736_AddCategoryHierarchy.cs",
-              "RelativeDocumentMoniker": "ERP.WEB.Infrastructure\\Migrations\\20260219043736_AddCategoryHierarchy.cs",
-              "ToolTip": "C:\\Users\\Kathia\\Documents\\GitHub\\ERP.WEB.API\\ERP.Web.API\\ERP.WEB.Infrastructure\\Migrations\\20260219043736_AddCategoryHierarchy.cs",
-              "RelativeToolTip": "ERP.WEB.Infrastructure\\Migrations\\20260219043736_AddCategoryHierarchy.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAkAAAAAAAAAA==",
+              "Title": "appsettings.json",
+              "DocumentMoniker": "C:\\Users\\Kathia\\Documents\\GitHub\\ERP.WEB.API\\ERP.Web.API\\ERP.Web.API\\appsettings.json",
+              "RelativeDocumentMoniker": "ERP.Web.API\\appsettings.json",
+              "ToolTip": "C:\\Users\\Kathia\\Documents\\GitHub\\ERP.WEB.API\\ERP.Web.API\\ERP.Web.API\\appsettings.json",
+              "RelativeToolTip": "ERP.Web.API\\appsettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAEAAAAaAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2026-02-24T02:24:28.854Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "20260224022341_AllTables.cs",
+              "DocumentMoniker": "C:\\Users\\Kathia\\Documents\\GitHub\\ERP.WEB.API\\ERP.Web.API\\ERP.WEB.Infrastructure\\Migrations\\20260224022341_AllTables.cs",
+              "RelativeDocumentMoniker": "ERP.WEB.Infrastructure\\Migrations\\20260224022341_AllTables.cs",
+              "ToolTip": "C:\\Users\\Kathia\\Documents\\GitHub\\ERP.WEB.API\\ERP.Web.API\\ERP.WEB.Infrastructure\\Migrations\\20260224022341_AllTables.cs",
+              "RelativeToolTip": "ERP.WEB.Infrastructure\\Migrations\\20260224022341_AllTables.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-02-19T04:37:36.749Z",
+              "WhenOpened": "2026-02-24T02:23:41.696Z",
               "EditorCaption": ""
             },
             {
@@ -61,74 +58,9 @@
               "RelativeDocumentMoniker": "ERP.Web.API\\Program.cs",
               "ToolTip": "C:\\Users\\Kathia\\Documents\\GitHub\\ERP.WEB.API\\ERP.Web.API\\ERP.Web.API\\Program.cs",
               "RelativeToolTip": "ERP.Web.API\\Program.cs",
-              "ViewState": "AgIAAAcAAAAAAAAAAAAMwAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-02-19T04:37:03.642Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "CategoriesController.cs",
-              "DocumentMoniker": "C:\\Users\\Kathia\\Documents\\GitHub\\ERP.WEB.API\\ERP.Web.API\\ERP.Web.API\\Controllers\\CategoriesController.cs",
-              "RelativeDocumentMoniker": "ERP.Web.API\\Controllers\\CategoriesController.cs",
-              "ToolTip": "C:\\Users\\Kathia\\Documents\\GitHub\\ERP.WEB.API\\ERP.Web.API\\ERP.Web.API\\Controllers\\CategoriesController.cs",
-              "RelativeToolTip": "ERP.Web.API\\Controllers\\CategoriesController.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAFcAAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-02-19T04:36:54.785Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "ApplicationDbContext.cs",
-              "DocumentMoniker": "C:\\Users\\Kathia\\Documents\\GitHub\\ERP.WEB.API\\ERP.Web.API\\ERP.WEB.Infrastructure\\Data\\ApplicationDbContext.cs",
-              "RelativeDocumentMoniker": "ERP.WEB.Infrastructure\\Data\\ApplicationDbContext.cs",
-              "ToolTip": "C:\\Users\\Kathia\\Documents\\GitHub\\ERP.WEB.API\\ERP.Web.API\\ERP.WEB.Infrastructure\\Data\\ApplicationDbContext.cs",
-              "RelativeToolTip": "ERP.WEB.Infrastructure\\Data\\ApplicationDbContext.cs",
-              "ViewState": "AgIAABEAAAAAAAAAAAAMwAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-02-19T04:36:19.434Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "CategoryRepository.cs",
-              "DocumentMoniker": "C:\\Users\\Kathia\\Documents\\GitHub\\ERP.WEB.API\\ERP.Web.API\\ERP.WEB.Infrastructure\\Repositories\\CategoryRepository.cs",
-              "RelativeDocumentMoniker": "ERP.WEB.Infrastructure\\Repositories\\CategoryRepository.cs",
-              "ToolTip": "C:\\Users\\Kathia\\Documents\\GitHub\\ERP.WEB.API\\ERP.Web.API\\ERP.WEB.Infrastructure\\Repositories\\CategoryRepository.cs",
-              "RelativeToolTip": "ERP.WEB.Infrastructure\\Repositories\\CategoryRepository.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-02-19T04:35:52.228Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "DeleteCategoryCommandHandler.cs",
-              "DocumentMoniker": "C:\\Users\\Kathia\\Documents\\GitHub\\ERP.WEB.API\\ERP.Web.API\\ERP.WEB.Application\\Features\\Categories\\Commands\\DeleteCategory\\DeleteCategoryCommandHandler.cs",
-              "RelativeDocumentMoniker": "ERP.WEB.Application\\Features\\Categories\\Commands\\DeleteCategory\\DeleteCategoryCommandHandler.cs",
-              "ToolTip": "C:\\Users\\Kathia\\Documents\\GitHub\\ERP.WEB.API\\ERP.Web.API\\ERP.WEB.Application\\Features\\Categories\\Commands\\DeleteCategory\\DeleteCategoryCommandHandler.cs",
-              "RelativeToolTip": "ERP.WEB.Application\\Features\\Categories\\Commands\\DeleteCategory\\DeleteCategoryCommandHandler.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABgAAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-02-19T04:35:15.663Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 6,
-              "Title": "DeleteCategoryCommand.cs",
-              "DocumentMoniker": "C:\\Users\\Kathia\\Documents\\GitHub\\ERP.WEB.API\\ERP.Web.API\\ERP.WEB.Application\\Features\\Categories\\Commands\\DeleteCategory\\DeleteCategoryCommand.cs",
-              "RelativeDocumentMoniker": "ERP.WEB.Application\\Features\\Categories\\Commands\\DeleteCategory\\DeleteCategoryCommand.cs",
-              "ToolTip": "C:\\Users\\Kathia\\Documents\\GitHub\\ERP.WEB.API\\ERP.Web.API\\ERP.WEB.Application\\Features\\Categories\\Commands\\DeleteCategory\\DeleteCategoryCommand.cs",
-              "RelativeToolTip": "ERP.WEB.Application\\Features\\Categories\\Commands\\DeleteCategory\\DeleteCategoryCommand.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAQAAABFAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-02-19T04:35:05.226Z",
+              "WhenOpened": "2026-02-24T02:00:18.999Z",
               "EditorCaption": ""
             }
           ]

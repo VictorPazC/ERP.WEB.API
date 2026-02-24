@@ -177,8 +177,6 @@ C:\Users\Kathia\Documents\GitHub\ERP.WEB.API\ERP.Web.API\ERP.Web.API\bin\Debug\n
 C:\Users\Kathia\Documents\GitHub\ERP.WEB.API\ERP.Web.API\ERP.Web.API\bin\Debug\net10.0\Azure.Core.dll
 C:\Users\Kathia\Documents\GitHub\ERP.WEB.API\ERP.Web.API\ERP.Web.API\bin\Debug\net10.0\Azure.Identity.dll
 C:\Users\Kathia\Documents\GitHub\ERP.WEB.API\ERP.Web.API\ERP.Web.API\bin\Debug\net10.0\Humanizer.dll
-C:\Users\Kathia\Documents\GitHub\ERP.WEB.API\ERP.Web.API\ERP.Web.API\bin\Debug\net10.0\MediatR.dll
-C:\Users\Kathia\Documents\GitHub\ERP.WEB.API\ERP.Web.API\ERP.Web.API\bin\Debug\net10.0\MediatR.Contracts.dll
 C:\Users\Kathia\Documents\GitHub\ERP.WEB.API\ERP.Web.API\ERP.Web.API\bin\Debug\net10.0\Microsoft.AspNetCore.OpenApi.dll
 C:\Users\Kathia\Documents\GitHub\ERP.WEB.API\ERP.Web.API\ERP.Web.API\bin\Debug\net10.0\Microsoft.Bcl.AsyncInterfaces.dll
 C:\Users\Kathia\Documents\GitHub\ERP.WEB.API\ERP.Web.API\ERP.Web.API\bin\Debug\net10.0\Microsoft.Bcl.Cryptography.dll
@@ -329,7 +327,6 @@ C:\Users\Kathia\Documents\GitHub\ERP.WEB.API\ERP.Web.API\ERP.Web.API\obj\Debug\n
 C:\Users\Kathia\Documents\GitHub\ERP.WEB.API\ERP.Web.API\ERP.Web.API\obj\Debug\net10.0\staticwebassets.development.json
 C:\Users\Kathia\Documents\GitHub\ERP.WEB.API\ERP.Web.API\ERP.Web.API\obj\Debug\net10.0\staticwebassets.build.endpoints.json
 C:\Users\Kathia\Documents\GitHub\ERP.WEB.API\ERP.Web.API\ERP.Web.API\obj\Debug\net10.0\swae.build.ex.cache
-C:\Users\Kathia\Documents\GitHub\ERP.WEB.API\ERP.Web.API\ERP.Web.API\obj\Debug\net10.0\staticwebassets.upToDateCheck.txt
 C:\Users\Kathia\Documents\GitHub\ERP.WEB.API\ERP.Web.API\ERP.Web.API\obj\Debug\net10.0\ERP.Web..1AA6500B.Up2Date
 C:\Users\Kathia\Documents\GitHub\ERP.WEB.API\ERP.Web.API\ERP.Web.API\obj\Debug\net10.0\ERP.Web.API.dll
 C:\Users\Kathia\Documents\GitHub\ERP.WEB.API\ERP.Web.API\ERP.Web.API\obj\Debug\net10.0\refint\ERP.Web.API.dll
@@ -506,3 +503,9 @@ C:\Users\vpaz1\Desktop\ERP.WEB.API\ERP.Web.API\ERP.Web.API\obj\Debug\net10.0\ref
 C:\Users\vpaz1\Desktop\ERP.WEB.API\ERP.Web.API\ERP.Web.API\obj\Debug\net10.0\ERP.Web.API.pdb
 C:\Users\vpaz1\Desktop\ERP.WEB.API\ERP.Web.API\ERP.Web.API\obj\Debug\net10.0\ERP.Web.API.genruntimeconfig.cache
 C:\Users\vpaz1\Desktop\ERP.WEB.API\ERP.Web.API\ERP.Web.API\obj\Debug\net10.0\ref\ERP.Web.API.dll
+C:\Users\Kathia\Documents\GitHub\ERP.WEB.API\ERP.Web.API\ERP.Web.API\bin\Debug\net10.0\Mapster.dll
+C:\Users\Kathia\Documents\GitHub\ERP.WEB.API\ERP.Web.API\ERP.Web.API\bin\Debug\net10.0\Mapster.Core.dll
+C:\Users\Kathia\Documents\GitHub\ERP.WEB.API\ERP.Web.API\ERP.Web.API\bin\Debug\net10.0\Mediator.dll
+C:\Users\Kathia\Documents\GitHub\ERP.WEB.API\ERP.Web.API\ERP.Web.API\obj\Debug\net10.0\ERP.Web.API.sourcelink.json
+C:\Users\Kathia\Documents\GitHub\ERP.WEB.API\ERP.Web.API\ERP.Web.API\bin\Debug\net10.0\dotnet-tools.json
+C:\Users\Kathia\Documents\GitHub\ERP.WEB.API\ERP.Web.API\ERP.Web.API\obj\Debug\net10.0\staticwebassets.upToDateCheck.txt

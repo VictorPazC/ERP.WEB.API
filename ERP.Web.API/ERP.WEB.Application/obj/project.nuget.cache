@@ -1,15 +1,15 @@
 {
   "version": 2,
-  "dgSpecHash": "yO9wxi0AClQ=",
+  "dgSpecHash": "lQHf0OmFbYY=",
   "success": true,
-  "projectFilePath": "C:\\Users\\vpaz1\\Desktop\\ERP.WEB.API\\ERP.Web.API\\ERP.WEB.Application\\ERP.WEB.Application.csproj",
+  "projectFilePath": "C:\\Users\\Kathia\\Documents\\GitHub\\ERP.WEB.API\\ERP.Web.API\\ERP.WEB.Application\\ERP.WEB.Application.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\vpaz1\\.nuget\\packages\\mapster\\7.4.0\\mapster.7.4.0.nupkg.sha512",
-    "C:\\Users\\vpaz1\\.nuget\\packages\\mapster.core\\1.2.1\\mapster.core.1.2.1.nupkg.sha512",
-    "C:\\Users\\vpaz1\\.nuget\\packages\\mediator.abstractions\\3.0.1\\mediator.abstractions.3.0.1.nupkg.sha512",
-    "C:\\Users\\vpaz1\\.nuget\\packages\\mediator.sourcegenerator\\3.0.1\\mediator.sourcegenerator.3.0.1.nupkg.sha512",
-    "C:\\Users\\vpaz1\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\8.0.0\\microsoft.extensions.dependencyinjection.abstractions.8.0.0.nupkg.sha512",
-    "C:\\Users\\vpaz1\\.nuget\\packages\\scriban\\6.2.0\\scriban.6.2.0.nupkg.sha512"
+    "C:\\Users\\Kathia\\.nuget\\packages\\mapster\\7.4.0\\mapster.7.4.0.nupkg.sha512",
+    "C:\\Users\\Kathia\\.nuget\\packages\\mapster.core\\1.2.1\\mapster.core.1.2.1.nupkg.sha512",
+    "C:\\Users\\Kathia\\.nuget\\packages\\mediator.abstractions\\3.0.1\\mediator.abstractions.3.0.1.nupkg.sha512",
+    "C:\\Users\\Kathia\\.nuget\\packages\\mediator.sourcegenerator\\3.0.1\\mediator.sourcegenerator.3.0.1.nupkg.sha512",
+    "C:\\Users\\Kathia\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\8.0.0\\microsoft.extensions.dependencyinjection.abstractions.8.0.0.nupkg.sha512",
+    "C:\\Users\\Kathia\\.nuget\\packages\\scriban\\6.2.0\\scriban.6.2.0.nupkg.sha512"
   ],
   "logs": []
 }
