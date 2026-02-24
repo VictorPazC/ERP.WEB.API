@@ -198,7 +198,11 @@
       "Bash(powershell.exe -Command \"Get-ChildItem ''C:\\\\Users\\\\vpaz1\\\\Desktop\\\\ERP.WEB.API\\\\ERP.Web.API\\\\ERP.Web.API''\")",
       "Bash(powershell.exe:*)",
       "Bash(npx tsc:*)",
-      "Bash(npx vite build:*)"
+      "Bash(npx vite build:*)",
+      "Bash(xargs:*)",
+      "Bash(dotnet build:*)",
+      "Bash(dotnet:*)",
+      "Bash(winget install:*)"
     ]
   }
 }
