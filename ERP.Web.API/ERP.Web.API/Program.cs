@@ -27,6 +27,8 @@ builder.Services.AddScoped<IInventoryRepository, InventoryRepository>();
 builder.Services.AddScoped<ITagRepository, TagRepository>();
 builder.Services.AddScoped<IPromotionRepository, PromotionRepository>();
 builder.Services.AddScoped<IProductImageRepository, ProductImageRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IConsumptionRepository, ConsumptionRepository>();
 
 // CORS
 builder.Services.AddCors(options =>
@@ -47,6 +49,10 @@ app.UseSwaggerUI();
 
 
 app.UseCors("AllowReact");
+
+// Serve uploaded images from wwwroot
+app.UseStaticFiles();
+
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();

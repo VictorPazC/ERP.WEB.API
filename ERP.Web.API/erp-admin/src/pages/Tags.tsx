@@ -40,7 +40,7 @@ function TagForm({ initial, onSave, onClose }: {
     <form onSubmit={handleSubmit} className="space-y-4">
       <FormField label="Tag Name *" value={tagName} onChange={e => setTagName(e.target.value)} placeholder="e.g. Bestseller, New Arrival" required />
       <div className="flex gap-3 pt-2">
-        <button type="button" onClick={onClose} className="flex-1 px-4 py-2.5 border border-gray-700/60 rounded-xl text-gray-300 hover:bg-white/5 transition-colors text-sm font-medium">Cancel</button>
+        <button type="button" onClick={onClose} className="flex-1 px-4 py-2.5 border border-gray-300 dark:border-gray-700/60 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors text-sm font-medium">Cancel</button>
         <button type="submit" disabled={loading} className="flex-1 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-white font-medium transition-colors text-sm disabled:opacity-50">
           {loading ? 'Saving...' : initial ? 'Update' : 'Create'}
         </button>
@@ -77,21 +77,21 @@ export default function Tags() {
           </button>
         }
       />
-      <div className="p-8">
+      <div className="p-4 sm:p-6 lg:p-8">
         {isLoading ? <LoadingSpinner /> : tags?.length === 0 ? (
           <EmptyState icon={TagIcon} title="No tags yet" description="Create tags to label and group your products" />
         ) : (
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-2 sm:gap-3">
             {tags?.map(tag => (
-              <div key={tag.tagId} className="flex items-center gap-2.5 bg-gray-900/60 border border-gray-800/60 rounded-xl px-4 py-3 hover:border-indigo-500/30 transition-all duration-200 group">
+              <div key={tag.tagId} className="flex items-center gap-2 sm:gap-2.5 bg-white dark:bg-gray-900/60 border border-gray-200 dark:border-gray-800/60 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 hover:border-indigo-500/30 transition-all duration-200 group">
                 <div className="p-1.5 bg-indigo-500/10 rounded-lg">
-                  <TagIcon size={13} className="text-indigo-400" />
+                  <TagIcon size={13} className="text-indigo-500 dark:text-indigo-400" />
                 </div>
-                <span className="text-sm font-medium text-white">{tag.tagName}</span>
+                <span className="text-sm font-medium text-gray-900 dark:text-white">{tag.tagName}</span>
                 <Badge color="gray">{tag.productsCount}</Badge>
-                <div className="flex gap-1 ml-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button onClick={() => { setSelected(tag); setModal('edit'); }} className="p-1 rounded-lg text-gray-600 hover:text-white hover:bg-white/10 transition-colors"><Pencil size={12} /></button>
-                  <button onClick={() => setDeleting(tag)} className="p-1 rounded-lg text-gray-600 hover:text-red-400 hover:bg-red-500/10 transition-colors"><Trash2 size={12} /></button>
+                <div className="flex gap-1 ml-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                  <button onClick={() => { setSelected(tag); setModal('edit'); }} className="p-1 rounded-lg text-gray-400 dark:text-gray-600 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"><Pencil size={12} /></button>
+                  <button onClick={() => setDeleting(tag)} className="p-1 rounded-lg text-gray-400 dark:text-gray-600 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-500/10 transition-colors"><Trash2 size={12} /></button>
                 </div>
               </div>
             ))}

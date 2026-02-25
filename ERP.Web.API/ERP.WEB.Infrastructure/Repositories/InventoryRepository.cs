@@ -18,6 +18,7 @@ public class InventoryRepository : IInventoryRepository
     {
         return await _context.Inventories
             .Include(i => i.Product)
+                .ThenInclude(p => p!.Category)
             .ToListAsync();
     }
 
@@ -25,6 +26,7 @@ public class InventoryRepository : IInventoryRepository
     {
         return await _context.Inventories
             .Include(i => i.Product)
+                .ThenInclude(p => p!.Category)
             .FirstOrDefaultAsync(i => i.InventoryId == id);
     }
 
@@ -32,6 +34,7 @@ public class InventoryRepository : IInventoryRepository
     {
         return await _context.Inventories
             .Include(i => i.Product)
+                .ThenInclude(p => p!.Category)
             .FirstOrDefaultAsync(i => i.ProductId == productId);
     }
 

@@ -145,3 +145,55 @@ export interface UpdateProductImageDto {
   isPrimary: boolean;
   displayOrder: number;
 }
+
+export interface User {
+  userId: number;
+  name: string;
+  email: string;
+  role: string;
+  status: string;
+  createdAt: string;
+}
+
+export interface CreateUserDto {
+  name: string;
+  email: string;
+  role: string;
+}
+
+export interface UpdateUserDto {
+  userId: number;
+  name: string;
+  email: string;
+  role: string;
+  status: string;
+}
+
+export interface AvailableArticle {
+  inventoryId: number;
+  productId: number;
+  productName: string;
+  categoryName?: string;
+  categoryId: number;
+  purchaseCost: number;
+  suggestedRetailPrice: number;
+  currentStock: number;
+}
+
+export interface Consumption {
+  consumptionId: number;
+  inventoryId: number;
+  productId: number;
+  productName?: string;
+  categoryName?: string;
+  quantity: number;
+  consumedAt: string;
+  notes?: string;
+}
+
+export interface CreateConsumptionDto {
+  inventoryId: number;
+  quantity: number;
+  consumedAt: string;
+  notes?: string;
+}

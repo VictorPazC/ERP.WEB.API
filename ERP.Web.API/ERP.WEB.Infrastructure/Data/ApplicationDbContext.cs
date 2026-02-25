@@ -15,6 +15,8 @@ public class ApplicationDbContext : DbContext
     public DbSet<Tag> Tags => Set<Tag>();
     public DbSet<Promotion> Promotions => Set<Promotion>();
     public DbSet<ProductImage> ProductImages => Set<ProductImage>();
+    public DbSet<User> Users => Set<User>();
+    public DbSet<Consumption> Consumptions => Set<Consumption>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -84,6 +86,26 @@ public class ApplicationDbContext : DbContext
             entity.HasOne(e => e.Product)
                   .WithMany(p => p.Images)
                   .HasForeignKey(e => e.ProductId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<User>(entity =>
+        {
+            entity.HasKey(e => e.UserId);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Email).IsRequired().HasMaxLength(200);
+            entity.HasIndex(e => e.Email).IsUnique();
+            entity.Property(e => e.Role).HasMaxLength(50).HasDefaultValue("User");
+            entity.Property(e => e.Status).HasMaxLength(50).HasDefaultValue("Active");
+        });
+
+        modelBuilder.Entity<Consumption>(entity =>
+        {
+            entity.HasKey(e => e.ConsumptionId);
+            entity.Property(e => e.Quantity).HasDefaultValue(1);
+            entity.HasOne(e => e.Inventory)
+                  .WithMany()
+                  .HasForeignKey(e => e.InventoryId)
                   .OnDelete(DeleteBehavior.Cascade);
         });
     }

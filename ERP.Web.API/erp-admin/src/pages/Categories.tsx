@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Pencil, Trash2, Layers, ChevronRight } from 'lucide-react';
+import { Plus, Pencil, Trash2, Layers, ChevronRight, ChevronDown, FolderOpen, Folder } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { categoriesApi } from '../api/categories';
 import type { Category, CreateCategoryDto, UpdateCategoryDto } from '../types';
@@ -11,6 +11,8 @@ import FormField from '../components/FormField';
 import EmptyState from '../components/EmptyState';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Badge from '../components/Badge';
+
+const selectCls = "bg-gray-100 dark:bg-gray-800/60 border border-gray-300 dark:border-gray-700/60 rounded-xl px-3.5 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 hover:border-gray-400 dark:hover:border-gray-600 transition-all";
 
 function CategoryForm({ initial, categories, onSave, onClose }: {
   initial?: Category;
@@ -46,23 +48,101 @@ function CategoryForm({ initial, categories, onSave, onClose }: {
       <FormField label="Name *" value={name} onChange={e => setName(e.target.value)} placeholder="Category name" required />
       <FormField label="Description" value={description} onChange={e => setDescription(e.target.value)} placeholder="Optional description" />
       <div className="flex flex-col gap-1.5">
-        <label className="text-sm font-medium text-gray-400">Parent Category</label>
-        <select
-          value={parentId}
-          onChange={e => setParentId(e.target.value)}
-          className="bg-gray-800/60 border border-gray-700/60 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 hover:border-gray-600 transition-all"
-        >
+        <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Parent Category</label>
+        <select value={parentId} onChange={e => setParentId(e.target.value)} className={selectCls}>
           <option value="">None (Main Category)</option>
           {available.map(c => <option key={c.categoryId} value={c.categoryId}>{c.name}</option>)}
         </select>
       </div>
       <div className="flex gap-3 pt-2">
-        <button type="button" onClick={onClose} className="flex-1 px-4 py-2.5 border border-gray-700/60 rounded-xl text-gray-300 hover:bg-white/5 transition-colors text-sm font-medium">Cancel</button>
+        <button type="button" onClick={onClose} className="flex-1 px-4 py-2.5 border border-gray-300 dark:border-gray-700/60 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors text-sm font-medium">Cancel</button>
         <button type="submit" disabled={loading} className="flex-1 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-white font-medium transition-colors text-sm disabled:opacity-50">
           {loading ? 'Saving...' : initial ? 'Update' : 'Create'}
         </button>
       </div>
     </form>
+  );
+}
+
+interface TreeNode extends Category {
+  children: TreeNode[];
+}
+
+function buildTree(categories: Category[]): TreeNode[] {
+  const map = new Map<number, TreeNode>();
+  const roots: TreeNode[] = [];
+  for (const cat of categories) map.set(cat.categoryId, { ...cat, children: [] });
+  for (const cat of categories) {
+    const node = map.get(cat.categoryId)!;
+    if (cat.parentCategoryId && map.has(cat.parentCategoryId)) {
+      map.get(cat.parentCategoryId)!.children.push(node);
+    } else {
+      roots.push(node);
+    }
+  }
+  return roots;
+}
+
+function CategoryTreeNode({ node, depth, onEdit, onDelete }: {
+  node: TreeNode;
+  depth: number;
+  onEdit: (cat: Category) => void;
+  onDelete: (cat: Category) => void;
+}) {
+  const [expanded, setExpanded] = useState(true);
+  const hasChildren = node.children.length > 0;
+
+  return (
+    <div>
+      <div
+        className={`flex items-center gap-2 px-3 sm:px-4 py-3 hover:bg-gray-50 dark:hover:bg-white/[0.03] transition-colors group border-b border-gray-100 dark:border-gray-800/40 ${depth > 0 ? 'bg-gray-50/50 dark:bg-white/[0.01]' : ''}`}
+        style={{ paddingLeft: `${12 + depth * 20}px` }}
+      >
+        <button
+          onClick={() => hasChildren && setExpanded(!expanded)}
+          className={`p-0.5 rounded transition-colors flex-shrink-0 ${hasChildren ? 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/10 cursor-pointer' : 'text-transparent cursor-default'}`}
+        >
+          {hasChildren ? (expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />) : <ChevronRight size={14} />}
+        </button>
+
+        <div className={`p-1.5 rounded-lg flex-shrink-0 ${depth === 0 ? 'bg-indigo-500/10 ring-1 ring-indigo-500/20' : 'bg-gray-200/60 dark:bg-gray-700/30 ring-1 ring-gray-300/40 dark:ring-gray-700/40'}`}>
+          {hasChildren && expanded ? (
+            <FolderOpen size={14} className={depth === 0 ? 'text-indigo-400' : 'text-gray-500 dark:text-gray-400'} />
+          ) : (
+            <Folder size={14} className={depth === 0 ? 'text-indigo-400' : 'text-gray-500 dark:text-gray-400'} />
+          )}
+        </div>
+
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <span className={`text-sm font-medium truncate ${depth === 0 ? 'text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300'}`}>
+              {node.name}
+            </span>
+            {node.description && (
+              <span className="text-xs text-gray-500 dark:text-gray-600 truncate hidden sm:inline">— {node.description}</span>
+            )}
+          </div>
+        </div>
+
+        <div className="hidden sm:flex items-center gap-2 flex-shrink-0">
+          {node.subCategoriesCount > 0 && <Badge color="indigo">{node.subCategoriesCount} sub</Badge>}
+          {node.productsCount > 0 && <Badge color="gray">{node.productsCount} products</Badge>}
+        </div>
+
+        <div className="flex gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity flex-shrink-0">
+          <button onClick={() => onEdit(node)} className="p-1.5 rounded-lg text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"><Pencil size={14} /></button>
+          <button onClick={() => onDelete(node)} className="p-1.5 rounded-lg text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-500/10 transition-colors"><Trash2 size={14} /></button>
+        </div>
+      </div>
+
+      {hasChildren && expanded && (
+        <div>
+          {node.children.map(child => (
+            <CategoryTreeNode key={child.categoryId} node={child} depth={depth + 1} onEdit={onEdit} onDelete={onDelete} />
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -73,18 +153,19 @@ export default function Categories() {
   const [deleting, setDeleting] = useState<Category | null>(null);
 
   const { data: categories, isLoading } = useQuery({ queryKey: ['categories'], queryFn: categoriesApi.getAll });
+  const tree = useMemo(() => buildTree(categories ?? []), [categories]);
 
   const createMut = useMutation({ mutationFn: (dto: CreateCategoryDto) => categoriesApi.create(dto), onSuccess: () => { qc.invalidateQueries({ queryKey: ['categories'] }); toast.success('Category created'); } });
   const updateMut = useMutation({ mutationFn: ({ id, dto }: { id: number; dto: UpdateCategoryDto }) => categoriesApi.update(id, dto), onSuccess: () => { qc.invalidateQueries({ queryKey: ['categories'] }); toast.success('Category updated'); } });
   const deleteMut = useMutation({ mutationFn: (id: number) => categoriesApi.delete(id), onSuccess: () => { qc.invalidateQueries({ queryKey: ['categories'] }); toast.success('Category deleted'); setDeleting(null); } });
 
   const handleSave = async (data: CreateCategoryDto | UpdateCategoryDto) => {
-    if (selected) {
-      await updateMut.mutateAsync({ id: selected.categoryId, dto: data as UpdateCategoryDto });
-    } else {
-      await createMut.mutateAsync(data as CreateCategoryDto);
-    }
+    if (selected) await updateMut.mutateAsync({ id: selected.categoryId, dto: data as UpdateCategoryDto });
+    else await createMut.mutateAsync(data as CreateCategoryDto);
   };
+
+  const handleEdit = (cat: Category) => { setSelected(cat); setModal('edit'); };
+  const handleDelete = (cat: Category) => setDeleting(cat);
 
   return (
     <div>
@@ -97,40 +178,22 @@ export default function Categories() {
           </button>
         }
       />
-      <div className="p-8">
+      <div className="p-4 sm:p-6 lg:p-8">
         {isLoading ? <LoadingSpinner /> : categories?.length === 0 ? (
           <EmptyState icon={Layers} title="No categories yet" description="Create your first category to get started" />
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {categories?.map(cat => (
-              <div key={cat.categoryId} className="bg-gray-900/60 border border-gray-800/60 rounded-2xl p-5 hover:border-gray-700/60 transition-all duration-200 group">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-indigo-500/10 rounded-xl ring-1 ring-indigo-500/20">
-                      <Layers size={16} className="text-indigo-400" />
-                    </div>
-                    <div>
-                      <h3 className="text-white font-semibold text-sm">{cat.name}</h3>
-                      {cat.parentCategoryName && (
-                        <div className="flex items-center gap-1 mt-0.5">
-                          <ChevronRight size={12} className="text-gray-600" />
-                          <span className="text-xs text-gray-600">{cat.parentCategoryName}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => { setSelected(cat); setModal('edit'); }} className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-white/10 transition-colors"><Pencil size={14} /></button>
-                    <button onClick={() => setDeleting(cat)} className="p-1.5 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"><Trash2 size={14} /></button>
-                  </div>
-                </div>
-                {cat.description && <p className="text-xs text-gray-600 mb-3 line-clamp-2">{cat.description}</p>}
-                <div className="flex gap-2">
-                  <Badge color="indigo">{cat.subCategoriesCount} subcategories</Badge>
-                  <Badge color="gray">{cat.productsCount} products</Badge>
-                </div>
+          <div className="bg-white dark:bg-gray-900/60 border border-gray-200 dark:border-gray-800/60 rounded-2xl overflow-hidden">
+            <div className="flex items-center px-4 py-3 border-b border-gray-200 dark:border-gray-800/60">
+              <div className="flex items-center gap-2 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
+                <Layers size={12} />
+                Category Tree
               </div>
-            ))}
+            </div>
+            <div>
+              {tree.map(node => (
+                <CategoryTreeNode key={node.categoryId} node={node} depth={0} onEdit={handleEdit} onDelete={handleDelete} />
+              ))}
+            </div>
           </div>
         )}
       </div>

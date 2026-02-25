@@ -509,3 +509,5 @@ C:\Users\Kathia\Documents\GitHub\ERP.WEB.API\ERP.Web.API\ERP.Web.API\bin\Debug\n
 C:\Users\Kathia\Documents\GitHub\ERP.WEB.API\ERP.Web.API\ERP.Web.API\obj\Debug\net10.0\ERP.Web.API.sourcelink.json
 C:\Users\Kathia\Documents\GitHub\ERP.WEB.API\ERP.Web.API\ERP.Web.API\bin\Debug\net10.0\dotnet-tools.json
 C:\Users\Kathia\Documents\GitHub\ERP.WEB.API\ERP.Web.API\ERP.Web.API\obj\Debug\net10.0\staticwebassets.upToDateCheck.txt
+C:\Users\vpaz1\Desktop\ERP.WEB.API\ERP.Web.API\ERP.Web.API\bin\Debug\net10.0\dotnet-tools.json
+C:\Users\vpaz1\Desktop\ERP.WEB.API\ERP.Web.API\ERP.Web.API\bin\Debug\net10.0\ERP.Web.API.staticwebassets.runtime.json
