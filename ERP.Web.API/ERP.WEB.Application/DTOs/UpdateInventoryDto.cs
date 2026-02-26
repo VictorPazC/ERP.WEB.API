@@ -6,5 +6,6 @@ public record UpdateInventoryDto(
     decimal SuggestedRetailPrice,
     int CurrentStock,
     DateTime LastRestockDate,
-    DateTime? LastSaleDate
+    DateTime? LastSaleDate,
+    bool NeedsRestock
 );

@@ -11,6 +11,7 @@ import FormField from '../components/FormField';
 import EmptyState from '../components/EmptyState';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Badge from '../components/Badge';
+import { useUser } from '../context/UserContext';
 
 const selectCls = "bg-gray-100 dark:bg-gray-800/60 border border-gray-300 dark:border-gray-700/60 rounded-xl px-3.5 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 hover:border-gray-400 dark:hover:border-gray-600 transition-all";
 
@@ -24,6 +25,7 @@ function UserForm({ initial, onSave, onClose }: {
     email: initial?.email ?? '',
     role: initial?.role ?? 'User',
     status: initial?.status ?? 'Active',
+    password: '',
   });
   const [loading, setLoading] = useState(false);
   const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
@@ -35,9 +37,9 @@ function UserForm({ initial, onSave, onClose }: {
     setLoading(true);
     try {
       if (initial) {
-        await onSave({ userId: initial.userId, name: form.name, email: form.email, role: form.role, status: form.status } as UpdateUserDto);
+        await onSave({ userId: initial.userId, name: form.name, email: form.email, role: form.role, status: form.status, password: form.password || undefined } as UpdateUserDto);
       } else {
-        await onSave({ name: form.name, email: form.email, role: form.role } as CreateUserDto);
+        await onSave({ name: form.name, email: form.email, role: form.role, password: form.password || undefined } as CreateUserDto);
       }
       onClose();
     } finally {
@@ -49,6 +51,14 @@ function UserForm({ initial, onSave, onClose }: {
     <form onSubmit={handleSubmit} className="space-y-4">
       <FormField label="Name *" value={form.name} onChange={set('name')} placeholder="Full name" required />
       <FormField label="Email *" value={form.email} onChange={set('email')} placeholder="email@example.com" type="email" required />
+      <FormField
+        label={initial ? 'Nueva contraseña (dejar vacío para no cambiar)' : 'Contraseña'}
+        value={form.password}
+        onChange={set('password')}
+        type="password"
+        placeholder="••••••••"
+        required={!initial}
+      />
       <div className={`grid grid-cols-1 ${initial ? 'sm:grid-cols-2' : ''} gap-4`}>
         <div className="flex flex-col gap-1.5">
           <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Role</label>
@@ -86,6 +96,7 @@ export default function Users() {
   const [search, setSearch] = useState('');
 
   const { data: users, isLoading } = useQuery({ queryKey: ['users'], queryFn: usersApi.getAll });
+  const { isAdmin } = useUser();
 
   const createMut = useMutation({ mutationFn: (dto: CreateUserDto) => usersApi.create(dto), onSuccess: () => { qc.invalidateQueries({ queryKey: ['users'] }); toast.success('User created'); } });
   const updateMut = useMutation({ mutationFn: ({ id, dto }: { id: number; dto: UpdateUserDto }) => usersApi.update(id, dto), onSuccess: () => { qc.invalidateQueries({ queryKey: ['users'] }); toast.success('User updated'); } });
@@ -110,9 +121,11 @@ export default function Users() {
         title="Users"
         subtitle={`${users?.length ?? 0} total`}
         action={
-          <button onClick={() => { setSelected(null); setModal('create'); }} className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-sm font-medium text-white transition-all shadow-lg shadow-indigo-600/20 hover:shadow-indigo-500/30">
-            <Plus size={16} /> New User
-          </button>
+          isAdmin ? (
+            <button onClick={() => { setSelected(null); setModal('create'); }} className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-sm font-medium text-white transition-all shadow-lg shadow-indigo-600/20 hover:shadow-indigo-500/30">
+              <Plus size={16} /> New User
+            </button>
+          ) : undefined
         }
       />
       <div className="p-4 sm:p-6 lg:p-8 space-y-4">
@@ -154,10 +167,12 @@ export default function Users() {
                       <td className="px-6 py-4"><Badge color={u.status === 'Active' ? 'green' : 'yellow'}>{u.status}</Badge></td>
                       <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-600 tabular-nums">{new Date(u.createdAt).toLocaleDateString()}</td>
                       <td className="px-6 py-4">
-                        <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button onClick={() => { setSelected(u); setModal('edit'); }} className="p-1.5 rounded-lg text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"><Pencil size={14} /></button>
-                          <button onClick={() => setDeleting(u)} className="p-1.5 rounded-lg text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-500/10 transition-colors"><Trash2 size={14} /></button>
-                        </div>
+                        {isAdmin && (
+                          <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onClick={() => { setSelected(u); setModal('edit'); }} className="p-1.5 rounded-lg text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"><Pencil size={14} /></button>
+                            <button onClick={() => setDeleting(u)} className="p-1.5 rounded-lg text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-500/10 transition-colors"><Trash2 size={14} /></button>
+                          </div>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -178,10 +193,12 @@ export default function Users() {
                         <p className="text-xs text-gray-500 dark:text-gray-600 truncate">{u.email}</p>
                       </div>
                     </div>
-                    <div className="flex gap-1 flex-shrink-0">
-                      <button onClick={() => { setSelected(u); setModal('edit'); }} className="p-1.5 rounded-lg text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"><Pencil size={14} /></button>
-                      <button onClick={() => setDeleting(u)} className="p-1.5 rounded-lg text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-500/10 transition-colors"><Trash2 size={14} /></button>
-                    </div>
+                    {isAdmin && (
+                      <div className="flex gap-1 flex-shrink-0">
+                        <button onClick={() => { setSelected(u); setModal('edit'); }} className="p-1.5 rounded-lg text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"><Pencil size={14} /></button>
+                        <button onClick={() => setDeleting(u)} className="p-1.5 rounded-lg text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-500/10 transition-colors"><Trash2 size={14} /></button>
+                      </div>
+                    )}
                   </div>
                   <div className="flex flex-wrap items-center gap-2 mt-3">
                     <Badge color={u.status === 'Active' ? 'green' : 'yellow'}>{u.status}</Badge>
@@ -195,12 +212,12 @@ export default function Users() {
         )}
       </div>
 
-      {(modal === 'create' || modal === 'edit') && (
+      {isAdmin && (modal === 'create' || modal === 'edit') && (
         <Modal title={modal === 'edit' ? 'Edit User' : 'New User'} onClose={() => setModal(null)}>
           <UserForm initial={modal === 'edit' ? selected ?? undefined : undefined} onSave={handleSave} onClose={() => setModal(null)} />
         </Modal>
       )}
-      {deleting && (
+      {isAdmin && deleting && (
         <ConfirmDialog message={`Delete "${deleting.name}"? This action cannot be undone.`} onConfirm={() => deleteMut.mutate(deleting.userId)} onClose={() => setDeleting(null)} loading={deleteMut.isPending} />
       )}
     </div>

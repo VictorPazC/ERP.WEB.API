@@ -24,5 +24,9 @@ public class User
     [MaxLength(50)]
     public string Status { get; set; } = "Active";
 
+    /// <summary>BCrypt hash of the password. Null means login not allowed.</summary>
+    [MaxLength(256)]
+    public string? PasswordHash { get; set; }
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

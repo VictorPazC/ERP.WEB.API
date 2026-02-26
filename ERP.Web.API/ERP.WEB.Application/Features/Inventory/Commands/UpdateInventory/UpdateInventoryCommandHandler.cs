@@ -25,6 +25,7 @@ public class UpdateInventoryCommandHandler : IRequestHandler<UpdateInventoryComm
         inventory.CurrentStock = request.InventoryDto.CurrentStock;
         inventory.LastRestockDate = request.InventoryDto.LastRestockDate;
         inventory.LastSaleDate = request.InventoryDto.LastSaleDate;
+        inventory.NeedsRestock = request.InventoryDto.NeedsRestock;
 
         await _repository.UpdateAsync(inventory);
 
@@ -37,7 +38,8 @@ public class UpdateInventoryCommandHandler : IRequestHandler<UpdateInventoryComm
             inventory.CurrentStock,
             inventory.SuggestedRetailPrice - inventory.PurchaseCost,
             inventory.LastRestockDate,
-            inventory.LastSaleDate
+            inventory.LastSaleDate,
+            inventory.NeedsRestock
         );
     }
 }

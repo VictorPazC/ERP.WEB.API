@@ -25,8 +25,9 @@ public class CreateConsumptionCommandHandler : IRequestHandler<CreateConsumption
         var inventory = await _inventoryRepository.GetByIdAsync(dto.InventoryId)
             ?? throw new InvalidOperationException($"Inventory {dto.InventoryId} not found.");
 
-        // Reduce stock
+        // Reduce stock and mark for restock
         inventory.CurrentStock = Math.Max(0, inventory.CurrentStock - dto.Quantity);
+        inventory.NeedsRestock = true;
         await _inventoryRepository.UpdateAsync(inventory);
 
         var consumption = new Consumption

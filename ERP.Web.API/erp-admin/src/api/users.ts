@@ -1,5 +1,5 @@
 import client from './client';
-import type { User, CreateUserDto, UpdateUserDto } from '../types';
+import type { User, CreateUserDto, UpdateUserDto, LoginDto, LoginResultDto } from '../types';
 
 export const usersApi = {
   getAll: () => client.get<User[]>('/api/users').then(r => r.data),
@@ -7,4 +7,5 @@ export const usersApi = {
   create: (dto: CreateUserDto) => client.post<User>('/api/users', dto).then(r => r.data),
   update: (id: number, dto: UpdateUserDto) => client.put<User>(`/api/users/${id}`, dto).then(r => r.data),
   delete: (id: number) => client.delete(`/api/users/${id}`),
+  login: (dto: LoginDto) => client.post<LoginResultDto>('/api/users/login', dto).then(r => r.data),
 };

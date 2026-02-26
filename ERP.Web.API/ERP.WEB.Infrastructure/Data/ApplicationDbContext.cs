@@ -50,6 +50,7 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.SuggestedRetailPrice).IsRequired().HasColumnType("decimal(18,2)");
             entity.Property(e => e.CurrentStock).HasDefaultValue(0);
             entity.Property(e => e.LastRestockDate).HasDefaultValueSql("GETDATE()");
+            entity.Property(e => e.NeedsRestock).HasDefaultValue(false);
             entity.HasOne(e => e.Product)
                   .WithOne(p => p.Inventory)
                   .HasForeignKey<Inventory>(e => e.ProductId)
@@ -97,6 +98,7 @@ public class ApplicationDbContext : DbContext
             entity.HasIndex(e => e.Email).IsUnique();
             entity.Property(e => e.Role).HasMaxLength(50).HasDefaultValue("User");
             entity.Property(e => e.Status).HasMaxLength(50).HasDefaultValue("Active");
+            entity.Property(e => e.PasswordHash).HasMaxLength(256).IsRequired(false);
         });
 
         modelBuilder.Entity<Consumption>(entity =>

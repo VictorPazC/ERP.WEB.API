@@ -9,5 +9,6 @@ public record InventoryDto(
     int CurrentStock,
     decimal EstimatedProfit,
     DateTime LastRestockDate,
-    DateTime? LastSaleDate
+    DateTime? LastSaleDate,
+    bool NeedsRestock
 );

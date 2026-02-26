@@ -22,6 +22,8 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, UserD
         user.Email = request.UserDto.Email;
         user.Role = request.UserDto.Role;
         user.Status = request.UserDto.Status;
+        if (!string.IsNullOrWhiteSpace(request.UserDto.Password))
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.UserDto.Password);
 
         await _userRepository.UpdateAsync(user);
 

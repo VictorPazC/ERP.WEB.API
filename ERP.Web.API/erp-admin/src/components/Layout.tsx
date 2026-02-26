@@ -3,8 +3,10 @@ import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Package, Tag, Percent, Image, Archive, Layers,
   ChevronLeft, ChevronRight, Boxes, Menu, X, Sun, Moon, Users, ShoppingBag,
+  Shield, Eye, LogOut,
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
+import { useUser } from '../context/UserContext';
 
 const nav = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
@@ -23,6 +25,7 @@ export default function Layout() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
   const { theme, toggle } = useTheme();
+  const { user, logout, isAdmin } = useUser();
 
   useEffect(() => {
     setMobileOpen(false);
@@ -84,6 +87,22 @@ export default function Layout() {
       </nav>
 
       <div className="px-3 py-3 border-t border-gray-200 dark:border-gray-800/60 space-y-1">
+        {/* User info */}
+        {(isMobile || !collapsed) && (
+          <div className="flex items-center gap-2.5 px-3 py-2 rounded-xl">
+            <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 ${isAdmin ? 'bg-indigo-500/15 ring-1 ring-indigo-500/30' : 'bg-gray-200 dark:bg-gray-800 ring-1 ring-gray-300 dark:ring-gray-700'}`}>
+              {isAdmin
+                ? <Shield size={13} className="text-indigo-500 dark:text-indigo-400" />
+                : <Eye size={13} className="text-gray-500 dark:text-gray-400" />
+              }
+            </div>
+            <div className="text-left min-w-0 flex-1">
+              <p className="text-xs font-semibold text-gray-900 dark:text-white truncate">{user.name}</p>
+              <p className="text-[10px] text-gray-400 dark:text-gray-600">{isAdmin ? 'Admin — full access' : 'Viewer — read only'}</p>
+            </div>
+          </div>
+        )}
+
         <button
           onClick={toggle}
           className={`w-full flex items-center ${!isMobile && collapsed ? 'justify-center' : ''} gap-2 px-3 py-2 rounded-xl text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors`}
@@ -91,6 +110,16 @@ export default function Layout() {
           {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
           {(isMobile || !collapsed) && <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>}
         </button>
+
+        <button
+          onClick={logout}
+          className={`w-full flex items-center ${!isMobile && collapsed ? 'justify-center' : ''} gap-2 px-3 py-2 rounded-xl text-xs text-red-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-500/10 transition-colors`}
+          title={!isMobile && collapsed ? 'Cerrar sesión' : undefined}
+        >
+          <LogOut size={16} />
+          {(isMobile || !collapsed) && <span>Cerrar sesión</span>}
+        </button>
+
         {!isMobile && (
           <button
             onClick={() => setCollapsed(!collapsed)}
@@ -119,6 +148,7 @@ export default function Layout() {
         className={`fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800/60 flex flex-col transition-transform duration-300 ease-in-out lg:hidden ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
+        onClick={e => e.stopPropagation()}
       >
         {sidebarContent(true)}
       </aside>
@@ -134,9 +164,18 @@ export default function Layout() {
             </div>
             <span className="text-sm font-semibold text-gray-900 dark:text-white">ERP Admin</span>
           </div>
-          <button onClick={toggle} className="ml-auto p-2 rounded-xl text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/5 transition-colors">
-            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-          </button>
+          <div className="ml-auto flex items-center gap-2">
+            <div className={`flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-medium ${isAdmin ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400' : 'bg-gray-100 dark:bg-gray-800 text-gray-500'}`}>
+              {isAdmin ? <Shield size={12} /> : <Eye size={12} />}
+              {user.name}
+            </div>
+            <button onClick={toggle} className="p-2 rounded-xl text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/5 transition-colors">
+              {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+            </button>
+            <button onClick={logout} className="p-2 rounded-xl text-red-500 hover:bg-red-500/10 transition-colors">
+              <LogOut size={18} />
+            </button>
+          </div>
         </div>
         <div className="animate-fadeIn">
           <Outlet />

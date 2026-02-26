@@ -21,6 +21,9 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, UserD
             Name = request.UserDto.Name,
             Email = request.UserDto.Email,
             Role = request.UserDto.Role,
+            PasswordHash = string.IsNullOrWhiteSpace(request.UserDto.Password)
+                ? null
+                : BCrypt.Net.BCrypt.HashPassword(request.UserDto.Password),
         };
 
         var created = await _userRepository.AddAsync(user);

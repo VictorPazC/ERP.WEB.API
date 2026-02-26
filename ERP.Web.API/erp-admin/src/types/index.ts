@@ -64,6 +64,7 @@ export interface Inventory {
   estimatedProfit: number;
   lastRestockDate: string;
   lastSaleDate?: string;
+  needsRestock: boolean;
 }
 
 export interface CreateInventoryDto {
@@ -82,6 +83,12 @@ export interface UpdateInventoryDto {
   currentStock: number;
   lastRestockDate: string;
   lastSaleDate?: string;
+  needsRestock: boolean;
+}
+
+export interface RestockInventoryDto {
+  additionalStock: number;
+  needsRestock: boolean;
 }
 
 export interface Tag {
@@ -159,6 +166,7 @@ export interface CreateUserDto {
   name: string;
   email: string;
   role: string;
+  password?: string;
 }
 
 export interface UpdateUserDto {
@@ -167,6 +175,19 @@ export interface UpdateUserDto {
   email: string;
   role: string;
   status: string;
+  password?: string;
+}
+
+export interface LoginDto {
+  email: string;
+  password: string;
+}
+
+export interface LoginResultDto {
+  userId: number;
+  name: string;
+  email: string;
+  role: string;
 }
 
 export interface AvailableArticle {

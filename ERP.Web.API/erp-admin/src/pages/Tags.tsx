@@ -11,6 +11,7 @@ import FormField from '../components/FormField';
 import EmptyState from '../components/EmptyState';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Badge from '../components/Badge';
+import { useUser } from '../context/UserContext';
 
 function TagForm({ initial, onSave, onClose }: {
   initial?: Tag;
@@ -56,6 +57,7 @@ export default function Tags() {
   const [deleting, setDeleting] = useState<Tag | null>(null);
 
   const { data: tags, isLoading } = useQuery({ queryKey: ['tags'], queryFn: tagsApi.getAll });
+  const { isAdmin } = useUser();
 
   const createMut = useMutation({ mutationFn: (dto: CreateTagDto) => tagsApi.create(dto), onSuccess: () => { qc.invalidateQueries({ queryKey: ['tags'] }); toast.success('Tag created'); } });
   const updateMut = useMutation({ mutationFn: ({ id, dto }: { id: number; dto: UpdateTagDto }) => tagsApi.update(id, dto), onSuccess: () => { qc.invalidateQueries({ queryKey: ['tags'] }); toast.success('Tag updated'); } });
@@ -72,9 +74,11 @@ export default function Tags() {
         title="Tags"
         subtitle={`${tags?.length ?? 0} total`}
         action={
-          <button onClick={() => { setSelected(null); setModal('create'); }} className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-sm font-medium text-white transition-all shadow-lg shadow-indigo-600/20 hover:shadow-indigo-500/30">
-            <Plus size={16} /> New Tag
-          </button>
+          isAdmin ? (
+            <button onClick={() => { setSelected(null); setModal('create'); }} className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-sm font-medium text-white transition-all shadow-lg shadow-indigo-600/20 hover:shadow-indigo-500/30">
+              <Plus size={16} /> New Tag
+            </button>
+          ) : undefined
         }
       />
       <div className="p-4 sm:p-6 lg:p-8">
@@ -89,22 +93,24 @@ export default function Tags() {
                 </div>
                 <span className="text-sm font-medium text-gray-900 dark:text-white">{tag.tagName}</span>
                 <Badge color="gray">{tag.productsCount}</Badge>
-                <div className="flex gap-1 ml-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                  <button onClick={() => { setSelected(tag); setModal('edit'); }} className="p-1 rounded-lg text-gray-400 dark:text-gray-600 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"><Pencil size={12} /></button>
-                  <button onClick={() => setDeleting(tag)} className="p-1 rounded-lg text-gray-400 dark:text-gray-600 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-500/10 transition-colors"><Trash2 size={12} /></button>
-                </div>
+                {isAdmin && (
+                  <div className="flex gap-1 ml-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                    <button onClick={() => { setSelected(tag); setModal('edit'); }} className="p-1 rounded-lg text-gray-400 dark:text-gray-600 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"><Pencil size={12} /></button>
+                    <button onClick={() => setDeleting(tag)} className="p-1 rounded-lg text-gray-400 dark:text-gray-600 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-500/10 transition-colors"><Trash2 size={12} /></button>
+                  </div>
+                )}
               </div>
             ))}
           </div>
         )}
       </div>
 
-      {(modal === 'create' || modal === 'edit') && (
+      {isAdmin && (modal === 'create' || modal === 'edit') && (
         <Modal title={modal === 'edit' ? 'Edit Tag' : 'New Tag'} onClose={() => setModal(null)} size="sm">
           <TagForm initial={modal === 'edit' ? selected ?? undefined : undefined} onSave={handleSave} onClose={() => setModal(null)} />
         </Modal>
       )}
-      {deleting && (
+      {isAdmin && deleting && (
         <ConfirmDialog message={`Delete tag "${deleting.tagName}"?`} onConfirm={() => deleteMut.mutate(deleting.tagId)} onClose={() => setDeleting(null)} loading={deleteMut.isPending} />
       )}
     </div>

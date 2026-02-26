@@ -2,23 +2,29 @@ using ERP.WEB.Application.DTOs;
 using ERP.WEB.Domain.Interfaces;
 using Mediator;
 
-namespace ERP.WEB.Application.Features.Inventory.Queries.GetInventoryById;
+namespace ERP.WEB.Application.Features.Inventory.Commands.RestockInventory;
 
-public class GetInventoryByIdQueryHandler : IRequestHandler<GetInventoryByIdQuery, InventoryDto?>
+public class RestockInventoryCommandHandler : IRequestHandler<RestockInventoryCommand, InventoryDto?>
 {
     private readonly IInventoryRepository _repository;
 
-    public GetInventoryByIdQueryHandler(IInventoryRepository repository)
+    public RestockInventoryCommandHandler(IInventoryRepository repository)
     {
         _repository = repository;
     }
 
-    public async ValueTask<InventoryDto?> Handle(GetInventoryByIdQuery request, CancellationToken cancellationToken)
+    public async ValueTask<InventoryDto?> Handle(RestockInventoryCommand request, CancellationToken cancellationToken)
     {
         var inventory = await _repository.GetByIdAsync(request.InventoryId);
 
         if (inventory is null)
             return null;
+
+        inventory.CurrentStock += request.Dto.AdditionalStock;
+        inventory.NeedsRestock = request.Dto.NeedsRestock;
+        inventory.LastRestockDate = DateTime.UtcNow;
+
+        await _repository.UpdateAsync(inventory);
 
         return new InventoryDto(
             inventory.InventoryId,

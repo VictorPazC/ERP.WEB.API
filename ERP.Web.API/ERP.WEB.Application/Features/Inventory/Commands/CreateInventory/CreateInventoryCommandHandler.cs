@@ -37,7 +37,8 @@ public class CreateInventoryCommandHandler : IRequestHandler<CreateInventoryComm
             created.CurrentStock,
             created.SuggestedRetailPrice - created.PurchaseCost,
             created.LastRestockDate,
-            created.LastSaleDate
+            created.LastSaleDate,
+            created.NeedsRestock
         );
     }
 }

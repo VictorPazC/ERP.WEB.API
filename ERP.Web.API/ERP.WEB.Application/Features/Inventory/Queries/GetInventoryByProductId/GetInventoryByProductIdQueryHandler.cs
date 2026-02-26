@@ -29,7 +29,8 @@ public class GetInventoryByProductIdQueryHandler : IRequestHandler<GetInventoryB
             inventory.CurrentStock,
             inventory.SuggestedRetailPrice - inventory.PurchaseCost,
             inventory.LastRestockDate,
-            inventory.LastSaleDate
+            inventory.LastSaleDate,
+            inventory.NeedsRestock
         );
     }
 }

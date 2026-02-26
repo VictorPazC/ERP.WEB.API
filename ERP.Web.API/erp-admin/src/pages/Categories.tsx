@@ -11,6 +11,7 @@ import FormField from '../components/FormField';
 import EmptyState from '../components/EmptyState';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Badge from '../components/Badge';
+import { useUser } from '../context/UserContext';
 
 const selectCls = "bg-gray-100 dark:bg-gray-800/60 border border-gray-300 dark:border-gray-700/60 rounded-xl px-3.5 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 hover:border-gray-400 dark:hover:border-gray-600 transition-all";
 
@@ -83,11 +84,12 @@ function buildTree(categories: Category[]): TreeNode[] {
   return roots;
 }
 
-function CategoryTreeNode({ node, depth, onEdit, onDelete }: {
+function CategoryTreeNode({ node, depth, onEdit, onDelete, isAdmin }: {
   node: TreeNode;
   depth: number;
   onEdit: (cat: Category) => void;
   onDelete: (cat: Category) => void;
+  isAdmin: boolean;
 }) {
   const [expanded, setExpanded] = useState(true);
   const hasChildren = node.children.length > 0;
@@ -130,15 +132,15 @@ function CategoryTreeNode({ node, depth, onEdit, onDelete }: {
         </div>
 
         <div className="flex gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity flex-shrink-0">
-          <button onClick={() => onEdit(node)} className="p-1.5 rounded-lg text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"><Pencil size={14} /></button>
-          <button onClick={() => onDelete(node)} className="p-1.5 rounded-lg text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-500/10 transition-colors"><Trash2 size={14} /></button>
+          {isAdmin && <button onClick={() => onEdit(node)} className="p-1.5 rounded-lg text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"><Pencil size={14} /></button>}
+          {isAdmin && <button onClick={() => onDelete(node)} className="p-1.5 rounded-lg text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-500/10 transition-colors"><Trash2 size={14} /></button>}
         </div>
       </div>
 
       {hasChildren && expanded && (
         <div>
           {node.children.map(child => (
-            <CategoryTreeNode key={child.categoryId} node={child} depth={depth + 1} onEdit={onEdit} onDelete={onDelete} />
+            <CategoryTreeNode key={child.categoryId} node={child} depth={depth + 1} onEdit={onEdit} onDelete={onDelete} isAdmin={isAdmin} />
           ))}
         </div>
       )}
@@ -159,6 +161,8 @@ export default function Categories() {
   const updateMut = useMutation({ mutationFn: ({ id, dto }: { id: number; dto: UpdateCategoryDto }) => categoriesApi.update(id, dto), onSuccess: () => { qc.invalidateQueries({ queryKey: ['categories'] }); toast.success('Category updated'); } });
   const deleteMut = useMutation({ mutationFn: (id: number) => categoriesApi.delete(id), onSuccess: () => { qc.invalidateQueries({ queryKey: ['categories'] }); toast.success('Category deleted'); setDeleting(null); } });
 
+  const { isAdmin } = useUser();
+
   const handleSave = async (data: CreateCategoryDto | UpdateCategoryDto) => {
     if (selected) await updateMut.mutateAsync({ id: selected.categoryId, dto: data as UpdateCategoryDto });
     else await createMut.mutateAsync(data as CreateCategoryDto);
@@ -172,11 +176,11 @@ export default function Categories() {
       <PageHeader
         title="Categories"
         subtitle={`${categories?.length ?? 0} total`}
-        action={
+        action={isAdmin ? (
           <button onClick={() => { setSelected(null); setModal('create'); }} className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-sm font-medium text-white transition-all shadow-lg shadow-indigo-600/20 hover:shadow-indigo-500/30">
             <Plus size={16} /> New Category
           </button>
-        }
+        ) : undefined}
       />
       <div className="p-4 sm:p-6 lg:p-8">
         {isLoading ? <LoadingSpinner /> : categories?.length === 0 ? (
@@ -191,19 +195,19 @@ export default function Categories() {
             </div>
             <div>
               {tree.map(node => (
-                <CategoryTreeNode key={node.categoryId} node={node} depth={0} onEdit={handleEdit} onDelete={handleDelete} />
+                <CategoryTreeNode key={node.categoryId} node={node} depth={0} onEdit={handleEdit} onDelete={handleDelete} isAdmin={isAdmin} />
               ))}
             </div>
           </div>
         )}
       </div>
 
-      {(modal === 'create' || modal === 'edit') && (
+      {isAdmin && (modal === 'create' || modal === 'edit') && (
         <Modal title={modal === 'edit' ? 'Edit Category' : 'New Category'} onClose={() => setModal(null)}>
           <CategoryForm initial={modal === 'edit' ? selected ?? undefined : undefined} categories={categories ?? []} onSave={handleSave} onClose={() => setModal(null)} />
         </Modal>
       )}
-      {deleting && (
+      {isAdmin && deleting && (
         <ConfirmDialog message={`Delete "${deleting.name}"? This action cannot be undone.`} onConfirm={() => deleteMut.mutate(deleting.categoryId)} onClose={() => setDeleting(null)} loading={deleteMut.isPending} />
       )}
     </div>

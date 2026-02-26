@@ -1,6 +1,7 @@
 using ERP.WEB.Application.DTOs;
 using ERP.WEB.Application.Features.Users.Commands.CreateUser;
 using ERP.WEB.Application.Features.Users.Commands.DeleteUser;
+using ERP.WEB.Application.Features.Users.Commands.Login;
 using ERP.WEB.Application.Features.Users.Commands.UpdateUser;
 using ERP.WEB.Application.Features.Users.Queries.GetAllUsers;
 using ERP.WEB.Application.Features.Users.Queries.GetUserById;
@@ -49,6 +50,14 @@ public class UsersController : ControllerBase
         var user = await _mediator.Send(new UpdateUserCommand(dto));
         if (user is null) return NotFound();
         return Ok(user);
+    }
+
+    [HttpPost("login")]
+    public async Task<ActionResult<LoginResultDto>> Login([FromBody] LoginDto dto)
+    {
+        var result = await _mediator.Send(new LoginCommand(dto));
+        if (result is null) return Unauthorized(new { message = "Email o contraseña incorrectos" });
+        return Ok(result);
     }
 
     [HttpDelete("{id}")]

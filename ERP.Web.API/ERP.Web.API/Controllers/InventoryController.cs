@@ -1,6 +1,7 @@
 using ERP.WEB.Application.DTOs;
 using ERP.WEB.Application.Features.Inventory.Commands.CreateInventory;
 using ERP.WEB.Application.Features.Inventory.Commands.DeleteInventory;
+using ERP.WEB.Application.Features.Inventory.Commands.RestockInventory;
 using ERP.WEB.Application.Features.Inventory.Commands.UpdateInventory;
 using ERP.WEB.Application.Features.Inventory.Queries.GetAllInventory;
 using ERP.WEB.Application.Features.Inventory.Queries.GetInventoryById;
@@ -64,6 +65,17 @@ public class InventoryController : ControllerBase
             return BadRequest();
 
         var result = await _mediator.Send(new UpdateInventoryCommand(dto));
+
+        if (result is null)
+            return NotFound();
+
+        return Ok(result);
+    }
+
+    [HttpPatch("{id}/restock")]
+    public async Task<ActionResult<InventoryDto>> Restock(int id, [FromBody] RestockInventoryDto dto)
+    {
+        var result = await _mediator.Send(new RestockInventoryCommand(id, dto));
 
         if (result is null)
             return NotFound();

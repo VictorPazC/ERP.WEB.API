@@ -26,6 +26,9 @@ public class Inventory
 
     public DateTime? LastSaleDate { get; set; }
 
+    /// <summary>Set true automatically when consumed. User can set false to stop restocking.</summary>
+    public bool NeedsRestock { get; set; } = false;
+
     [ForeignKey(nameof(ProductId))]
     public Product Product { get; set; } = null!;
 }

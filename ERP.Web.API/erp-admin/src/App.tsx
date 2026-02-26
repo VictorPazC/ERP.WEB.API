@@ -1,7 +1,8 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import { ThemeProvider } from './context/ThemeContext';
+import { UserProvider, useUser } from './context/UserContext';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import Categories from './pages/Categories';
@@ -12,6 +13,7 @@ import Promotions from './pages/Promotions';
 import ProductImages from './pages/ProductImages';
 import Users from './pages/Users';
 import ArticulosDisponibles from './pages/ArticulosDisponibles';
+import Login from './pages/Login';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -44,27 +46,47 @@ function ThemedToaster() {
   );
 }
 
+function AppRoutes() {
+  const { isAuthenticated } = useUser();
+
+  if (!isAuthenticated) {
+    return (
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+    );
+  }
+
+  return (
+    <Routes>
+      <Route element={<Layout />}>
+        <Route index element={<Dashboard />} />
+        <Route path="categories" element={<Categories />} />
+        <Route path="products" element={<Products />} />
+        <Route path="inventory" element={<InventoryPage />} />
+        <Route path="tags" element={<Tags />} />
+        <Route path="promotions" element={<Promotions />} />
+        <Route path="product-images" element={<ProductImages />} />
+        <Route path="users" element={<Users />} />
+        <Route path="articulos" element={<ArticulosDisponibles />} />
+        <Route path="login" element={<Navigate to="/" replace />} />
+      </Route>
+    </Routes>
+  );
+}
+
 export default function App() {
   return (
     <ThemeProvider>
-      <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
-          <Routes>
-            <Route element={<Layout />}>
-              <Route index element={<Dashboard />} />
-              <Route path="categories" element={<Categories />} />
-              <Route path="products" element={<Products />} />
-              <Route path="inventory" element={<InventoryPage />} />
-              <Route path="tags" element={<Tags />} />
-              <Route path="promotions" element={<Promotions />} />
-              <Route path="product-images" element={<ProductImages />} />
-              <Route path="users" element={<Users />} />
-              <Route path="articulos" element={<ArticulosDisponibles />} />
-            </Route>
-          </Routes>
-        </BrowserRouter>
-        <ThemedToaster />
-      </QueryClientProvider>
+      <UserProvider>
+        <QueryClientProvider client={queryClient}>
+          <BrowserRouter>
+            <AppRoutes />
+          </BrowserRouter>
+          <ThemedToaster />
+        </QueryClientProvider>
+      </UserProvider>
     </ThemeProvider>
   );
 }

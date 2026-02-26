@@ -14,6 +14,7 @@ import EmptyState from '../components/EmptyState';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Badge from '../components/Badge';
 import { imageUrl } from '../utils/imageUrl';
+import { useUser } from '../context/UserContext';
 
 function ProductThumb({ images, productId }: { images: ProductImage[] | undefined; productId: number }) {
   const img = images?.find(i => i.productId === productId && i.isPrimary) ?? images?.find(i => i.productId === productId);
@@ -162,7 +163,7 @@ function InventoryForm({ initial, onSave, onClose }: {
     setLoading(true);
     try {
       if (initial) {
-        await onSave({ inventoryId: initial.inventoryId, purchaseCost: Number(form.purchaseCost), suggestedRetailPrice: Number(form.suggestedRetailPrice), currentStock: Number(form.currentStock), lastRestockDate: form.lastRestockDate, lastSaleDate: form.lastSaleDate || undefined } as UpdateInventoryDto);
+        await onSave({ inventoryId: initial.inventoryId, purchaseCost: Number(form.purchaseCost), suggestedRetailPrice: Number(form.suggestedRetailPrice), currentStock: Number(form.currentStock), lastRestockDate: form.lastRestockDate, lastSaleDate: form.lastSaleDate || undefined, needsRestock: initial.needsRestock } as UpdateInventoryDto);
       } else {
         await onSave({ productId: Number(form.productId), purchaseCost: Number(form.purchaseCost), suggestedRetailPrice: Number(form.suggestedRetailPrice), currentStock: Number(form.currentStock), lastRestockDate: form.lastRestockDate, lastSaleDate: form.lastSaleDate || undefined } as CreateInventoryDto);
       }
@@ -214,6 +215,8 @@ export default function InventoryPage() {
   const updateMut = useMutation({ mutationFn: ({ id, dto }: { id: number; dto: UpdateInventoryDto }) => inventoryApi.update(id, dto), onSuccess: () => { qc.invalidateQueries({ queryKey: ['inventory'] }); toast.success('Inventory updated'); } });
   const deleteMut = useMutation({ mutationFn: (id: number) => inventoryApi.delete(id), onSuccess: () => { qc.invalidateQueries({ queryKey: ['inventory'] }); toast.success('Inventory deleted'); setDeleting(null); } });
 
+  const { isAdmin } = useUser();
+
   const handleSave = async (data: CreateInventoryDto | UpdateInventoryDto) => {
     if (selected) await updateMut.mutateAsync({ id: selected.inventoryId, dto: data as UpdateInventoryDto });
     else await createMut.mutateAsync(data as CreateInventoryDto);
@@ -224,11 +227,11 @@ export default function InventoryPage() {
       <PageHeader
         title="Inventory"
         subtitle={`${inventory?.length ?? 0} records`}
-        action={
+        action={isAdmin ? (
           <button onClick={() => { setSelected(null); setModal('create'); }} className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-sm font-medium text-white transition-all shadow-lg shadow-indigo-600/20 hover:shadow-indigo-500/30">
             <Plus size={16} /> Add Inventory
           </button>
-        }
+        ) : undefined}
       />
       <div className="p-4 sm:p-6 lg:p-8">
         {isLoading ? <LoadingSpinner /> : inventory?.length === 0 ? (
@@ -257,8 +260,8 @@ export default function InventoryPage() {
                       <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-600 tabular-nums">{new Date(inv.lastRestockDate).toLocaleDateString()}</td>
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button onClick={() => { setSelected(inv); setModal('edit'); }} className="p-1.5 rounded-lg text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"><Pencil size={14} /></button>
-                          <button onClick={() => setDeleting(inv)} className="p-1.5 rounded-lg text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-500/10 transition-colors"><Trash2 size={14} /></button>
+                          {isAdmin && <button onClick={() => { setSelected(inv); setModal('edit'); }} className="p-1.5 rounded-lg text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"><Pencil size={14} /></button>}
+                          {isAdmin && <button onClick={() => setDeleting(inv)} className="p-1.5 rounded-lg text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-500/10 transition-colors"><Trash2 size={14} /></button>}
                         </div>
                       </td>
                     </tr>
@@ -276,8 +279,8 @@ export default function InventoryPage() {
                       <p className="text-[11px] text-gray-500 dark:text-gray-600 mt-0.5 tabular-nums">Restock: {new Date(inv.lastRestockDate).toLocaleDateString()}</p>
                     </div>
                     <div className="flex gap-1 flex-shrink-0">
-                      <button onClick={() => { setSelected(inv); setModal('edit'); }} className="p-1.5 rounded-lg text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"><Pencil size={14} /></button>
-                      <button onClick={() => setDeleting(inv)} className="p-1.5 rounded-lg text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-500/10 transition-colors"><Trash2 size={14} /></button>
+                      {isAdmin && <button onClick={() => { setSelected(inv); setModal('edit'); }} className="p-1.5 rounded-lg text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"><Pencil size={14} /></button>}
+                      {isAdmin && <button onClick={() => setDeleting(inv)} className="p-1.5 rounded-lg text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-500/10 transition-colors"><Trash2 size={14} /></button>}
                     </div>
                   </div>
                   <div className="grid grid-cols-3 gap-3 mt-3">
@@ -304,12 +307,12 @@ export default function InventoryPage() {
         )}
       </div>
 
-      {(modal === 'create' || modal === 'edit') && (
+      {isAdmin && (modal === 'create' || modal === 'edit') && (
         <Modal title={modal === 'edit' ? 'Edit Inventory' : 'Add Inventory'} onClose={() => setModal(null)}>
           <InventoryForm initial={modal === 'edit' ? selected ?? undefined : undefined} onSave={handleSave} onClose={() => setModal(null)} />
         </Modal>
       )}
-      {deleting && (
+      {isAdmin && deleting && (
         <ConfirmDialog message={`Delete inventory for "${deleting.productName}"?`} onConfirm={() => deleteMut.mutate(deleting.inventoryId)} onClose={() => setDeleting(null)} loading={deleteMut.isPending} />
       )}
     </div>

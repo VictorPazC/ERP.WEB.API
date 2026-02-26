@@ -1,11 +1,12 @@
 {
   "version": 2,
-  "dgSpecHash": "2Y1+3cdxDus=",
+  "dgSpecHash": "YXFMiDd4w2o=",
   "success": true,
   "projectFilePath": "C:\\Users\\vpaz1\\Desktop\\ERP.WEB.API\\ERP.Web.API\\ERP.Web.API\\ERP.Web.API.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\vpaz1\\.nuget\\packages\\azure.core\\1.47.1\\azure.core.1.47.1.nupkg.sha512",
     "C:\\Users\\vpaz1\\.nuget\\packages\\azure.identity\\1.14.2\\azure.identity.1.14.2.nupkg.sha512",
+    "C:\\Users\\vpaz1\\.nuget\\packages\\bcrypt.net-next\\4.0.3\\bcrypt.net-next.4.0.3.nupkg.sha512",
     "C:\\Users\\vpaz1\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
     "C:\\Users\\vpaz1\\.nuget\\packages\\mapster\\7.4.0\\mapster.7.4.0.nupkg.sha512",
     "C:\\Users\\vpaz1\\.nuget\\packages\\mapster.core\\1.2.1\\mapster.core.1.2.1.nupkg.sha512",

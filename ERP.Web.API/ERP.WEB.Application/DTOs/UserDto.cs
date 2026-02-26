@@ -12,7 +12,8 @@ public record UserDto(
 public record CreateUserDto(
     string Name,
     string Email,
-    string Role
+    string Role,
+    string? Password
 );
 
 public record UpdateUserDto(
@@ -20,5 +21,18 @@ public record UpdateUserDto(
     string Name,
     string Email,
     string Role,
-    string Status
+    string Status,
+    string? Password
+);
+
+public record LoginDto(
+    string Email,
+    string Password
+);
+
+public record LoginResultDto(
+    int UserId,
+    string Name,
+    string Email,
+    string Role
 );
