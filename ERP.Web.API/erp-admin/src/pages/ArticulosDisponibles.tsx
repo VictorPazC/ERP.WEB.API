@@ -1,8 +1,9 @@
 import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ShoppingBag, Search, CheckCircle, Package, Filter } from 'lucide-react';
+import { ShoppingBag, Search, CheckCircle, Package, Filter, X, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { consumptionsApi } from '../api/consumptions';
+import { inventoryApi } from '../api/inventory';
 import { productImagesApi } from '../api/productImages';
 import type { AvailableArticle, CreateConsumptionDto } from '../types';
 import PageHeader from '../components/PageHeader';
@@ -11,6 +12,29 @@ import EmptyState from '../components/EmptyState';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Badge from '../components/Badge';
 import { imageUrl } from '../utils/imageUrl';
+
+/* ── Image Lightbox ───────────────────────────────────────── */
+function ImageLightbox({ src, alt, onClose }: { src: string; alt: string; onClose: () => void }) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+      onClick={onClose}
+    >
+      <button
+        onClick={onClose}
+        className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+      >
+        <X size={20} />
+      </button>
+      <img
+        src={src}
+        alt={alt}
+        className="max-w-full max-h-[85vh] rounded-2xl object-contain shadow-2xl"
+        onClick={e => e.stopPropagation()}
+      />
+    </div>
+  );
+}
 
 /* ── Modal de consumo ─────────────────────────────────────── */
 function ConsumeModal({ article, primaryImagePath, onClose }: {
@@ -23,11 +47,19 @@ function ConsumeModal({ article, primaryImagePath, onClose }: {
   const [quantity, setQuantity] = useState(1);
   const [date, setDate] = useState(today);
   const [notes, setNotes] = useState('');
+  const [willRestock, setWillRestock] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [lightbox, setLightbox] = useState(false);
 
   const consumeMut = useMutation({
     mutationFn: (dto: CreateConsumptionDto) => consumptionsApi.create(dto),
-    onSuccess: () => {
+    onSuccess: async () => {
+      // If user said "don't restock", clear the flag immediately
+      if (!willRestock) {
+        try {
+          await inventoryApi.restock(article.inventoryId, { additionalStock: 0, needsRestock: false });
+        } catch { /* best effort */ }
+      }
       qc.invalidateQueries({ queryKey: ['available-articles'] });
       qc.invalidateQueries({ queryKey: ['inventory'] });
       toast.success(`"${article.productName}" marcado como consumido`);
@@ -55,70 +87,98 @@ function ConsumeModal({ article, primaryImagePath, onClose }: {
   const imgSrc = imageUrl(primaryImagePath);
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      {/* Producto con imagen */}
-      <div className="flex items-center gap-3 p-3 bg-indigo-500/5 dark:bg-indigo-500/10 rounded-xl ring-1 ring-indigo-500/20">
-        <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800/60 ring-1 ring-gray-200 dark:ring-gray-700/30 flex items-center justify-center flex-shrink-0">
-          {imgSrc ? (
-            <img src={imgSrc} alt={article.productName} className="w-full h-full object-cover"
-              onError={e => {
-                (e.target as HTMLImageElement).style.display = 'none';
-                const fb = (e.target as HTMLImageElement).nextElementSibling as HTMLElement | null;
-                if (fb) fb.style.display = 'flex';
-              }} />
-          ) : null}
-          <div style={{ display: imgSrc ? 'none' : 'flex' }} className="w-full h-full items-center justify-center bg-gray-100 dark:bg-gray-800/60">
-            <Package size={24} className="text-gray-400" />
+    <>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Producto con imagen */}
+        <div className="flex items-center gap-3 p-3 bg-indigo-500/5 dark:bg-indigo-500/10 rounded-xl ring-1 ring-indigo-500/20">
+          <div
+            className={`w-16 h-16 rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800/60 ring-1 ring-gray-200 dark:ring-gray-700/30 flex items-center justify-center flex-shrink-0 ${imgSrc ? 'cursor-zoom-in' : ''}`}
+            onClick={() => imgSrc && setLightbox(true)}
+          >
+            {imgSrc ? (
+              <img src={imgSrc} alt={article.productName} className="w-full h-full object-cover"
+                onError={e => {
+                  (e.target as HTMLImageElement).style.display = 'none';
+                  const fb = (e.target as HTMLImageElement).nextElementSibling as HTMLElement | null;
+                  if (fb) fb.style.display = 'flex';
+                }} />
+            ) : null}
+            <div style={{ display: imgSrc ? 'none' : 'flex' }} className="w-full h-full items-center justify-center bg-gray-100 dark:bg-gray-800/60">
+              <Package size={24} className="text-gray-400" />
+            </div>
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{article.productName}</p>
+            {article.categoryName && (
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{article.categoryName}</p>
+            )}
+            <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+              Stock disponible: <span className="font-semibold text-gray-700 dark:text-gray-300">{article.currentStock} unidades</span>
+            </p>
           </div>
         </div>
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{article.productName}</p>
-          {article.categoryName && (
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{article.categoryName}</p>
-          )}
-          <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-            Stock disponible: <span className="font-semibold text-gray-700 dark:text-gray-300">{article.currentStock} unidades</span>
-          </p>
-        </div>
-      </div>
 
-      <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-4">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Cantidad *</label>
+            <input
+              type="number" min={1} max={article.currentStock} value={quantity}
+              onChange={e => setQuantity(Math.max(1, Math.min(article.currentStock, Number(e.target.value))))}
+              className="bg-gray-100 dark:bg-gray-800/60 border border-gray-300 dark:border-gray-700/60 rounded-xl px-3.5 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
+              required
+            />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Fecha *</label>
+            <input
+              type="date" value={date} onChange={e => setDate(e.target.value)}
+              className="bg-gray-100 dark:bg-gray-800/60 border border-gray-300 dark:border-gray-700/60 rounded-xl px-3.5 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
+              required
+            />
+          </div>
+        </div>
+
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Cantidad *</label>
+          <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Notas (opcional)</label>
           <input
-            type="number" min={1} max={article.currentStock} value={quantity}
-            onChange={e => setQuantity(Math.max(1, Math.min(article.currentStock, Number(e.target.value))))}
-            className="bg-gray-100 dark:bg-gray-800/60 border border-gray-300 dark:border-gray-700/60 rounded-xl px-3.5 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
-            required
+            type="text" value={notes} onChange={e => setNotes(e.target.value)}
+            placeholder="Motivo o notas…"
+            className="bg-gray-100 dark:bg-gray-800/60 border border-gray-300 dark:border-gray-700/60 rounded-xl px-3.5 py-2.5 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
           />
         </div>
-        <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Fecha *</label>
+
+        {/* Restock toggle */}
+        <label className="flex items-center gap-3 p-3 bg-amber-50 dark:bg-amber-500/5 border border-amber-200 dark:border-amber-500/20 rounded-xl cursor-pointer group hover:border-amber-300 dark:hover:border-amber-400/30 transition-colors">
           <input
-            type="date" value={date} onChange={e => setDate(e.target.value)}
-            className="bg-gray-100 dark:bg-gray-800/60 border border-gray-300 dark:border-gray-700/60 rounded-xl px-3.5 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
-            required
+            type="checkbox"
+            checked={willRestock}
+            onChange={e => setWillRestock(e.target.checked)}
+            className="w-4 h-4 accent-amber-500 rounded flex-shrink-0"
           />
+          <div className="flex items-center gap-2 min-w-0">
+            <RefreshCw size={14} className="text-amber-500 flex-shrink-0" />
+            <div>
+              <p className="text-sm font-medium text-gray-900 dark:text-white">Reponer este artículo</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                {willRestock ? 'Aparecerá en el panel de reposición del Dashboard' : 'No aparecerá en el panel de reposición'}
+              </p>
+            </div>
+          </div>
+        </label>
+
+        <div className="flex gap-3 pt-1">
+          <button type="button" onClick={onClose} className="flex-1 px-4 py-2.5 border border-gray-300 dark:border-gray-700/60 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors text-sm font-medium">Cancelar</button>
+          <button type="submit" disabled={loading} className="flex-1 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-white font-medium transition-colors text-sm disabled:opacity-50 flex items-center justify-center gap-2">
+            <CheckCircle size={14} />
+            {loading ? 'Guardando…' : 'Marcar como consumido'}
+          </button>
         </div>
-      </div>
+      </form>
 
-      <div className="flex flex-col gap-1.5">
-        <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Notas (opcional)</label>
-        <input
-          type="text" value={notes} onChange={e => setNotes(e.target.value)}
-          placeholder="Motivo o notas…"
-          className="bg-gray-100 dark:bg-gray-800/60 border border-gray-300 dark:border-gray-700/60 rounded-xl px-3.5 py-2.5 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
-        />
-      </div>
-
-      <div className="flex gap-3 pt-2">
-        <button type="button" onClick={onClose} className="flex-1 px-4 py-2.5 border border-gray-300 dark:border-gray-700/60 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors text-sm font-medium">Cancelar</button>
-        <button type="submit" disabled={loading} className="flex-1 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-white font-medium transition-colors text-sm disabled:opacity-50 flex items-center justify-center gap-2">
-          <CheckCircle size={14} />
-          {loading ? 'Guardando…' : 'Marcar como consumido'}
-        </button>
-      </div>
-    </form>
+      {lightbox && imgSrc && (
+        <ImageLightbox src={imgSrc} alt={article.productName} onClose={() => setLightbox(false)} />
+      )}
+    </>
   );
 }
 
@@ -127,6 +187,7 @@ export default function ArticulosDisponibles() {
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [consuming, setConsuming] = useState<AvailableArticle | null>(null);
+  const [lightboxSrc, setLightboxSrc] = useState<{ src: string; alt: string } | null>(null);
 
   const { data: articles, isLoading } = useQuery({
     queryKey: ['available-articles'],
@@ -138,7 +199,6 @@ export default function ArticulosDisponibles() {
     queryFn: productImagesApi.getAll,
   });
 
-  // Mapa productId → path de imagen primaria
   const primaryImageMap = useMemo(() => {
     const map = new Map<number, string>();
     allImages?.forEach(img => {
@@ -209,7 +269,7 @@ export default function ArticulosDisponibles() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-200 dark:border-gray-800/60">
-                    {['', 'Artículo', 'Categoría', 'Stock', 'Costo', 'Precio', ''].map((h, i) => (
+                    {['', 'Artículo', 'Categoría', 'Stock', 'Precio', ''].map((h, i) => (
                       <th key={i} className="text-left px-5 py-3.5 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">{h}</th>
                     ))}
                   </tr>
@@ -221,7 +281,10 @@ export default function ArticulosDisponibles() {
                     return (
                       <tr key={a.inventoryId} className="hover:bg-gray-50 dark:hover:bg-white/[0.02] transition-colors group">
                         <td className="px-5 py-3">
-                          <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800/60 ring-1 ring-gray-200 dark:ring-gray-700/30 flex items-center justify-center flex-shrink-0">
+                          <div
+                            className={`w-10 h-10 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800/60 ring-1 ring-gray-200 dark:ring-gray-700/30 flex items-center justify-center flex-shrink-0 ${src ? 'cursor-zoom-in' : ''}`}
+                            onClick={() => src && setLightboxSrc({ src, alt: a.productName })}
+                          >
                             {src
                               ? <img src={src} alt="" className="w-full h-full object-cover" loading="lazy"
                                   onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
@@ -235,7 +298,6 @@ export default function ArticulosDisponibles() {
                         <td className="px-5 py-3">
                           <Badge color={stockColor(a.currentStock)}>{a.currentStock} uds.</Badge>
                         </td>
-                        <td className="px-5 py-3 text-sm text-gray-500 tabular-nums">${a.purchaseCost.toFixed(2)}</td>
                         <td className="px-5 py-3 text-sm font-medium text-gray-900 dark:text-white tabular-nums">${a.suggestedRetailPrice.toFixed(2)}</td>
                         <td className="px-5 py-3">
                           <div className="flex justify-end opacity-0 group-hover:opacity-100 transition-opacity">
@@ -260,7 +322,10 @@ export default function ArticulosDisponibles() {
                 return (
                   <div key={a.inventoryId} className="bg-white dark:bg-gray-900/60 border border-gray-200 dark:border-gray-800/60 rounded-xl p-4">
                     <div className="flex items-start gap-3">
-                      <div className="w-14 h-14 rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800/60 ring-1 ring-gray-200 dark:ring-gray-700/30 flex items-center justify-center flex-shrink-0">
+                      <div
+                        className={`w-14 h-14 rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800/60 ring-1 ring-gray-200 dark:ring-gray-700/30 flex items-center justify-center flex-shrink-0 ${src ? 'cursor-zoom-in' : ''}`}
+                        onClick={() => src && setLightboxSrc({ src, alt: a.productName })}
+                      >
                         {src
                           ? <img src={src} alt="" className="w-full h-full object-cover" loading="lazy"
                               onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
@@ -281,8 +346,7 @@ export default function ArticulosDisponibles() {
                         </div>
                         <div className="flex flex-wrap items-center gap-2 mt-2">
                           <Badge color={stockColor(a.currentStock)}>{a.currentStock} uds.</Badge>
-                          <span className="text-xs text-gray-500 dark:text-gray-600">Costo: ${a.purchaseCost.toFixed(2)}</span>
-                          <span className="text-xs font-medium text-gray-700 dark:text-gray-300">Precio: ${a.suggestedRetailPrice.toFixed(2)}</span>
+                          <span className="text-xs font-medium text-gray-700 dark:text-gray-300">${a.suggestedRetailPrice.toFixed(2)}</span>
                         </div>
                       </div>
                     </div>
@@ -302,6 +366,10 @@ export default function ArticulosDisponibles() {
             onClose={() => setConsuming(null)}
           />
         </Modal>
+      )}
+
+      {lightboxSrc && (
+        <ImageLightbox src={lightboxSrc.src} alt={lightboxSrc.alt} onClose={() => setLightboxSrc(null)} />
       )}
     </div>
   );

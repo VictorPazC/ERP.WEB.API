@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Package, Layers, Archive, Tag, Percent, Image,
@@ -52,10 +53,10 @@ function RestockModal({ item, onClose }: { item: Inventory; onClose: () => void 
     }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['inventory'] });
-      toast.success(`Stock actualizado: +${additional} unidades`);
+      toast.success(`Stock updated: +${additional} units`);
       onClose();
     },
-    onError: () => toast.error('Error al agregar stock'),
+    onError: () => toast.error('Error adding stock'),
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -72,7 +73,7 @@ function RestockModal({ item, onClose }: { item: Inventory; onClose: () => void 
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={onClose}>
       <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800/60 rounded-2xl shadow-2xl w-full max-w-md" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-gray-800/60">
-          <h2 className="text-base font-semibold text-gray-900 dark:text-white">Agregar stock</h2>
+          <h2 className="text-base font-semibold text-gray-900 dark:text-white">Add Stock</h2>
           <button onClick={onClose} className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
             <X size={18} />
           </button>
@@ -81,19 +82,19 @@ function RestockModal({ item, onClose }: { item: Inventory; onClose: () => void 
           <div className="flex items-start gap-3">
             <ProductThumb productId={item.productId} />
             <div className="min-w-0 flex-1">
-              <p className="font-semibold text-gray-900 dark:text-white text-sm truncate">{item.productName ?? `Producto #${item.productId}`}</p>
+              <p className="font-semibold text-gray-900 dark:text-white text-sm truncate">{item.productName ?? `Product #${item.productId}`}</p>
               <div className="flex gap-3 mt-1.5 flex-wrap">
                 <span className="text-xs text-gray-500 dark:text-gray-400">Stock: <strong className="text-gray-900 dark:text-white">{item.currentStock}</strong></span>
-                <span className="text-xs text-gray-500 dark:text-gray-400">Costo: <strong className="text-gray-900 dark:text-white">${item.purchaseCost.toFixed(2)}</strong></span>
-                <span className="text-xs text-gray-500 dark:text-gray-400">Precio: <strong className="text-emerald-600 dark:text-emerald-400">${item.suggestedRetailPrice.toFixed(2)}</strong></span>
-                <span className="text-xs text-gray-500 dark:text-gray-400">Margen: <strong className={marginPct >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'}>{marginPct.toFixed(1)}%</strong></span>
+                <span className="text-xs text-gray-500 dark:text-gray-400">Cost: <strong className="text-gray-900 dark:text-white">${item.purchaseCost.toFixed(2)}</strong></span>
+                <span className="text-xs text-gray-500 dark:text-gray-400">Price: <strong className="text-emerald-600 dark:text-emerald-400">${item.suggestedRetailPrice.toFixed(2)}</strong></span>
+                <span className="text-xs text-gray-500 dark:text-gray-400">Margin: <strong className={marginPct >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'}>{marginPct.toFixed(1)}%</strong></span>
               </div>
             </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Unidades a agregar</label>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Units to add</label>
               <input
                 type="number"
                 min="1"
@@ -111,15 +112,15 @@ function RestockModal({ item, onClose }: { item: Inventory; onClose: () => void 
                 className="w-4 h-4 accent-indigo-500 rounded"
               />
               <span className="text-sm text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-300 transition-colors">
-                Seguir marcado para reposición
+                Keep marked for restocking
               </span>
             </label>
 
             <div className="flex gap-3 pt-1">
-              <button type="button" onClick={onClose} className="flex-1 px-4 py-2.5 border border-gray-300 dark:border-gray-700/60 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors text-sm font-medium">Cancelar</button>
+              <button type="button" onClick={onClose} className="flex-1 px-4 py-2.5 border border-gray-300 dark:border-gray-700/60 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors text-sm font-medium">Cancel</button>
               <button type="submit" disabled={loading} className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-white font-medium text-sm transition-colors disabled:opacity-50">
                 {loading ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Plus size={16} />}
-                Agregar stock
+                Add stock
               </button>
             </div>
           </form>
@@ -131,6 +132,7 @@ function RestockModal({ item, onClose }: { item: Inventory; onClose: () => void 
 
 // ─── Main Dashboard ───────────────────────────────────────────────────────────
 export default function Dashboard() {
+  const navigate = useNavigate();
   const [restockItem, setRestockItem] = useState<Inventory | null>(null);
 
   const { data: categories } = useQuery({ queryKey: ['categories'], queryFn: categoriesApi.getAll });
@@ -156,26 +158,29 @@ export default function Dashboard() {
   const totalConsumptions = consumptions?.reduce((s, c) => s + c.quantity, 0) ?? 0;
 
   const needsRestockItems = inventory?.filter(i => i.needsRestock) ?? [];
+  const lowStockItems = inventory?.filter(i => i.currentStock < 10) ?? [];
 
   return (
     <div>
-      <PageHeader title="Dashboard" subtitle="Resumen del sistema ERP" />
+      <PageHeader title="Dashboard" subtitle="ERP system overview" />
       <div className="p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6">
 
         {/* Stats row 1 */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          <StatsCard title="Productos" value={products?.length ?? 0} icon={Package} color="indigo" />
-          <StatsCard title="Stock total" value={totalStock.toLocaleString()} icon={Archive} color="violet" />
-          <StatsCard title="Ganancia real" value={`$${totalRealizedProfit.toFixed(2)}`} icon={DollarSign} color="emerald" />
-          <StatsCard title="Consumos" value={totalConsumptions} icon={ShoppingCart} color="amber" />
+          <StatsCard title="Products" value={products?.length ?? 0} icon={Package} color="indigo" />
+          <StatsCard title="Total Stock" value={totalStock.toLocaleString()} icon={Archive} color="violet" />
+          <StatsCard title="Realized Profit" value={`$${totalRealizedProfit.toFixed(2)}`} icon={DollarSign} color="emerald" />
+          <div onClick={() => navigate('/consumptions')} className="cursor-pointer">
+            <StatsCard title="Consumptions" value={totalConsumptions} icon={ShoppingCart} color="amber" />
+          </div>
         </div>
 
         {/* Stats row 2 */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          <StatsCard title="Categorías" value={categories?.length ?? 0} icon={Layers} color="indigo" />
+          <StatsCard title="Categories" value={categories?.length ?? 0} icon={Layers} color="indigo" />
           <StatsCard title="Tags" value={tags?.length ?? 0} icon={Tag} color="amber" />
-          <StatsCard title="Promos activas" value={activePromotions} icon={Percent} color="indigo" />
-          <StatsCard title="Imágenes" value={images?.length ?? 0} icon={Image} color="emerald" />
+          <StatsCard title="Active Promos" value={activePromotions} icon={Percent} color="indigo" />
+          <StatsCard title="Images" value={images?.length ?? 0} icon={Image} color="emerald" />
         </div>
 
         {/* Needs restock panel */}
@@ -186,9 +191,9 @@ export default function Dashboard() {
                 <RefreshCw size={16} className="text-amber-500" />
               </div>
               <div>
-                <h3 className="text-gray-900 dark:text-white font-semibold text-sm">Pendiente de reposición</h3>
+                <h3 className="text-gray-900 dark:text-white font-semibold text-sm">Needs Restocking</h3>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  {needsRestockItems.length} {needsRestockItems.length === 1 ? 'producto' : 'productos'} para reponer — clic para agregar stock
+                  {needsRestockItems.length} {needsRestockItems.length === 1 ? 'item' : 'items'} to restock — click to add stock
                 </p>
               </div>
             </div>
@@ -201,9 +206,9 @@ export default function Dashboard() {
                 >
                   <ProductThumb productId={item.productId} />
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{item.productName ?? `Producto #${item.productId}`}</p>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{item.productName ?? `Product #${item.productId}`}</p>
                     <div className="flex items-center gap-2 mt-0.5">
-                      <Badge color={item.currentStock === 0 ? 'red' : 'yellow'}>{item.currentStock} uds</Badge>
+                      <Badge color={item.currentStock === 0 ? 'red' : 'yellow'}>{item.currentStock} units</Badge>
                       <span className="text-xs text-gray-400 dark:text-gray-600">${item.purchaseCost.toFixed(0)}</span>
                     </div>
                   </div>
@@ -216,7 +221,7 @@ export default function Dashboard() {
 
         {/* Profit panels */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
-          {/* Real profit */}
+          {/* Realized profit */}
           <div className="bg-white dark:bg-gray-900/60 border border-gray-200 dark:border-gray-800/60 rounded-2xl p-4 sm:p-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
               <div className="flex items-center gap-3">
@@ -224,11 +229,19 @@ export default function Dashboard() {
                   <DollarSign size={16} className="text-emerald-400" />
                 </div>
                 <div>
-                  <h3 className="text-gray-900 dark:text-white font-semibold text-sm">Ganancia realizada</h3>
-                  <p className="text-xs text-gray-500 dark:text-gray-600">De consumos registrados</p>
+                  <h3 className="text-gray-900 dark:text-white font-semibold text-sm">Realized Profit</h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-600">From recorded consumptions</p>
                 </div>
               </div>
-              <span className="text-lg font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">${totalRealizedProfit.toFixed(2)}</span>
+              <div className="flex items-center gap-3">
+                <span className="text-lg font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">${totalRealizedProfit.toFixed(2)}</span>
+                <button
+                  onClick={() => navigate('/consumptions')}
+                  className="text-xs text-indigo-500 hover:text-indigo-400 font-medium transition-colors whitespace-nowrap"
+                >
+                  View all →
+                </button>
+              </div>
             </div>
             <div className="space-y-1">
               {consumptions?.slice(0, 6).map(c => {
@@ -237,9 +250,9 @@ export default function Dashboard() {
                 return (
                   <div key={c.consumptionId} className="flex items-center justify-between py-2 px-3 rounded-xl hover:bg-gray-50 dark:hover:bg-white/[0.02] transition-colors gap-2">
                     <div className="min-w-0">
-                      <p className="text-sm text-gray-700 dark:text-gray-300 truncate">{c.productName ?? `Producto #${c.productId}`}</p>
+                      <p className="text-sm text-gray-700 dark:text-gray-300 truncate">{c.productName ?? `Product #${c.productId}`}</p>
                       <p className="text-[11px] text-gray-400 dark:text-gray-600">
-                        {c.quantity} uds · {new Date(c.consumedAt).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' })}
+                        {c.quantity} units · {new Date(c.consumedAt).toLocaleDateString('en-US', { day: '2-digit', month: 'short' })}
                       </p>
                     </div>
                     <span className={`text-sm font-semibold tabular-nums flex-shrink-0 ${profit >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'}`}>
@@ -249,9 +262,18 @@ export default function Dashboard() {
                 );
               })}
               {(!consumptions || consumptions.length === 0) && (
-                <p className="text-gray-500 dark:text-gray-600 text-sm text-center py-6">Sin consumos registrados</p>
+                <p className="text-gray-500 dark:text-gray-600 text-sm text-center py-6">No consumptions recorded yet</p>
               )}
             </div>
+            {/* Total footer */}
+            {consumptions && consumptions.length > 0 && (
+              <div className="border-t border-gray-200 dark:border-gray-800/60 mt-3 pt-3 flex items-center justify-between px-3">
+                <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Total</span>
+                <span className="text-sm font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
+                  ${totalRealizedProfit.toFixed(2)}
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Estimated margin */}
@@ -262,8 +284,8 @@ export default function Dashboard() {
                   <TrendingUp size={16} className="text-indigo-400" />
                 </div>
                 <div>
-                  <h3 className="text-gray-900 dark:text-white font-semibold text-sm">Margen estimado</h3>
-                  <p className="text-xs text-gray-500 dark:text-gray-600">Por producto en stock actual</p>
+                  <h3 className="text-gray-900 dark:text-white font-semibold text-sm">Estimated Margin</h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-600">Per product in current stock</p>
                 </div>
               </div>
               <span className="text-lg font-bold text-gray-900 dark:text-white tabular-nums">${totalEstimatedProfit.toFixed(2)}</span>
@@ -285,7 +307,7 @@ export default function Dashboard() {
                 </div>
               ))}
               {(!inventory || inventory.length === 0) && (
-                <p className="text-gray-500 dark:text-gray-600 text-sm text-center py-6">Sin inventario</p>
+                <p className="text-gray-500 dark:text-gray-600 text-sm text-center py-6">No inventory</p>
               )}
             </div>
           </div>
@@ -300,47 +322,51 @@ export default function Dashboard() {
                 <Zap size={16} className="text-emerald-400" />
               </div>
               <div>
-                <h3 className="text-gray-900 dark:text-white font-semibold text-sm">Promociones activas</h3>
-                <p className="text-xs text-gray-500 dark:text-gray-600">{activePromotions} en curso</p>
+                <h3 className="text-gray-900 dark:text-white font-semibold text-sm">Active Promotions</h3>
+                <p className="text-xs text-gray-500 dark:text-gray-600">{activePromotions} running now</p>
               </div>
             </div>
             <div className="space-y-1">
               {promotions?.filter(p => p.isActive).slice(0, 5).map(p => (
                 <div key={p.promoId} className="flex items-center justify-between py-2.5 px-3 rounded-xl hover:bg-gray-50 dark:hover:bg-white/[0.02] transition-colors gap-2">
-                  <span className="text-sm text-gray-700 dark:text-gray-300 truncate min-w-0">{p.productName ?? `Producto #${p.productId}`}</span>
+                  <span className="text-sm text-gray-700 dark:text-gray-300 truncate min-w-0">{p.productName ?? `Product #${p.productId}`}</span>
                   <Badge color="green">{p.discountPercentage ?? 0}% OFF</Badge>
                 </div>
               ))}
-              {activePromotions === 0 && <p className="text-gray-500 dark:text-gray-600 text-sm text-center py-6">Sin promociones activas</p>}
+              {activePromotions === 0 && <p className="text-gray-500 dark:text-gray-600 text-sm text-center py-6">No active promotions</p>}
             </div>
           </div>
 
-          {/* Low stock */}
+          {/* Low stock — clickable to restock */}
           <div className="bg-white dark:bg-gray-900/60 border border-gray-200 dark:border-gray-800/60 rounded-2xl p-4 sm:p-6">
             <div className="flex items-center gap-3 mb-5">
               <div className="p-2 bg-red-500/10 rounded-xl ring-1 ring-red-500/20">
                 <AlertTriangle size={16} className="text-red-400" />
               </div>
               <div>
-                <h3 className="text-gray-900 dark:text-white font-semibold text-sm">Stock bajo</h3>
-                <p className="text-xs text-gray-500 dark:text-gray-600">Menos de 10 unidades</p>
+                <h3 className="text-gray-900 dark:text-white font-semibold text-sm">Low Stock</h3>
+                <p className="text-xs text-gray-500 dark:text-gray-600">Less than 10 units — click to add stock</p>
               </div>
             </div>
             <div className="space-y-1">
-              {inventory?.filter(i => i.currentStock < 10).slice(0, 5).map(i => (
-                <div key={i.inventoryId} className="flex items-center justify-between py-2.5 px-3 rounded-xl hover:bg-gray-50 dark:hover:bg-white/[0.02] transition-colors gap-2">
+              {lowStockItems.slice(0, 5).map(i => (
+                <button
+                  key={i.inventoryId}
+                  onClick={() => setRestockItem(i)}
+                  className="w-full flex items-center justify-between py-2.5 px-3 rounded-xl hover:bg-gray-50 dark:hover:bg-white/[0.02] transition-colors gap-2 group text-left"
+                >
                   <div className="flex items-center gap-2 min-w-0">
                     {i.needsRestock
                       ? <CheckCircle size={14} className="text-amber-500 flex-shrink-0" />
                       : <XCircle size={14} className="text-gray-300 dark:text-gray-700 flex-shrink-0" />
                     }
-                    <span className="text-sm text-gray-700 dark:text-gray-300 truncate">{i.productName ?? `Producto #${i.productId}`}</span>
+                    <span className="text-sm text-gray-700 dark:text-gray-300 truncate group-hover:text-gray-900 dark:group-hover:text-white transition-colors">{i.productName ?? `Product #${i.productId}`}</span>
                   </div>
-                  <Badge color={i.currentStock === 0 ? 'red' : 'yellow'}>{i.currentStock} uds</Badge>
-                </div>
+                  <Badge color={i.currentStock === 0 ? 'red' : 'yellow'}>{i.currentStock} units</Badge>
+                </button>
               ))}
-              {!inventory?.some(i => i.currentStock < 10) && (
-                <p className="text-gray-500 dark:text-gray-600 text-sm text-center py-6">Todos los productos bien abastecidos</p>
+              {lowStockItems.length === 0 && (
+                <p className="text-gray-500 dark:text-gray-600 text-sm text-center py-6">All products well stocked</p>
               )}
             </div>
           </div>
