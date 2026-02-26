@@ -269,9 +269,12 @@ export default function Dashboard() {
             {consumptions && consumptions.length > 0 && (
               <div className="border-t border-gray-200 dark:border-gray-800/60 mt-3 pt-3 flex items-center justify-between px-3">
                 <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Total</span>
-                <span className="text-sm font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
-                  ${totalRealizedProfit.toFixed(2)}
-                </span>
+                <div className="flex items-center gap-3">
+                  <span className="text-xs text-gray-400 dark:text-gray-600 tabular-nums">{totalConsumptions} units</span>
+                  <span className="text-sm font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
+                    ${totalRealizedProfit.toFixed(2)}
+                  </span>
+                </div>
               </div>
             )}
           </div>

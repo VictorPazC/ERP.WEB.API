@@ -1,3 +1,4 @@
+using ERP.Web.API.Middleware;
 using ERP.WEB.Domain.Interfaces;
 using ERP.WEB.Infrastructure.Data;
 using ERP.WEB.Infrastructure.Repositories;
@@ -5,7 +6,15 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container
+// ── Logging ──────────────────────────────────────────────────────────────────
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole(options =>
+{
+    options.FormatterName = "simple";
+});
+builder.Logging.AddDebug();
+
+// ── Services ─────────────────────────────────────────────────────────────────
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -42,11 +51,11 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline
+// ── Middleware pipeline ───────────────────────────────────────────────────────
+app.UseMiddleware<RequestLoggingMiddleware>();
 
 app.UseSwagger();
 app.UseSwaggerUI();
-
 
 app.UseCors("AllowReact");
 

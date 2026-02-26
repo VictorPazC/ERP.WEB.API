@@ -1,4 +1,4 @@
-using ERP.WEB.Application.DTOs;
+﻿using ERP.WEB.Application.DTOs;
 using ERP.WEB.Application.Features.Products.Commands.CreateProduct;
 using ERP.WEB.Application.Features.Products.Commands.DeleteProduct;
 using ERP.WEB.Application.Features.Products.Commands.UpdateProduct;
@@ -10,63 +10,87 @@ using Microsoft.AspNetCore.Mvc;
 namespace ERP.WEB.API.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route(api/[controller])]
 public class ProductsController : ControllerBase
 {
     private readonly IMediator _mediator;
+    private readonly ILogger<ProductsController> _logger;
 
-    public ProductsController(IMediator mediator)
+    public ProductsController(IMediator mediator, ILogger<ProductsController> logger)
     {
         _mediator = mediator;
+        _logger   = logger;
     }
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<ProductDto>>> GetAll()
     {
+        _logger.LogDebug([DEBUG] GetAll products requested);
         var products = await _mediator.Send(new GetAllProductsQuery());
+        _logger.LogInformation([INFO]  Returned {Count} products, products.Count());
         return Ok(products);
     }
 
-    [HttpGet("{id}")]
+    [HttpGet({id})]
     public async Task<ActionResult<ProductDto>> GetById(int id)
     {
+        _logger.LogDebug([DEBUG] GetById product id={Id}, id);
         var product = await _mediator.Send(new GetProductByIdQuery(id));
-        
-        if (product is null)
-            return NotFound();
 
+        if (product is null)
+        {
+            _logger.LogWarning([WARN]  Product id={Id} not found, id);
+            return NotFound();
+        }
+
+        _logger.LogInformation([INFO]  Returned product id={Id} name={Name}, id, product.Name);
         return Ok(product);
     }
 
     [HttpPost]
     public async Task<ActionResult<ProductDto>> Create([FromBody] CreateProductDto dto)
     {
+        _logger.LogInformation([INFO]  Creating product name={Name}, dto.Name);
         var product = await _mediator.Send(new CreateProductCommand(dto));
+        _logger.LogInformation([INFO]  Product created id={Id} name={Name}, product.ProductId, product.Name);
         return CreatedAtAction(nameof(GetById), new { id = product.ProductId }, product);
     }
 
-    [HttpPut("{id}")]
+    [HttpPut({id})]
     public async Task<ActionResult<ProductDto>> Update(int id, [FromBody] UpdateProductDto dto)
     {
         if (id != dto.ProductId)
+        {
+            _logger.LogWarning([WARN]  Update product id mismatch: route={RouteId} body={BodyId}, id, dto.ProductId);
             return BadRequest();
+        }
 
+        _logger.LogInformation([INFO]  Updating product id={Id}, id);
         var product = await _mediator.Send(new UpdateProductCommand(dto));
-        
-        if (product is null)
-            return NotFound();
 
+        if (product is null)
+        {
+            _logger.LogWarning([WARN]  Product id={Id} not found for update, id);
+            return NotFound();
+        }
+
+        _logger.LogInformation([INFO]  Product id={Id} updated successfully, id);
         return Ok(product);
     }
 
-    [HttpDelete("{id}")]
+    [HttpDelete({id})]
     public async Task<ActionResult> Delete(int id)
     {
+        _logger.LogInformation([INFO]  Deleting product id={Id}, id);
         var result = await _mediator.Send(new DeleteProductCommand(id));
-        
-        if (!result)
-            return NotFound();
 
+        if (!result)
+        {
+            _logger.LogWarning([WARN]  Product id={Id} not found for deletion, id);
+            return NotFound();
+        }
+
+        _logger.LogInformation([INFO]  Product id={Id} deleted, id);
         return NoContent();
     }
 }

@@ -94,7 +94,7 @@ export default function Consumptions() {
     <div>
       <PageHeader
         title="Consumptions"
-        subtitle={`${filtered.length} records · $${totalProfit.toFixed(2)} profit`}
+        subtitle={`${filtered.length} records · ${totalUnits} units · $${totalProfit.toFixed(2)} profit`}
       />
 
       <div className="p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6">

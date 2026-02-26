@@ -13,7 +13,7 @@ const nav = [
   { to: '/categories', icon: Layers, label: 'Categories' },
   { to: '/products', icon: Package, label: 'Products' },
   { to: '/inventory', icon: Archive, label: 'Inventory' },
-  { to: '/articulos', icon: ShoppingBag, label: 'Articulos' },
+  { to: '/articulos', icon: ShoppingBag, label: 'Articles' },
   { to: '/consumptions', icon: ShoppingCart, label: 'Consumptions' },
   { to: '/tags', icon: Tag, label: 'Tags' },
   { to: '/promotions', icon: Percent, label: 'Promotions' },
