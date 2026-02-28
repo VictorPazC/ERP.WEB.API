@@ -18,6 +18,7 @@ public class ProductRepository : IProductRepository
     {
         return await _context.Products
             .Include(p => p.Category)
+            .Include(p => p.Brand)
             .ToListAsync();
     }
 
@@ -25,6 +26,7 @@ public class ProductRepository : IProductRepository
     {
         return await _context.Products
             .Include(p => p.Category)
+            .Include(p => p.Brand)
             .FirstOrDefaultAsync(p => p.ProductId == id);
     }
 

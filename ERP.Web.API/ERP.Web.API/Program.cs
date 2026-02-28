@@ -38,6 +38,7 @@ builder.Services.AddScoped<IPromotionRepository, PromotionRepository>();
 builder.Services.AddScoped<IProductImageRepository, ProductImageRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IConsumptionRepository, ConsumptionRepository>();
+builder.Services.AddScoped<IBrandRepository, BrandRepository>();
 
 // CORS
 builder.Services.AddCors(options =>

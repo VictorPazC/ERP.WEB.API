@@ -3,7 +3,7 @@ import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Package, Tag, Percent, Image, Archive, Layers,
   ChevronLeft, ChevronRight, Boxes, Menu, X, Sun, Moon, Users, ShoppingBag,
-  ShoppingCart, Shield, Eye, LogOut,
+  ShoppingCart, Shield, Eye, LogOut, Bookmark,
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useUser } from '../context/UserContext';
@@ -11,6 +11,7 @@ import { useUser } from '../context/UserContext';
 const nav = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/categories', icon: Layers, label: 'Categories' },
+  { to: '/brands', icon: Bookmark, label: 'Brands' },
   { to: '/products', icon: Package, label: 'Products' },
   { to: '/inventory', icon: Archive, label: 'Inventory' },
   { to: '/articulos', icon: ShoppingBag, label: 'Articles' },

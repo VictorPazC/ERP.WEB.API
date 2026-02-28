@@ -4,7 +4,7 @@ public record UpdateProductDto(
     int ProductId,
     string Name,
     string? Description,
-    string? Brand,
+    int? BrandId,
     string? ReferenceLink,
     string? PurchaseLocation,
     string Status,

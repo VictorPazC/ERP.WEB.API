@@ -1,4 +1,4 @@
-﻿using ERP.WEB.Application.DTOs;
+using ERP.WEB.Application.DTOs;
 using ERP.WEB.Application.Features.Inventory.Commands.CreateInventory;
 using ERP.WEB.Application.Features.Inventory.Commands.DeleteInventory;
 using ERP.WEB.Application.Features.Inventory.Commands.RestockInventory;
@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace ERP.Web.API.Controllers;
 
 [ApiController]
-[Route(api/[controller])]
+[Route("api/[controller]")]
 public class InventoryController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -27,37 +27,37 @@ public class InventoryController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<InventoryDto>>> GetAll()
     {
-        _logger.LogDebug([DEBUG] GetAll inventory requested);
+        _logger.LogDebug("[DEBUG] GetAll inventory requested");
         var result = await _mediator.Send(new GetAllInventoryQuery());
-        _logger.LogInformation([INFO]  Returned {Count} inventory records, result.Count());
+        _logger.LogInformation("[INFO]  Returned {Count} inventory records", result.Count());
         return Ok(result);
     }
 
-    [HttpGet({id})]
+    [HttpGet("{id}")]
     public async Task<ActionResult<InventoryDto>> GetById(int id)
     {
-        _logger.LogDebug([DEBUG] GetById inventory id={Id}, id);
+        _logger.LogDebug("[DEBUG] GetById inventory id={Id}", id);
         var result = await _mediator.Send(new GetInventoryByIdQuery(id));
 
         if (result is null)
         {
-            _logger.LogWarning([WARN]  Inventory id={Id} not found, id);
+            _logger.LogWarning("[WARN]  Inventory id={Id} not found", id);
             return NotFound();
         }
 
-        _logger.LogInformation([INFO]  Returned inventory id={Id} product={Product}, id, result.ProductName);
+        _logger.LogInformation("[INFO]  Returned inventory id={Id} product={Product}", id, result.ProductName);
         return Ok(result);
     }
 
-    [HttpGet(product/{productId})]
+    [HttpGet("product/{productId}")]
     public async Task<ActionResult<InventoryDto>> GetByProductId(int productId)
     {
-        _logger.LogDebug([DEBUG] GetByProductId inventory productId={ProductId}, productId);
+        _logger.LogDebug("[DEBUG] GetByProductId inventory productId={ProductId}", productId);
         var result = await _mediator.Send(new GetInventoryByProductIdQuery(productId));
 
         if (result is null)
         {
-            _logger.LogWarning([WARN]  Inventory for productId={ProductId} not found, productId);
+            _logger.LogWarning("[WARN]  Inventory for productId={ProductId} not found", productId);
             return NotFound();
         }
 
@@ -67,64 +67,64 @@ public class InventoryController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<InventoryDto>> Create([FromBody] CreateInventoryDto dto)
     {
-        _logger.LogInformation([INFO]  Creating inventory for productId={ProductId} stock={Stock}, dto.ProductId, dto.CurrentStock);
+        _logger.LogInformation("[INFO]  Creating inventory for productId={ProductId} stock={Stock}", dto.ProductId, dto.CurrentStock);
         var result = await _mediator.Send(new CreateInventoryCommand(dto));
-        _logger.LogInformation([INFO]  Inventory created id={Id} for productId={ProductId}, result.InventoryId, result.ProductId);
+        _logger.LogInformation("[INFO]  Inventory created id={Id} for productId={ProductId}", result.InventoryId, result.ProductId);
         return CreatedAtAction(nameof(GetById), new { id = result.InventoryId }, result);
     }
 
-    [HttpPut({id})]
+    [HttpPut("{id}")]
     public async Task<ActionResult<InventoryDto>> Update(int id, [FromBody] UpdateInventoryDto dto)
     {
         if (id != dto.InventoryId)
         {
-            _logger.LogWarning([WARN]  Update inventory id mismatch: route={RouteId} body={BodyId}, id, dto.InventoryId);
+            _logger.LogWarning("[WARN]  Update inventory id mismatch: route={RouteId} body={BodyId}", id, dto.InventoryId);
             return BadRequest();
         }
 
-        _logger.LogInformation([INFO]  Updating inventory id={Id}, id);
+        _logger.LogInformation("[INFO]  Updating inventory id={Id}", id);
         var result = await _mediator.Send(new UpdateInventoryCommand(dto));
 
         if (result is null)
         {
-            _logger.LogWarning([WARN]  Inventory id={Id} not found for update, id);
+            _logger.LogWarning("[WARN]  Inventory id={Id} not found for update", id);
             return NotFound();
         }
 
-        _logger.LogInformation([INFO]  Inventory id={Id} updated, stock={Stock}, id, result.CurrentStock);
+        _logger.LogInformation("[INFO]  Inventory id={Id} updated, stock={Stock}", id, result.CurrentStock);
         return Ok(result);
     }
 
-    [HttpPatch({id}/restock)]
+    [HttpPatch("{id}/restock")]
     public async Task<ActionResult<InventoryDto>> Restock(int id, [FromBody] RestockInventoryDto dto)
     {
-        _logger.LogInformation([INFO]  Restocking inventory id={Id} additionalStock={AdditionalStock} needsRestock={NeedsRestock},
+        _logger.LogInformation("[INFO]  Restocking inventory id={Id} additionalStock={AdditionalStock} needsRestock={NeedsRestock}",
             id, dto.AdditionalStock, dto.NeedsRestock);
         var result = await _mediator.Send(new RestockInventoryCommand(id, dto));
 
         if (result is null)
         {
-            _logger.LogWarning([WARN]  Inventory id={Id} not found for restock, id);
+            _logger.LogWarning("[WARN]  Inventory id={Id} not found for restock", id);
             return NotFound();
         }
 
-        _logger.LogInformation([INFO]  Inventory id={Id} restocked, new stock={Stock}, id, result.CurrentStock);
+        _logger.LogInformation("[INFO]  Inventory id={Id} restocked, new stock={Stock}", id, result.CurrentStock);
         return Ok(result);
     }
 
-    [HttpDelete({id})]
+    [HttpDelete("{id}")]
     public async Task<ActionResult> Delete(int id)
     {
-        _logger.LogInformation([INFO]  Deleting inventory id={Id}, id);
+        _logger.LogInformation("[INFO]  Deleting inventory id={Id}", id);
         var result = await _mediator.Send(new DeleteInventoryCommand(id));
 
         if (!result)
         {
-            _logger.LogWarning([WARN]  Inventory id={Id} not found for deletion, id);
+            _logger.LogWarning("[WARN]  Inventory id={Id} not found for deletion", id);
             return NotFound();
         }
 
-        _logger.LogInformation([INFO]  Inventory id={Id} deleted, id);
+        _logger.LogInformation("[INFO]  Inventory id={Id} deleted", id);
         return NoContent();
     }
 }

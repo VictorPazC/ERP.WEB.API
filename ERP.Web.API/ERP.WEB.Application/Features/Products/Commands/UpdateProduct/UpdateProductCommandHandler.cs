@@ -23,7 +23,7 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
 
         product.Name = request.ProductDto.Name;
         product.Description = request.ProductDto.Description;
-        product.Brand = request.ProductDto.Brand;
+        product.BrandId = request.ProductDto.BrandId;
         product.ReferenceLink = request.ProductDto.ReferenceLink;
         product.PurchaseLocation = request.ProductDto.PurchaseLocation;
         product.Status = request.ProductDto.Status;
@@ -35,7 +35,8 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
             product.ProductId,
             product.Name,
             product.Description,
-            product.Brand,
+            product.BrandId,
+            product.Brand?.Name,
             product.ReferenceLink,
             product.PurchaseLocation,
             product.Status,

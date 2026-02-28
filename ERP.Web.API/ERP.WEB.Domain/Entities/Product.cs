@@ -16,8 +16,7 @@ public class Product
 
     public string? Description { get; set; }
 
-    [MaxLength(100)]
-    public string? Brand { get; set; }
+    public int? BrandId { get; set; }
 
     public string? ReferenceLink { get; set; }
 
@@ -33,6 +32,9 @@ public class Product
 
     [ForeignKey(nameof(CategoryId))]
     public Category? Category { get; set; }
+
+    [ForeignKey(nameof(BrandId))]
+    public Brand? Brand { get; set; }
 
     public Inventory? Inventory { get; set; }
 

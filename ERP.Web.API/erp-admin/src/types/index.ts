@@ -1,3 +1,21 @@
+export interface Brand {
+  brandId: number;
+  name: string;
+  description?: string;
+  productsCount: number;
+}
+
+export interface CreateBrandDto {
+  name: string;
+  description?: string;
+}
+
+export interface UpdateBrandDto {
+  brandId: number;
+  name: string;
+  description?: string;
+}
+
 export interface Category {
   categoryId: number;
   name: string;
@@ -25,7 +43,8 @@ export interface Product {
   productId: number;
   name: string;
   description?: string;
-  brand?: string;
+  brandId?: number;
+  brandName?: string;
   referenceLink?: string;
   purchaseLocation?: string;
   status: string;
@@ -37,7 +56,7 @@ export interface Product {
 export interface CreateProductDto {
   name: string;
   description?: string;
-  brand?: string;
+  brandId?: number;
   referenceLink?: string;
   purchaseLocation?: string;
   categoryId?: number;
@@ -47,7 +66,7 @@ export interface UpdateProductDto {
   productId: number;
   name: string;
   description?: string;
-  brand?: string;
+  brandId?: number;
   referenceLink?: string;
   purchaseLocation?: string;
   status: string;

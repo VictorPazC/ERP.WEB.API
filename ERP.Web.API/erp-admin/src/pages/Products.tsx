@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Pencil, Trash2, Package, ExternalLink, Search, Upload, X, Tag as TagIcon, Camera } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { productsApi } from '../api/products';
+import { brandsApi } from '../api/brands';
 import { categoriesApi } from '../api/categories';
 import { productImagesApi } from '../api/productImages';
 import { tagsApi } from '../api/tags';
@@ -205,12 +206,13 @@ function ProductForm({ initial, onSave, onClose }: {
   onClose: () => void;
 }) {
   const { data: categories } = useQuery({ queryKey: ['categories'], queryFn: categoriesApi.getAll });
+  const { data: brands } = useQuery({ queryKey: ['brands'], queryFn: brandsApi.getAll });
   const [step, setStep] = useState<'form' | 'images'>('form');
   const [createdProductId, setCreatedProductId] = useState<number | null>(null);
   const [form, setForm] = useState({
     name: initial?.name ?? '',
     description: initial?.description ?? '',
-    brand: initial?.brand ?? '',
+    brandId: initial?.brandId?.toString() ?? '',
     referenceLink: initial?.referenceLink ?? '',
     purchaseLocation: initial?.purchaseLocation ?? '',
     categoryId: initial?.categoryId?.toString() ?? '',
@@ -227,7 +229,7 @@ function ProductForm({ initial, onSave, onClose }: {
       const base = {
         name: form.name,
         description: form.description || undefined,
-        brand: form.brand || undefined,
+        brandId: form.brandId ? Number(form.brandId) : undefined,
         referenceLink: form.referenceLink || undefined,
         purchaseLocation: form.purchaseLocation || undefined,
         categoryId: form.categoryId ? Number(form.categoryId) : undefined,
@@ -264,7 +266,13 @@ function ProductForm({ initial, onSave, onClose }: {
       <FormField label="Name *" value={form.name} onChange={set('name')} placeholder="Product name" required />
       <FormField label="Description" value={form.description} onChange={set('description')} placeholder="Optional description" />
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <FormField label="Brand" value={form.brand} onChange={set('brand')} placeholder="Brand" />
+        <div className="flex flex-col gap-1.5">
+          <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Brand</label>
+          <select value={form.brandId} onChange={set('brandId')} className={selectCls}>
+            <option value="">No brand</option>
+            {brands?.map(b => <option key={b.brandId} value={b.brandId}>{b.name}</option>)}
+          </select>
+        </div>
         <FormField label="Purchase location" value={form.purchaseLocation} onChange={set('purchaseLocation')} placeholder="Where to buy it" />
       </div>
       <FormField label="Reference link" value={form.referenceLink} onChange={set('referenceLink')} placeholder="https://…" type="url" />
@@ -348,7 +356,7 @@ export default function Products() {
 
   const filtered = products?.filter(p =>
     p.name.toLowerCase().includes(search.toLowerCase()) ||
-    p.brand?.toLowerCase().includes(search.toLowerCase())
+    p.brandName?.toLowerCase().includes(search.toLowerCase())
   );
 
   const openLightbox = (productId: number, name: string) => {
@@ -413,7 +421,7 @@ export default function Products() {
                             {p.description && <p className="text-xs text-gray-500 dark:text-gray-600 truncate max-w-[200px]">{p.description}</p>}
                           </div>
                         </td>
-                        <td className="px-5 py-3 text-sm text-gray-500">{p.brand ?? '—'}</td>
+                        <td className="px-5 py-3 text-sm text-gray-500">{p.brandName ?? '—'}</td>
                         <td className="px-5 py-3 text-sm text-gray-500">{p.categoryName ?? '—'}</td>
                         <td className="px-5 py-3">
                           <Badge color={p.status === 'Active' ? 'green' : p.status === 'Inactive' ? 'yellow' : 'red'}>{p.status}</Badge>
@@ -468,7 +476,7 @@ export default function Products() {
                         </div>
                         <div className="flex flex-wrap items-center gap-1.5 mt-2">
                           <Badge color={p.status === 'Active' ? 'green' : p.status === 'Inactive' ? 'yellow' : 'red'}>{p.status}</Badge>
-                          {p.brand && <Badge color="gray">{p.brand}</Badge>}
+                          {p.brandName && <Badge color="gray">{p.brandName}</Badge>}
                           {p.categoryName && <Badge color="indigo">{p.categoryName}</Badge>}
                         </div>
                       </div>

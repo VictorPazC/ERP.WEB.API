@@ -14,6 +14,7 @@ import ProductImages from './pages/ProductImages';
 import Users from './pages/Users';
 import ArticulosDisponibles from './pages/ArticulosDisponibles';
 import Consumptions from './pages/Consumptions';
+import Brands from './pages/Brands';
 import Login from './pages/Login';
 
 const queryClient = new QueryClient({
@@ -64,6 +65,7 @@ function AppRoutes() {
       <Route element={<Layout />}>
         <Route index element={<Dashboard />} />
         <Route path="categories" element={<Categories />} />
+        <Route path="brands" element={<Brands />} />
         <Route path="products" element={<Products />} />
         <Route path="inventory" element={<InventoryPage />} />
         <Route path="tags" element={<Tags />} />

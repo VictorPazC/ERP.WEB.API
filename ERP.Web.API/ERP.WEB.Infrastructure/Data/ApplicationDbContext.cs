@@ -11,6 +11,7 @@ public class ApplicationDbContext : DbContext
 
     public DbSet<Product> Products => Set<Product>();
     public DbSet<Category> Categories => Set<Category>();
+    public DbSet<Brand> Brands => Set<Brand>();
     public DbSet<Inventory> Inventories => Set<Inventory>();
     public DbSet<Tag> Tags => Set<Tag>();
     public DbSet<Promotion> Promotions => Set<Promotion>();
@@ -22,6 +23,12 @@ public class ApplicationDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
+        modelBuilder.Entity<Brand>(entity =>
+        {
+            entity.HasKey(e => e.BrandId);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+        });
+
         modelBuilder.Entity<Product>(entity =>
         {
             entity.HasKey(e => e.ProductId);
@@ -30,6 +37,10 @@ public class ApplicationDbContext : DbContext
             entity.HasOne(e => e.Category)
                   .WithMany(c => c.Products)
                   .HasForeignKey(e => e.CategoryId)
+                  .OnDelete(DeleteBehavior.SetNull);
+            entity.HasOne(e => e.Brand)
+                  .WithMany(b => b.Products)
+                  .HasForeignKey(e => e.BrandId)
                   .OnDelete(DeleteBehavior.SetNull);
         });
 

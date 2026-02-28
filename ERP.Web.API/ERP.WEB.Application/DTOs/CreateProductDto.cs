@@ -3,7 +3,7 @@ namespace ERP.WEB.Application.DTOs;
 public record CreateProductDto(
     string Name,
     string? Description,
-    string? Brand,
+    int? BrandId,
     string? ReferenceLink,
     string? PurchaseLocation,
     int? CategoryId

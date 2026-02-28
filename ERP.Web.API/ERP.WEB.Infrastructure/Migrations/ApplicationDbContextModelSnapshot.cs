@@ -22,6 +22,27 @@ namespace ERP.WEB.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("ERP.WEB.Domain.Entities.Brand", b =>
+                {
+                    b.Property<int>("BrandId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BrandId"));
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("BrandId");
+
+                    b.ToTable("Brands");
+                });
+
             modelBuilder.Entity("ERP.WEB.Domain.Entities.Category", b =>
                 {
                     b.Property<int>("CategoryId")
@@ -128,9 +149,8 @@ namespace ERP.WEB.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ProductId"));
 
-                    b.Property<string>("Brand")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                    b.Property<int?>("BrandId")
+                        .HasColumnType("int");
 
                     b.Property<int?>("CategoryId")
                         .HasColumnType("int");
@@ -161,6 +181,8 @@ namespace ERP.WEB.Infrastructure.Migrations
                         .HasDefaultValue("Active");
 
                     b.HasKey("ProductId");
+
+                    b.HasIndex("BrandId");
 
                     b.HasIndex("CategoryId");
 
@@ -348,10 +370,17 @@ namespace ERP.WEB.Infrastructure.Migrations
 
             modelBuilder.Entity("ERP.WEB.Domain.Entities.Product", b =>
                 {
+                    b.HasOne("ERP.WEB.Domain.Entities.Brand", "Brand")
+                        .WithMany("Products")
+                        .HasForeignKey("BrandId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("ERP.WEB.Domain.Entities.Category", "Category")
                         .WithMany("Products")
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Brand");
 
                     b.Navigation("Category");
                 });
@@ -391,6 +420,11 @@ namespace ERP.WEB.Infrastructure.Migrations
                         .HasForeignKey("TagsTagId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("ERP.WEB.Domain.Entities.Brand", b =>
+                {
+                    b.Navigation("Products");
                 });
 
             modelBuilder.Entity("ERP.WEB.Domain.Entities.Category", b =>
