@@ -130,9 +130,10 @@ function CategoryTreeNode({ node, depth, onEdit, onDelete, isAdmin }: {
         </div>
 
         <div className="hidden sm:flex items-center gap-2 flex-shrink-0">
-          <Badge color={node.subCategoriesCount > 0 ? 'indigo' : 'gray'}>
-            {node.subCategoriesCount > 0 ? `${node.subCategoriesCount} sub` : 'no children'}
-          </Badge>
+          {node.subCategoriesCount > 0
+            ? <Badge color="indigo">{node.subCategoriesCount} sub</Badge>
+            : <Badge color="gray">leaf</Badge>
+          }
           {node.productsCount > 0 && <Badge color="gray">{node.productsCount} products</Badge>}
         </div>
 

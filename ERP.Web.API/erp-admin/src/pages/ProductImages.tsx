@@ -16,6 +16,33 @@ import Badge from '../components/Badge';
 import { imageUrl } from '../utils/imageUrl';
 import { useUser } from '../context/UserContext';
 
+/* ── Image Lightbox ───────────────────────────────────────── */
+function ImageLightbox({ src, alt, onClose }: { src: string; alt: string; onClose: () => void }) {
+  return (
+    <div
+      className="fixed inset-0 z-[400] flex items-center justify-center bg-black/85 backdrop-blur-sm p-4"
+      onClick={onClose}
+    >
+      <button
+        onClick={onClose}
+        className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+      >
+        <X size={20} />
+      </button>
+      <img
+        src={src}
+        alt={alt}
+        className="max-w-full max-h-[90vh] rounded-2xl object-contain shadow-2xl"
+        onClick={e => e.stopPropagation()}
+      />
+      {alt && (
+        <p className="absolute bottom-5 left-1/2 -translate-x-1/2 text-white/70 text-sm bg-black/40 px-4 py-1.5 rounded-full backdrop-blur-sm whitespace-nowrap max-w-[80vw] truncate">
+          {alt}
+        </p>
+      )}
+    </div>
+  );
+}
 
 function UploadForm({ onClose }: { onClose: () => void }) {
   const qc = useQueryClient();
@@ -236,6 +263,7 @@ export default function ProductImages() {
   const [modal, setModal] = useState<'upload' | 'edit' | null>(null);
   const [selected, setSelected] = useState<ProductImage | null>(null);
   const [deleting, setDeleting] = useState<ProductImage | null>(null);
+  const [lightbox, setLightbox] = useState<{ src: string; alt: string } | null>(null);
 
   const { data: images, isLoading } = useQuery({ queryKey: ['product-images'], queryFn: productImagesApi.getAll });
   const { data: products } = useQuery({ queryKey: ['products'], queryFn: productsApi.getAll });
@@ -274,12 +302,15 @@ export default function ProductImages() {
               const productName = productNameMap.get(img.productId);
               return (
                 <div key={img.imageId} className="bg-white dark:bg-gray-900/60 border border-gray-200 dark:border-gray-800/60 rounded-xl overflow-hidden hover:border-gray-300 dark:hover:border-gray-700/60 transition-all duration-200 group">
-                  <div className="aspect-square bg-gray-100 dark:bg-gray-800/40 flex items-center justify-center relative overflow-hidden">
+                  <div
+                    className={`aspect-square bg-gray-100 dark:bg-gray-800/40 flex items-center justify-center relative overflow-hidden ${src ? 'cursor-zoom-in' : ''}`}
+                    onClick={() => src && setLightbox({ src, alt: productName ?? '' })}
+                  >
                     {src ? (
                       <img
                         src={src}
                         alt={productName ?? ''}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-200"
                         loading="lazy"
                         onError={e => {
                           const el = e.target as HTMLImageElement;
@@ -336,6 +367,9 @@ export default function ProductImages() {
       )}
       {deleting && isAdmin && (
         <ConfirmDialog message="Delete this image? This action cannot be undone." onConfirm={() => deleteMut.mutate(deleting.imageId)} onClose={() => setDeleting(null)} loading={deleteMut.isPending} />
+      )}
+      {lightbox && (
+        <ImageLightbox src={lightbox.src} alt={lightbox.alt} onClose={() => setLightbox(null)} />
       )}
     </div>
   );
