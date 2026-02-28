@@ -515,49 +515,53 @@ export default function Products() {
       />
       <div className="p-4 sm:p-6 lg:p-8 space-y-4">
         {/* Filter bar */}
-        <div className="flex flex-wrap gap-2">
+        <div className="space-y-2">
+          {/* Search — full width on mobile, fixed width on desktop */}
           <div className="relative">
             <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-600 pointer-events-none" />
             <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search products…"
-              className="w-52 bg-white dark:bg-gray-900/60 border border-gray-200 dark:border-gray-800/60 rounded-xl pl-9 pr-4 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all" />
+              className="w-full sm:w-64 bg-white dark:bg-gray-900/60 border border-gray-200 dark:border-gray-800/60 rounded-xl pl-9 pr-4 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all" />
           </div>
-          <select value={filterBrand ?? ''} onChange={e => setFilterBrand(e.target.value ? Number(e.target.value) : null)}
-            className={`${selectCls} py-2 text-xs`}>
-            <option value="">All brands</option>
-            {brands?.map(b => <option key={b.brandId} value={b.brandId}>{b.name}</option>)}
-          </select>
-          <select value={filterCategory ?? ''} onChange={e => setFilterCategory(e.target.value ? Number(e.target.value) : null)}
-            className={`${selectCls} py-2 text-xs`}>
-            <option value="">All categories</option>
-            {categories?.map(c => <option key={c.categoryId} value={c.categoryId}>{c.name}</option>)}
-          </select>
-          <select value={filterStatus ?? ''} onChange={e => setFilterStatus(e.target.value || null)}
-            className={`${selectCls} py-2 text-xs`}>
-            <option value="">All statuses</option>
-            <option value="Active">Active</option>
-            <option value="Inactive">Inactive</option>
-            <option value="Discontinued">Discontinued</option>
-          </select>
-          <select value={filterStock ?? ''} onChange={e => setFilterStock((e.target.value || null) as typeof filterStock)}
-            className={`${selectCls} py-2 text-xs`}>
-            <option value="">All stock</option>
-            <option value="noInventory">No inventory</option>
-            <option value="noStock">No stock (0)</option>
-          </select>
-          <button
-            onClick={() => setFilterFavorites(f => !f)}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium border transition-colors ${filterFavorites ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30' : 'bg-white dark:bg-gray-900/60 border-gray-200 dark:border-gray-800/60 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-700'}`}
-          >
-            <Star size={13} className={filterFavorites ? 'fill-amber-500 text-amber-500' : ''} />
-            Favorites
-          </button>
-          {activeFilters > 0 && (
-            <button onClick={() => { setFilterBrand(null); setFilterCategory(null); setFilterStatus(null); setFilterStock(null); setFilterFavorites(false); setSearch(''); }}
-              className="flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-medium border border-gray-200 dark:border-gray-700/60 bg-white dark:bg-gray-900/60 text-gray-500 hover:text-red-500 hover:border-red-300 dark:hover:border-red-700/40 transition-colors">
-              <X size={12} /> Clear
+          {/* Filters — horizontally scrollable on mobile, wrapping on desktop */}
+          <div className="flex gap-2 overflow-x-auto pb-0.5 sm:pb-0 sm:flex-wrap [&::-webkit-scrollbar]:hidden">
+            <select value={filterBrand ?? ''} onChange={e => setFilterBrand(e.target.value ? Number(e.target.value) : null)}
+              className={`${selectCls} py-2 text-xs shrink-0`}>
+              <option value="">All brands</option>
+              {brands?.map(b => <option key={b.brandId} value={b.brandId}>{b.name}</option>)}
+            </select>
+            <select value={filterCategory ?? ''} onChange={e => setFilterCategory(e.target.value ? Number(e.target.value) : null)}
+              className={`${selectCls} py-2 text-xs shrink-0`}>
+              <option value="">All categories</option>
+              {categories?.map(c => <option key={c.categoryId} value={c.categoryId}>{c.name}</option>)}
+            </select>
+            <select value={filterStatus ?? ''} onChange={e => setFilterStatus(e.target.value || null)}
+              className={`${selectCls} py-2 text-xs shrink-0`}>
+              <option value="">All statuses</option>
+              <option value="Active">Active</option>
+              <option value="Inactive">Inactive</option>
+              <option value="Discontinued">Discontinued</option>
+            </select>
+            <select value={filterStock ?? ''} onChange={e => setFilterStock((e.target.value || null) as typeof filterStock)}
+              className={`${selectCls} py-2 text-xs shrink-0`}>
+              <option value="">All stock</option>
+              <option value="noInventory">No inventory</option>
+              <option value="noStock">No stock (0)</option>
+            </select>
+            <button
+              onClick={() => setFilterFavorites(f => !f)}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium border transition-colors shrink-0 ${filterFavorites ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30' : 'bg-white dark:bg-gray-900/60 border-gray-200 dark:border-gray-800/60 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-700'}`}
+            >
+              <Star size={13} className={filterFavorites ? 'fill-amber-500 text-amber-500' : ''} />
+              Favorites
             </button>
-          )}
-          <span className="self-center text-xs text-gray-400 dark:text-gray-600 ml-1">{filtered?.length ?? 0} results</span>
+            {activeFilters > 0 && (
+              <button onClick={() => { setFilterBrand(null); setFilterCategory(null); setFilterStatus(null); setFilterStock(null); setFilterFavorites(false); setSearch(''); }}
+                className="flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-medium border border-gray-200 dark:border-gray-700/60 bg-white dark:bg-gray-900/60 text-gray-500 hover:text-red-500 hover:border-red-300 dark:hover:border-red-700/40 transition-colors shrink-0">
+                <X size={12} /> Clear
+              </button>
+            )}
+            <span className="self-center text-xs text-gray-400 dark:text-gray-600 shrink-0">{filtered?.length ?? 0} results</span>
+          </div>
         </div>
 
         {isLoading ? <LoadingSpinner /> : filtered?.length === 0 ? (
