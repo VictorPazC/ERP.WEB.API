@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Pencil, Trash2, Image, Star, Upload, X, Camera } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -9,17 +9,25 @@ import PageHeader from '../components/PageHeader';
 import Modal from '../components/Modal';
 import ConfirmDialog from '../components/ConfirmDialog';
 import FormField from '../components/FormField';
+import SearchableSelect from '../components/SearchableSelect';
 import EmptyState from '../components/EmptyState';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Badge from '../components/Badge';
 import { imageUrl } from '../utils/imageUrl';
 import { useUser } from '../context/UserContext';
 
-const selectCls = "bg-gray-100 dark:bg-gray-800/60 border border-gray-300 dark:border-gray-700/60 rounded-xl px-3.5 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 hover:border-gray-400 dark:hover:border-gray-600 transition-all";
 
 function UploadForm({ onClose }: { onClose: () => void }) {
   const qc = useQueryClient();
   const { data: products } = useQuery({ queryKey: ['products'], queryFn: productsApi.getAll });
+  // staleTime: Infinity + refetchOnWindowFocus: false evita que al abrir/cerrar
+  // el selector de archivos del SO se dispare un refetch que resetee el estado del form
+  const { data: images } = useQuery({
+    queryKey: ['product-images'],
+    queryFn: productImagesApi.getAll,
+    staleTime: Infinity,
+    refetchOnWindowFocus: false,
+  });
   const [productId, setProductId] = useState('');
   const [isPrimary, setIsPrimary] = useState(false);
   const [displayOrder, setDisplayOrder] = useState('0');
@@ -29,6 +37,32 @@ function UploadForm({ onClose }: { onClose: () => void }) {
   const [dragOver, setDragOver] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const cameraRef = useRef<HTMLInputElement>(null);
+
+  // Snapshot de productos con imagen al montar el form — no cambia durante la sesión
+  const productsWithImage = useMemo(
+    () => new Set(images?.map(img => img.productId) ?? []),
+    [images]
+  );
+  const productsWithImageRef = useRef(productsWithImage);
+  useEffect(() => { productsWithImageRef.current = productsWithImage; }, [productsWithImage]);
+
+  // Ordenar: primero los que no tienen imagen, luego alfabético
+  // useMemo con ref para que el orden no cambie si hay un refetch en segundo plano
+  const sortedProducts = useMemo(() => {
+    if (!products) return [];
+    return [...products].sort((a, b) => {
+      const aHas = productsWithImage.has(a.productId) ? 1 : 0;
+      const bHas = productsWithImage.has(b.productId) ? 1 : 0;
+      return aHas - bHas || a.name.localeCompare(b.name);
+    });
+  }, [products, productsWithImage]);
+
+  // Auto-marcar como principal solo cuando el usuario cambia el producto seleccionado
+  // (no cuando cambia el snapshot de imágenes por un refetch en segundo plano)
+  useEffect(() => {
+    if (!productId) return;
+    setIsPrimary(!productsWithImageRef.current.has(Number(productId)));
+  }, [productId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const addFiles = useCallback((newFiles: FileList | File[]) => {
     const accepted = Array.from(newFiles).filter(f =>
@@ -68,15 +102,21 @@ function UploadForm({ onClose }: { onClose: () => void }) {
     }
   };
 
+  const noImage = productId ? !productsWithImage.has(Number(productId)) : false;
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="flex flex-col gap-1.5">
-        <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Producto *</label>
-        <select value={productId} onChange={e => setProductId(e.target.value)} required className={selectCls}>
-          <option value="">Seleccionar producto</option>
-          {products?.map(p => <option key={p.productId} value={p.productId}>{p.name}</option>)}
-        </select>
-      </div>
+      <SearchableSelect
+        label="Producto *"
+        value={productId}
+        onChange={setProductId}
+        options={sortedProducts.map(p => ({
+          value: String(p.productId),
+          label: productsWithImage.has(p.productId) ? p.name : `${p.name} — sin imagen`,
+        }))}
+        placeholder="Buscar producto…"
+        clearLabel="Seleccionar producto"
+      />
       <div className="flex gap-2">
         <div
           onDragOver={e => { e.preventDefault(); setDragOver(true); }}
@@ -118,11 +158,14 @@ function UploadForm({ onClose }: { onClose: () => void }) {
       )}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <FormField label="Orden de visualización" value={displayOrder} onChange={e => setDisplayOrder(e.target.value)} type="number" min="0" placeholder="0" />
-        <div className="flex items-end pb-1">
+        <div className="flex flex-col gap-1 justify-end pb-1">
           <label className="flex items-center gap-3 cursor-pointer group">
             <input type="checkbox" checked={isPrimary} onChange={e => setIsPrimary(e.target.checked)} className="w-4 h-4 accent-indigo-500 rounded" />
             <span className="text-sm text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-300 transition-colors">Imagen principal</span>
           </label>
+          {noImage && (
+            <p className="text-[11px] text-indigo-500 dark:text-indigo-400 pl-7">Primera imagen — se marcará como principal automáticamente</p>
+          )}
         </div>
       </div>
       <div className="flex gap-3 pt-2">

@@ -12,6 +12,7 @@ import PageHeader from '../components/PageHeader';
 import Modal from '../components/Modal';
 import ConfirmDialog from '../components/ConfirmDialog';
 import FormField from '../components/FormField';
+import SearchableSelect from '../components/SearchableSelect';
 import EmptyState from '../components/EmptyState';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Badge from '../components/Badge';
@@ -277,13 +278,14 @@ function ProductForm({ initial, onSave, onClose }: {
       </div>
       <FormField label="Reference link" value={form.referenceLink} onChange={set('referenceLink')} placeholder="https://…" type="url" />
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Category</label>
-          <select value={form.categoryId} onChange={set('categoryId')} className={selectCls}>
-            <option value="">No category</option>
-            {categories?.map(c => <option key={c.categoryId} value={c.categoryId}>{c.name}</option>)}
-          </select>
-        </div>
+        <SearchableSelect
+          label="Category"
+          value={form.categoryId}
+          onChange={v => setForm(f => ({ ...f, categoryId: v }))}
+          options={(categories ?? []).map(c => ({ value: String(c.categoryId), label: c.name }))}
+          placeholder="Buscar categoría…"
+          clearLabel="Sin categoría"
+        />
         {initial && (
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Status</label>

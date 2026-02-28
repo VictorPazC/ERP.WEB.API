@@ -42,7 +42,7 @@ function CategoryForm({ initial, categories, onSave, onClose }: {
     }
   };
 
-  const available = categories.filter(c => c.categoryId !== initial?.categoryId);
+  const available = categories.filter(c => c.categoryId !== initial?.categoryId && c.subCategoriesCount > 0);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -52,8 +52,11 @@ function CategoryForm({ initial, categories, onSave, onClose }: {
         <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Parent Category</label>
         <select value={parentId} onChange={e => setParentId(e.target.value)} className={selectCls}>
           <option value="">None (Main Category)</option>
-          {available.map(c => <option key={c.categoryId} value={c.categoryId}>{c.name}</option>)}
+          {available.map(c => <option key={c.categoryId} value={c.categoryId}>{c.name} ({c.subCategoriesCount} sub)</option>)}
         </select>
+        {available.length === 0 && (
+          <p className="text-[11px] text-gray-400 dark:text-gray-600">No hay categorías padre disponibles. Solo se puede seleccionar como padre una categoría que ya tenga subcategorías.</p>
+        )}
       </div>
       <div className="flex gap-3 pt-2">
         <button type="button" onClick={onClose} className="flex-1 px-4 py-2.5 border border-gray-300 dark:border-gray-700/60 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors text-sm font-medium">Cancel</button>
@@ -127,7 +130,9 @@ function CategoryTreeNode({ node, depth, onEdit, onDelete, isAdmin }: {
         </div>
 
         <div className="hidden sm:flex items-center gap-2 flex-shrink-0">
-          {node.subCategoriesCount > 0 && <Badge color="indigo">{node.subCategoriesCount} sub</Badge>}
+          <Badge color={node.subCategoriesCount > 0 ? 'indigo' : 'gray'}>
+            {node.subCategoriesCount > 0 ? `${node.subCategoriesCount} sub` : 'sin hijos'}
+          </Badge>
           {node.productsCount > 0 && <Badge color="gray">{node.productsCount} products</Badge>}
         </div>
 
