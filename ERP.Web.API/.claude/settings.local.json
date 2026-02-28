@@ -208,7 +208,19 @@
       "WebFetch(domain:github.com)",
       "WebFetch(domain:raw.githubusercontent.com)",
       "Bash(echo:*)",
-      "Bash(\"C:/Users/vpaz1/Desktop/ERP.WEB.API/ERP.Web.API/ERP.WEB.Application/Features/Brands/Commands/SetDefaultBrand/SetDefaultBrandCommand.cs\":*)"
+      "Bash(\"C:/Users/vpaz1/Desktop/ERP.WEB.API/ERP.Web.API/ERP.WEB.Application/Features/Brands/Commands/SetDefaultBrand/SetDefaultBrandCommand.cs\":*)",
+      "Bash(/tmp/fix_brands_miss.ps1:*)",
+      "Bash(/tmp/fix_brands_final.ps1:*)",
+      "Bash(/tmp/verify_brands.ps1:*)",
+      "Bash(/tmp/check_saving.ps1:*)",
+      "Bash(/tmp/translate_product_images.ps1:*)",
+      "Bash(/tmp/check_remaining.ps1:*)",
+      "Bash(/tmp/fix_remaining.ps1:*)",
+      "Bash(/tmp/show_lines.ps1:*)",
+      "Bash(/tmp/fix_remaining2.ps1:*)",
+      "Bash(/tmp/check_strict.ps1:*)",
+      "Bash(/tmp/show_key_lines.ps1:*)",
+      "Bash(/tmp/check_147.ps1:*)"
     ]
   }
 }

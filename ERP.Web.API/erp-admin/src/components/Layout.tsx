@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Package, Tag, Percent, Image, Archive, Layers,
@@ -116,10 +116,10 @@ export default function Layout() {
         <button
           onClick={logout}
           className={`w-full flex items-center ${!isMobile && collapsed ? 'justify-center' : ''} gap-2 px-3 py-2 rounded-xl text-xs text-red-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-500/10 transition-colors`}
-          title={!isMobile && collapsed ? 'Cerrar sesión' : undefined}
+          title={!isMobile && collapsed ? 'Sign out' : undefined}
         >
           <LogOut size={16} />
-          {(isMobile || !collapsed) && <span>Cerrar sesión</span>}
+          {(isMobile || !collapsed) && <span>Sign out</span>}
         </button>
 
         {!isMobile && (

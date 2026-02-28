@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { Boxes, Eye, EyeOff, LogIn } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { usersApi } from '../api/users';
@@ -18,9 +18,9 @@ export default function Login() {
       const result = await usersApi.login({ email, password });
       const role: AppRole = (result.role === 'Admin' || result.role === 'Manager') ? 'Admin' : 'Viewer';
       setUser({ userId: result.userId, name: result.name, email: result.email, role, authenticated: true });
-      toast.success(`Bienvenido, ${result.name}`);
+      toast.success(`Welcome, ${result.name}`);
     } catch {
-      toast.error('Email o contraseña incorrectos');
+      toast.error('Incorrect email or password');
     } finally {
       setLoading(false);
     }
@@ -35,7 +35,7 @@ export default function Login() {
             <Boxes size={28} className="text-white" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">ERP Admin</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Iniciá sesión en tu cuenta</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Sign in to your account</p>
         </div>
 
         {/* Card */}
@@ -48,13 +48,13 @@ export default function Login() {
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 required
-                placeholder="admin@empresa.com"
+                placeholder="admin@company.com"
                 className="bg-gray-100 dark:bg-gray-800/60 border border-gray-300 dark:border-gray-700/60 rounded-xl px-3.5 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all placeholder:text-gray-400 dark:placeholder:text-gray-600"
               />
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Contraseña</label>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Password</label>
               <div className="relative">
                 <input
                   type={showPw ? 'text' : 'password'}
@@ -84,7 +84,7 @@ export default function Login() {
               ) : (
                 <LogIn size={16} />
               )}
-              {loading ? 'Ingresando…' : 'Ingresar'}
+              {loading ? 'Signing in…' : 'Sign in'}
             </button>
           </form>
         </div>

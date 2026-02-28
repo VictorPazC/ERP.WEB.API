@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+﻿import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Pencil, Trash2, Layers, ChevronRight, ChevronDown, FolderOpen, Folder } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -55,7 +55,7 @@ function CategoryForm({ initial, categories, onSave, onClose }: {
           {available.map(c => <option key={c.categoryId} value={c.categoryId}>{c.name} ({c.subCategoriesCount} sub)</option>)}
         </select>
         {available.length === 0 && (
-          <p className="text-[11px] text-gray-400 dark:text-gray-600">No hay categorías padre disponibles. Solo se puede seleccionar como padre una categoría que ya tenga subcategorías.</p>
+          <p className="text-[11px] text-gray-400 dark:text-gray-600">No parent categories available. Only categories that already have subcategories can be set as a parent.</p>
         )}
       </div>
       <div className="flex gap-3 pt-2">
@@ -131,7 +131,7 @@ function CategoryTreeNode({ node, depth, onEdit, onDelete, isAdmin }: {
 
         <div className="hidden sm:flex items-center gap-2 flex-shrink-0">
           <Badge color={node.subCategoriesCount > 0 ? 'indigo' : 'gray'}>
-            {node.subCategoriesCount > 0 ? `${node.subCategoriesCount} sub` : 'sin hijos'}
+            {node.subCategoriesCount > 0 ? `${node.subCategoriesCount} sub` : 'no children'}
           </Badge>
           {node.productsCount > 0 && <Badge color="gray">{node.productsCount} products</Badge>}
         </div>

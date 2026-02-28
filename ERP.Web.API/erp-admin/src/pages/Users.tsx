@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Pencil, Trash2, Users as UsersIcon, Search } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -52,7 +52,7 @@ function UserForm({ initial, onSave, onClose }: {
       <FormField label="Name *" value={form.name} onChange={set('name')} placeholder="Full name" required />
       <FormField label="Email *" value={form.email} onChange={set('email')} placeholder="email@example.com" type="email" required />
       <FormField
-        label={initial ? 'Nueva contraseña (dejar vacío para no cambiar)' : 'Contraseña'}
+        label={initial ? 'New password (leave blank to keep current)' : 'Password'}
         value={form.password}
         onChange={set('password')}
         type="password"

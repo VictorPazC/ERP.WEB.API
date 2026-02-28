@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+﻿import { useState, useRef, useEffect } from 'react';
 import { ChevronDown, Search, X } from 'lucide-react';
 
 export interface SelectOption {
@@ -15,7 +15,7 @@ interface Props {
   clearLabel?: string;
 }
 
-export default function SearchableSelect({ label, options, value, onChange, placeholder = 'Buscar…', clearLabel = 'Ninguno' }: Props) {
+export default function SearchableSelect({ label, options, value, onChange, placeholder = 'Search…', clearLabel = 'None' }: Props) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
@@ -82,7 +82,7 @@ export default function SearchableSelect({ label, options, value, onChange, plac
                 </button>
               </li>
               {filtered.length === 0
-                ? <li className="px-3 py-2 text-xs text-gray-400 dark:text-gray-600">Sin resultados</li>
+                ? <li className="px-3 py-2 text-xs text-gray-400 dark:text-gray-600">No results</li>
                 : filtered.map(o => (
                   <li key={o.value}>
                     <button type="button" onClick={() => pick(o.value)}
