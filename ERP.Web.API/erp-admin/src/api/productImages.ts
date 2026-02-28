@@ -13,7 +13,7 @@ export const productImagesApi = {
     formData.append('isPrimary', isPrimary.toString());
     formData.append('displayOrder', displayOrder.toString());
     return client.post<ProductImage>('/api/product-images/upload', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
+      headers: { 'Content-Type': undefined },
     }).then(r => r.data);
   },
   update: (id: number, dto: UpdateProductImageDto) => client.put<ProductImage>(`/api/product-images/${id}`, dto).then(r => r.data),

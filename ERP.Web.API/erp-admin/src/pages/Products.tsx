@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Pencil, Trash2, Package, ExternalLink, Search, Upload, X, Tag as TagIcon } from 'lucide-react';
+import { Plus, Pencil, Trash2, Package, ExternalLink, Search, Upload, X, Tag as TagIcon, Camera } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { productsApi } from '../api/products';
 import { categoriesApi } from '../api/categories';
@@ -104,6 +104,7 @@ function ImageUploader({ productId, onDone }: { productId: number; onDone: () =>
   const [loading, setLoading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const cameraRef = useRef<HTMLInputElement>(null);
 
   const addFiles = useCallback((newFiles: FileList | File[]) => {
     const accepted = Array.from(newFiles).filter(f =>
@@ -142,20 +143,31 @@ function ImageUploader({ productId, onDone }: { productId: number; onDone: () =>
 
   return (
     <div className="space-y-4">
-      <div
-        onDragOver={e => { e.preventDefault(); setDragOver(true); }}
-        onDragLeave={() => setDragOver(false)}
-        onDrop={e => { e.preventDefault(); setDragOver(false); addFiles(e.dataTransfer.files); }}
-        onClick={() => fileRef.current?.click()}
-        className={`border-2 border-dashed rounded-xl p-5 text-center cursor-pointer transition-all ${
-          dragOver ? 'border-indigo-500 bg-indigo-500/10' : 'border-gray-300 dark:border-gray-700/60 hover:border-gray-400 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-white/[0.02]'
-        }`}
-      >
-        <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/gif,image/webp" multiple className="hidden"
-          onChange={e => { if (e.target.files) addFiles(e.target.files); e.target.value = ''; }} />
-        <Upload size={22} className={`mx-auto mb-2 ${dragOver ? 'text-indigo-400' : 'text-gray-400 dark:text-gray-600'}`} />
-        <p className="text-sm text-gray-500 dark:text-gray-400">Click to select or drag images here</p>
-        <p className="text-xs text-gray-400 dark:text-gray-600 mt-0.5">JPG, PNG, GIF, WEBP · max 10 MB</p>
+      <div className="flex gap-2">
+        <div
+          onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+          onDragLeave={() => setDragOver(false)}
+          onDrop={e => { e.preventDefault(); setDragOver(false); addFiles(e.dataTransfer.files); }}
+          onClick={() => fileRef.current?.click()}
+          className={`flex-1 border-2 border-dashed rounded-xl p-5 text-center cursor-pointer transition-all ${
+            dragOver ? 'border-indigo-500 bg-indigo-500/10' : 'border-gray-300 dark:border-gray-700/60 hover:border-gray-400 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-white/[0.02]'
+          }`}
+        >
+          <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/gif,image/webp" multiple className="hidden"
+            onChange={e => { if (e.target.files) addFiles(e.target.files); e.target.value = ''; }} />
+          <Upload size={22} className={`mx-auto mb-2 ${dragOver ? 'text-indigo-400' : 'text-gray-400 dark:text-gray-600'}`} />
+          <p className="text-sm text-gray-500 dark:text-gray-400">Click to select or drag images here</p>
+          <p className="text-xs text-gray-400 dark:text-gray-600 mt-0.5">JPG, PNG, GIF, WEBP · max 10 MB</p>
+        </div>
+        <div
+          onClick={() => cameraRef.current?.click()}
+          className="flex flex-col items-center justify-center gap-2 w-24 border-2 border-dashed rounded-xl cursor-pointer transition-all border-gray-300 dark:border-gray-700/60 hover:border-indigo-500 hover:bg-indigo-500/10"
+        >
+          <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden"
+            onChange={e => { if (e.target.files) addFiles(e.target.files); e.target.value = ''; }} />
+          <Camera size={22} className="text-gray-400 dark:text-gray-600" />
+          <p className="text-xs text-gray-500 dark:text-gray-400">Cámara</p>
+        </div>
       </div>
 
       {previews.length > 0 && (
