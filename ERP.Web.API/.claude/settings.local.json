@@ -207,7 +207,8 @@
       "Bash(ping:*)",
       "WebFetch(domain:github.com)",
       "WebFetch(domain:raw.githubusercontent.com)",
-      "Bash(echo:*)"
+      "Bash(echo:*)",
+      "Bash(\"C:/Users/vpaz1/Desktop/ERP.WEB.API/ERP.Web.API/ERP.WEB.Application/Features/Brands/Commands/SetDefaultBrand/SetDefaultBrandCommand.cs\":*)"
     ]
   }
 }

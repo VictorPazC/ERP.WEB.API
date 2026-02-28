@@ -8,5 +8,6 @@ public interface IBrandRepository
     Task<Brand?> GetByIdAsync(int id);
     Task<Brand> AddAsync(Brand brand);
     Task UpdateAsync(Brand brand);
+    Task<bool> SetDefaultAsync(int id);
     Task DeleteAsync(int id);
 }

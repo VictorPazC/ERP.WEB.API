@@ -28,7 +28,11 @@ public class GetAllProductsQueryHandler : IRequestHandler<GetAllProductsQuery, I
             p.Status,
             p.CategoryId,
             p.Category?.Name,
-            p.CreatedAt
+            p.CreatedAt,
+            p.IsFavorite,
+            p.StockStatus,
+            p.Inventory is not null,
+            p.Inventory?.CurrentStock
         ));
     }
 }

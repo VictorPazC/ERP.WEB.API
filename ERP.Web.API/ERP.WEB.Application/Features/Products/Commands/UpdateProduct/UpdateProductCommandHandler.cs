@@ -42,7 +42,11 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
             product.Status,
             product.CategoryId,
             product.Category?.Name,
-            product.CreatedAt
+            product.CreatedAt,
+            product.IsFavorite,
+            product.StockStatus,
+            product.Inventory is not null,
+            product.Inventory?.CurrentStock
         );
     }
 }

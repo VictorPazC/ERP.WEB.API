@@ -22,6 +22,6 @@ public class UpdateBrandCommandHandler : IRequestHandler<UpdateBrandCommand, Bra
         brand.Description = request.BrandDto.Description;
 
         await _repository.UpdateAsync(brand);
-        return new BrandDto(brand.BrandId, brand.Name, brand.Description, brand.Products?.Count ?? 0);
+        return new BrandDto(brand.BrandId, brand.Name, brand.Description, brand.Products?.Count ?? 0, brand.IsDefault);
     }
 }

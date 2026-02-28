@@ -23,6 +23,6 @@ public class CreateBrandCommandHandler : IRequestHandler<CreateBrandCommand, Bra
         };
 
         var created = await _repository.AddAsync(brand);
-        return new BrandDto(created.BrandId, created.Name, created.Description, 0);
+        return new BrandDto(created.BrandId, created.Name, created.Description, 0, created.IsDefault);
     }
 }

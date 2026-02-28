@@ -11,5 +11,9 @@ public record ProductDto(
     string Status,
     int? CategoryId,
     string? CategoryName,
-    DateTime CreatedAt
+    DateTime CreatedAt,
+    bool IsFavorite,
+    string? StockStatus,
+    bool HasInventory,
+    int? CurrentStock
 );

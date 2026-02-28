@@ -1,6 +1,7 @@
 using ERP.WEB.Application.DTOs;
 using ERP.WEB.Application.Features.Brands.Commands.CreateBrand;
 using ERP.WEB.Application.Features.Brands.Commands.DeleteBrand;
+using ERP.WEB.Application.Features.Brands.Commands.SetDefaultBrand;
 using ERP.WEB.Application.Features.Brands.Commands.UpdateBrand;
 using ERP.WEB.Application.Features.Brands.Queries.GetAllBrands;
 using ERP.WEB.Application.Features.Brands.Queries.GetBrandById;
@@ -76,6 +77,22 @@ public class BrandsController : ControllerBase
 
         _logger.LogInformation("[INFO]  Brand id={Id} updated successfully", id);
         return Ok(result);
+    }
+
+    [HttpPut("{id}/set-default")]
+    public async Task<ActionResult> SetDefault(int id)
+    {
+        _logger.LogInformation("[INFO]  Setting default brand id={Id}", id);
+        var result = await _mediator.Send(new SetDefaultBrandCommand(id));
+
+        if (!result)
+        {
+            _logger.LogWarning("[WARN]  Brand id={Id} not found for set-default", id);
+            return NotFound();
+        }
+
+        _logger.LogInformation("[INFO]  Brand id={Id} set as default", id);
+        return NoContent();
     }
 
     [HttpDelete("{id}")]

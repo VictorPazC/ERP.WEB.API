@@ -19,6 +19,8 @@ public class ProductRepository : IProductRepository
         return await _context.Products
             .Include(p => p.Category)
             .Include(p => p.Brand)
+            .Include(p => p.Inventory)
+            .OrderBy(p => p.Name)
             .ToListAsync();
     }
 
@@ -27,6 +29,7 @@ public class ProductRepository : IProductRepository
         return await _context.Products
             .Include(p => p.Category)
             .Include(p => p.Brand)
+            .Include(p => p.Inventory)
             .FirstOrDefaultAsync(p => p.ProductId == id);
     }
 
@@ -51,5 +54,23 @@ public class ProductRepository : IProductRepository
             _context.Products.Remove(product);
             await _context.SaveChangesAsync();
         }
+    }
+
+    public async Task<bool?> ToggleFavoriteAsync(int id)
+    {
+        var product = await _context.Products.FindAsync(id);
+        if (product is null) return null;
+        product.IsFavorite = !product.IsFavorite;
+        await _context.SaveChangesAsync();
+        return product.IsFavorite;
+    }
+
+    public async Task<bool> SetStockStatusAsync(int id, string? status)
+    {
+        var product = await _context.Products.FindAsync(id);
+        if (product is null) return false;
+        product.StockStatus = status;
+        await _context.SaveChangesAsync();
+        return true;
     }
 }

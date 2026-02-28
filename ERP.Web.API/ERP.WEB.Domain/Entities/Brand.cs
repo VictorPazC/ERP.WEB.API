@@ -16,5 +16,7 @@ public class Brand
 
     public string? Description { get; set; }
 
+    public bool IsDefault { get; set; }
+
     public ICollection<Product> Products { get; set; } = new List<Product>();
 }

@@ -42,6 +42,17 @@ public class BrandRepository : IBrandRepository
         await _context.SaveChangesAsync();
     }
 
+    public async Task<bool> SetDefaultAsync(int id)
+    {
+        var brands = await _context.Brands.ToListAsync();
+        var target = brands.FirstOrDefault(b => b.BrandId == id);
+        if (target is null) return false;
+        foreach (var b in brands) b.IsDefault = false;
+        target.IsDefault = true;
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
     public async Task DeleteAsync(int id)
     {
         var brand = await _context.Brands.FindAsync(id);

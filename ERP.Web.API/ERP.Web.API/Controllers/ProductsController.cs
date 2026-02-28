@@ -1,6 +1,8 @@
 using ERP.WEB.Application.DTOs;
 using ERP.WEB.Application.Features.Products.Commands.CreateProduct;
 using ERP.WEB.Application.Features.Products.Commands.DeleteProduct;
+using ERP.WEB.Application.Features.Products.Commands.SetStockStatus;
+using ERP.WEB.Application.Features.Products.Commands.ToggleFavorite;
 using ERP.WEB.Application.Features.Products.Commands.UpdateProduct;
 using ERP.WEB.Application.Features.Products.Queries.GetAllProducts;
 using ERP.WEB.Application.Features.Products.Queries.GetProductById;
@@ -8,6 +10,8 @@ using Mediator;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ERP.Web.API.Controllers;
+
+public record SetStockStatusRequest(string? Status);
 
 [ApiController]
 [Route("api/[controller]")]
@@ -91,6 +95,22 @@ public class ProductsController : ControllerBase
         }
 
         _logger.LogInformation("[INFO]  Product id={Id} deleted", id);
+        return NoContent();
+    }
+
+    [HttpPut("{id}/toggle-favorite")]
+    public async Task<ActionResult<bool>> ToggleFavorite(int id)
+    {
+        var result = await _mediator.Send(new ToggleFavoriteCommand(id));
+        if (result is null) return NotFound();
+        return Ok(result);
+    }
+
+    [HttpPut("{id}/stock-status")]
+    public async Task<ActionResult> SetStockStatus(int id, [FromBody] SetStockStatusRequest req)
+    {
+        var result = await _mediator.Send(new SetStockStatusCommand(id, req.Status));
+        if (!result) return NotFound();
         return NoContent();
     }
 }

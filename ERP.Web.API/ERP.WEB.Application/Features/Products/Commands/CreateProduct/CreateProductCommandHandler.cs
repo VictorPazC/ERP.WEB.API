@@ -42,7 +42,11 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
             created.Status,
             created.CategoryId,
             created.Category?.Name,
-            created.CreatedAt
+            created.CreatedAt,
+            created.IsFavorite,
+            created.StockStatus,
+            false,
+            null
         );
     }
 }

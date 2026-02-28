@@ -17,6 +17,6 @@ public class GetBrandByIdQueryHandler : IRequestHandler<GetBrandByIdQuery, Brand
     {
         var brand = await _repository.GetByIdAsync(request.BrandId);
         if (brand is null) return null;
-        return new BrandDto(brand.BrandId, brand.Name, brand.Description, brand.Products?.Count ?? 0);
+        return new BrandDto(brand.BrandId, brand.Name, brand.Description, brand.Products?.Count ?? 0, brand.IsDefault);
     }
 }

@@ -16,6 +16,6 @@ public class GetAllBrandsQueryHandler : IRequestHandler<GetAllBrandsQuery, IEnum
     public async ValueTask<IEnumerable<BrandDto>> Handle(GetAllBrandsQuery request, CancellationToken cancellationToken)
     {
         var brands = await _repository.GetAllAsync();
-        return brands.Select(b => new BrandDto(b.BrandId, b.Name, b.Description, b.Products?.Count ?? 0));
+        return brands.Select(b => new BrandDto(b.BrandId, b.Name, b.Description, b.Products?.Count ?? 0, b.IsDefault));
     }
 }

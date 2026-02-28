@@ -30,6 +30,11 @@ public class Product
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+    public bool IsFavorite { get; set; }
+
+    [MaxLength(50)]
+    public string? StockStatus { get; set; }
+
     [ForeignKey(nameof(CategoryId))]
     public Category? Category { get; set; }
 

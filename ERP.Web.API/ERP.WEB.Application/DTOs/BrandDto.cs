@@ -4,5 +4,6 @@ public record BrandDto(
     int BrandId,
     string Name,
     string? Description,
-    int ProductsCount
+    int ProductsCount,
+    bool IsDefault
 );

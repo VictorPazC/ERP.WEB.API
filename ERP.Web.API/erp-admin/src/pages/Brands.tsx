@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Pencil, Trash2, Bookmark } from 'lucide-react';
+import { Plus, Pencil, Trash2, Bookmark, Star } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { brandsApi } from '../api/brands';
 import type { Brand, CreateBrandDto, UpdateBrandDto } from '../types';
@@ -72,6 +72,10 @@ export default function Brands() {
     mutationFn: (id: number) => brandsApi.delete(id),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['brands'] }); toast.success('Marca eliminada'); setDeleting(null); },
   });
+  const setDefaultMut = useMutation({
+    mutationFn: (id: number) => brandsApi.setDefault(id),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['brands'] }); toast.success('Marca predeterminada actualizada'); },
+  });
 
   const handleSave = async (data: CreateBrandDto | UpdateBrandDto) => {
     if (selected) await updateMut.mutateAsync({ id: selected.brandId, dto: data as UpdateBrandDto });
@@ -98,7 +102,7 @@ export default function Brands() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200 dark:border-gray-800/60">
-                  {['Nombre', 'Descripción', 'Productos', ''].map((h, i) => (
+                  {['Nombre', 'Descripción', 'Productos', 'Default', ''].map((h, i) => (
                     <th key={i} className="text-left px-5 py-3.5 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">{h}</th>
                   ))}
                 </tr>
@@ -121,8 +125,18 @@ export default function Brands() {
                       <Badge color="gray">{brand.productsCount}</Badge>
                     </td>
                     <td className="px-5 py-3.5">
+                      {brand.isDefault && (
+                        <Badge color="yellow">
+                          <Star size={10} className="inline mr-1 fill-current" />Predeterminada
+                        </Badge>
+                      )}
+                    </td>
+                    <td className="px-5 py-3.5">
                       {isAdmin && (
                         <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          {!brand.isDefault && (
+                            <button onClick={() => setDefaultMut.mutate(brand.brandId)} title="Establecer como predeterminada" className="p-1.5 rounded-lg text-gray-400 dark:text-gray-600 hover:text-amber-500 dark:hover:text-amber-400 hover:bg-amber-500/10 transition-colors"><Star size={14} /></button>
+                          )}
                           <button onClick={() => { setSelected(brand); setModal('edit'); }} className="p-1.5 rounded-lg text-gray-400 dark:text-gray-600 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"><Pencil size={14} /></button>
                           <button onClick={() => setDeleting(brand)} className="p-1.5 rounded-lg text-gray-400 dark:text-gray-600 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-500/10 transition-colors"><Trash2 size={14} /></button>
                         </div>

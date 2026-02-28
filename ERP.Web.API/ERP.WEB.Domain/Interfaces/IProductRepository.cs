@@ -9,4 +9,6 @@ public interface IProductRepository
     Task<Product> AddAsync(Product product);
     Task UpdateAsync(Product product);
     Task DeleteAsync(int id);
+    Task<bool?> ToggleFavoriteAsync(int id);
+    Task<bool> SetStockStatusAsync(int id, string? status);
 }

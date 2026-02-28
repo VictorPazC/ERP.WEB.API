@@ -3,6 +3,7 @@ export interface Brand {
   name: string;
   description?: string;
   productsCount: number;
+  isDefault: boolean;
 }
 
 export interface CreateBrandDto {
@@ -39,6 +40,8 @@ export interface UpdateCategoryDto {
   parentCategoryId?: number;
 }
 
+export type StockStatus = 'NeedToOrder' | 'OnTheWay' | 'Disabled' | 'OrderLater';
+
 export interface Product {
   productId: number;
   name: string;
@@ -51,6 +54,10 @@ export interface Product {
   categoryId?: number;
   categoryName?: string;
   createdAt: string;
+  isFavorite: boolean;
+  stockStatus?: StockStatus;
+  hasInventory: boolean;
+  currentStock?: number;
 }
 
 export interface CreateProductDto {
