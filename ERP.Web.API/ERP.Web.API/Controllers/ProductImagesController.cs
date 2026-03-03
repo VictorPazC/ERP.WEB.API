@@ -6,10 +6,12 @@ using ERP.WEB.Application.Features.ProductImages.Queries.GetAllProductImages;
 using ERP.WEB.Application.Features.ProductImages.Queries.GetImagesByProductId;
 using ERP.WEB.Application.Features.ProductImages.Queries.GetProductImageById;
 using Mediator;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ERP.Web.API.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/product-images")]
 public class ProductImagesController : ControllerBase
@@ -69,7 +71,7 @@ public class ProductImagesController : ControllerBase
 
     [HttpPost("upload")]
     [RequestSizeLimit(10 * 1024 * 1024)]
-    public async Task<ActionResult<ProductImageDto>> Upload([FromForm] int productId, [FromForm] bool isPrimary, [FromForm] int displayOrder, IFormFile file)
+    public async Task<ActionResult<ProductImageDto>> Upload([FromForm] int productId, [FromForm] bool isPrimary, [FromForm] int displayOrder, IFormFile file, [FromForm] int? variantId = null)
     {
         if (file is null || file.Length == 0)
         {
@@ -101,7 +103,7 @@ public class ProductImagesController : ControllerBase
 
         var imagePath = $"/uploads/products/{fileName}";
 
-        var dto = new CreateProductImageDto(productId, imagePath, isPrimary, displayOrder);
+        var dto = new CreateProductImageDto(productId, imagePath, isPrimary, displayOrder, variantId);
         var result = await _mediator.Send(new CreateProductImageCommand(dto));
 
         _logger.LogInformation("[INFO]  Image uploaded id={Id} path={Path}", result.ImageId, imagePath);

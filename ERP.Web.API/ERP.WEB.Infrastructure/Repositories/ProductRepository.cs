@@ -20,6 +20,7 @@ public class ProductRepository : IProductRepository
             .Include(p => p.Category)
             .Include(p => p.Brand)
             .Include(p => p.Inventory)
+            .Include(p => p.Variants)
             .OrderBy(p => p.Name)
             .ToListAsync();
     }
@@ -30,6 +31,7 @@ public class ProductRepository : IProductRepository
             .Include(p => p.Category)
             .Include(p => p.Brand)
             .Include(p => p.Inventory)
+            .Include(p => p.Variants)
             .FirstOrDefaultAsync(p => p.ProductId == id);
     }
 

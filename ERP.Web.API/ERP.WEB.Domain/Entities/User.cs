@@ -1,11 +1,19 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using ERP.WEB.Domain.Interfaces;
 
 namespace ERP.WEB.Domain.Entities;
 
 [Table("Users")]
-public class User
+public class User : ICompanyEntity
 {
+    public int CompanyId { get; set; }
+
+    [ForeignKey(nameof(CompanyId))]
+    public Company? Company { get; set; }
+
+    public bool IsSuperAdmin { get; set; }
+
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int UserId { get; set; }

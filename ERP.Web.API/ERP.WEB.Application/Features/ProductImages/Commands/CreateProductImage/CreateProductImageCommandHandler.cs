@@ -22,6 +22,7 @@ public class CreateProductImageCommandHandler : IRequestHandler<CreateProductIma
             ImagePath = request.ImageDto.ImagePath,
             IsPrimary = request.ImageDto.IsPrimary,
             DisplayOrder = request.ImageDto.DisplayOrder,
+            VariantId = request.ImageDto.VariantId,
             RegisteredAt = DateTime.UtcNow
         };
 
@@ -33,7 +34,8 @@ public class CreateProductImageCommandHandler : IRequestHandler<CreateProductIma
             created.ImagePath,
             created.IsPrimary,
             created.DisplayOrder,
-            created.RegisteredAt
+            created.RegisteredAt,
+            created.VariantId
         );
     }
 }

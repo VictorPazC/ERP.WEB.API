@@ -23,7 +23,8 @@ public class CreateInventoryCommandHandler : IRequestHandler<CreateInventoryComm
             SuggestedRetailPrice = request.InventoryDto.SuggestedRetailPrice,
             CurrentStock = request.InventoryDto.CurrentStock,
             LastRestockDate = request.InventoryDto.LastRestockDate,
-            LastSaleDate = request.InventoryDto.LastSaleDate
+            LastSaleDate = request.InventoryDto.LastSaleDate,
+            VariantId = request.InventoryDto.VariantId
         };
 
         var created = await _repository.AddAsync(inventory);
@@ -38,7 +39,8 @@ public class CreateInventoryCommandHandler : IRequestHandler<CreateInventoryComm
             created.SuggestedRetailPrice - created.PurchaseCost,
             created.LastRestockDate,
             created.LastSaleDate,
-            created.NeedsRestock
+            created.NeedsRestock,
+            created.VariantId
         );
     }
 }

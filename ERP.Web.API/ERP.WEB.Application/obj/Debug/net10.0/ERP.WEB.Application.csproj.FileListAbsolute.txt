@@ -45,3 +45,5 @@ C:\Users\vpaz1\Desktop\ERP.WEB.API\ERP.Web.API\ERP.WEB.Application\obj\Debug\net
 C:\Users\vpaz1\Desktop\ERP.WEB.API\ERP.Web.API\ERP.WEB.Application\obj\Debug\net10.0\ERP.WEB.Application.pdb
 C:\Users\vpaz1\Desktop\ERP.WEB.API\ERP.Web.API\ERP.WEB.Application\obj\Debug\net10.0\ref\ERP.WEB.Application.dll
 C:\Users\Kathia\Documents\GitHub\ERP.WEB.API\ERP.Web.API\ERP.WEB.Application\obj\Debug\net10.0\ERP.WEB.Application.sourcelink.json
+C:\Users\vpaz1\Desktop\ERP.WEB.API\ERP.Web.API\ERP.WEB.Application\bin\Debug\net10.0\ERP.WEB.Infrastructure.dll
+C:\Users\vpaz1\Desktop\ERP.WEB.API\ERP.Web.API\ERP.WEB.Application\bin\Debug\net10.0\ERP.WEB.Infrastructure.pdb

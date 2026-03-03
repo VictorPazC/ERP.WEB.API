@@ -7,10 +7,12 @@ using ERP.WEB.Application.Features.Categories.Queries.GetCategoryById;
 using ERP.WEB.Application.Features.Categories.Queries.GetMainCategories;
 using ERP.WEB.Application.Features.Categories.Queries.GetSubCategories;
 using Mediator;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ERP.Web.API.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class CategoriesController : ControllerBase

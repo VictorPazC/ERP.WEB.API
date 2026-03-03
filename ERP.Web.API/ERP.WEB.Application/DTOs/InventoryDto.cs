@@ -10,5 +10,6 @@ public record InventoryDto(
     decimal EstimatedProfit,
     DateTime LastRestockDate,
     DateTime? LastSaleDate,
-    bool NeedsRestock
+    bool NeedsRestock,
+    int? VariantId
 );

@@ -46,7 +46,8 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
             product.IsFavorite,
             product.StockStatus,
             product.Inventory is not null,
-            product.Inventory?.CurrentStock
+            product.Inventory?.CurrentStock,
+            product.Variants.Count
         );
     }
 }

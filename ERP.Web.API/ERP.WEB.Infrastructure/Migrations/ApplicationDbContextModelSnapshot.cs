@@ -30,6 +30,9 @@ namespace ERP.WEB.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BrandId"));
 
+                    b.Property<int>("CompanyId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
@@ -43,6 +46,8 @@ namespace ERP.WEB.Infrastructure.Migrations
 
                     b.HasKey("BrandId");
 
+                    b.HasIndex("CompanyId");
+
                     b.ToTable("Brands");
                 });
 
@@ -53,6 +58,9 @@ namespace ERP.WEB.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CategoryId"));
+
+                    b.Property<int>("CompanyId")
+                        .HasColumnType("int");
 
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
@@ -67,9 +75,59 @@ namespace ERP.WEB.Infrastructure.Migrations
 
                     b.HasKey("CategoryId");
 
+                    b.HasIndex("CompanyId");
+
                     b.HasIndex("ParentCategoryId");
 
                     b.ToTable("Categories");
+                });
+
+            modelBuilder.Entity("ERP.WEB.Domain.Entities.Company", b =>
+                {
+                    b.Property<int>("CompanyId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CompanyId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CustomDomain")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("LogoUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("PrimaryColor")
+                        .HasMaxLength(7)
+                        .HasColumnType("nvarchar(7)");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("CompanyId");
+
+                    b.HasIndex("Slug")
+                        .IsUnique();
+
+                    b.ToTable("Companies");
                 });
 
             modelBuilder.Entity("ERP.WEB.Domain.Entities.Consumption", b =>
@@ -79,6 +137,9 @@ namespace ERP.WEB.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ConsumptionId"));
+
+                    b.Property<int>("CompanyId")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("ConsumedAt")
                         .HasColumnType("datetime2");
@@ -96,6 +157,8 @@ namespace ERP.WEB.Infrastructure.Migrations
 
                     b.HasKey("ConsumptionId");
 
+                    b.HasIndex("CompanyId");
+
                     b.HasIndex("InventoryId");
 
                     b.ToTable("Consumptions");
@@ -108,6 +171,9 @@ namespace ERP.WEB.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("InventoryId"));
+
+                    b.Property<int>("CompanyId")
+                        .HasColumnType("int");
 
                     b.Property<int>("CurrentStock")
                         .ValueGeneratedOnAdd()
@@ -136,10 +202,19 @@ namespace ERP.WEB.Infrastructure.Migrations
                     b.Property<decimal>("SuggestedRetailPrice")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<int?>("VariantId")
+                        .HasColumnType("int");
+
                     b.HasKey("InventoryId");
+
+                    b.HasIndex("CompanyId");
 
                     b.HasIndex("ProductId")
                         .IsUnique();
+
+                    b.HasIndex("VariantId")
+                        .IsUnique()
+                        .HasFilter("[VariantId] IS NOT NULL");
 
                     b.ToTable("Inventory");
                 });
@@ -156,6 +231,9 @@ namespace ERP.WEB.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.Property<int?>("CategoryId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CompanyId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAt")
@@ -196,6 +274,8 @@ namespace ERP.WEB.Infrastructure.Migrations
 
                     b.HasIndex("CategoryId");
 
+                    b.HasIndex("CompanyId");
+
                     b.ToTable("Products");
                 });
 
@@ -206,6 +286,9 @@ namespace ERP.WEB.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ImageId"));
+
+                    b.Property<int>("CompanyId")
+                        .HasColumnType("int");
 
                     b.Property<int>("DisplayOrder")
                         .ValueGeneratedOnAdd()
@@ -229,11 +312,52 @@ namespace ERP.WEB.Infrastructure.Migrations
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("GETDATE()");
 
+                    b.Property<int?>("VariantId")
+                        .HasColumnType("int");
+
                     b.HasKey("ImageId");
+
+                    b.HasIndex("CompanyId");
 
                     b.HasIndex("ProductId");
 
+                    b.HasIndex("VariantId");
+
                     b.ToTable("Product_Images");
+                });
+
+            modelBuilder.Entity("ERP.WEB.Domain.Entities.ProductVariant", b =>
+                {
+                    b.Property<int>("VariantId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("VariantId"));
+
+                    b.Property<int>("CompanyId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.HasKey("VariantId");
+
+                    b.HasIndex("CompanyId");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("ProductVariants");
                 });
 
             modelBuilder.Entity("ERP.WEB.Domain.Entities.Promotion", b =>
@@ -243,6 +367,9 @@ namespace ERP.WEB.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PromoId"));
+
+                    b.Property<int>("CompanyId")
+                        .HasColumnType("int");
 
                     b.Property<decimal?>("DiscountPercentage")
                         .HasColumnType("decimal(5,2)");
@@ -258,6 +385,8 @@ namespace ERP.WEB.Infrastructure.Migrations
 
                     b.HasKey("PromoId");
 
+                    b.HasIndex("CompanyId");
+
                     b.HasIndex("ProductId");
 
                     b.ToTable("Promotions");
@@ -271,12 +400,17 @@ namespace ERP.WEB.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TagId"));
 
+                    b.Property<int>("CompanyId")
+                        .HasColumnType("int");
+
                     b.Property<string>("TagName")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
                     b.HasKey("TagId");
+
+                    b.HasIndex("CompanyId");
 
                     b.HasIndex("TagName")
                         .IsUnique();
@@ -292,6 +426,9 @@ namespace ERP.WEB.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserId"));
 
+                    b.Property<int>("CompanyId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -299,6 +436,11 @@ namespace ERP.WEB.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
+
+                    b.Property<bool>("IsSuperAdmin")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -325,6 +467,8 @@ namespace ERP.WEB.Infrastructure.Migrations
 
                     b.HasKey("UserId");
 
+                    b.HasIndex("CompanyId");
+
                     b.HasIndex("Email")
                         .IsUnique();
 
@@ -346,36 +490,78 @@ namespace ERP.WEB.Infrastructure.Migrations
                     b.ToTable("Product_Tags", (string)null);
                 });
 
+            modelBuilder.Entity("ERP.WEB.Domain.Entities.Brand", b =>
+                {
+                    b.HasOne("ERP.WEB.Domain.Entities.Company", "Company")
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Company");
+                });
+
             modelBuilder.Entity("ERP.WEB.Domain.Entities.Category", b =>
                 {
+                    b.HasOne("ERP.WEB.Domain.Entities.Company", "Company")
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("ERP.WEB.Domain.Entities.Category", "ParentCategory")
                         .WithMany("SubCategories")
                         .HasForeignKey("ParentCategoryId")
                         .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Company");
 
                     b.Navigation("ParentCategory");
                 });
 
             modelBuilder.Entity("ERP.WEB.Domain.Entities.Consumption", b =>
                 {
+                    b.HasOne("ERP.WEB.Domain.Entities.Company", "Company")
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("ERP.WEB.Domain.Entities.Inventory", "Inventory")
                         .WithMany()
                         .HasForeignKey("InventoryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("Company");
+
                     b.Navigation("Inventory");
                 });
 
             modelBuilder.Entity("ERP.WEB.Domain.Entities.Inventory", b =>
                 {
+                    b.HasOne("ERP.WEB.Domain.Entities.Company", "Company")
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("ERP.WEB.Domain.Entities.Product", "Product")
                         .WithOne("Inventory")
                         .HasForeignKey("ERP.WEB.Domain.Entities.Inventory", "ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("ERP.WEB.Domain.Entities.ProductVariant", "Variant")
+                        .WithOne("Inventory")
+                        .HasForeignKey("ERP.WEB.Domain.Entities.Inventory", "VariantId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Company");
+
                     b.Navigation("Product");
+
+                    b.Navigation("Variant");
                 });
 
             modelBuilder.Entity("ERP.WEB.Domain.Entities.Product", b =>
@@ -390,31 +576,103 @@ namespace ERP.WEB.Infrastructure.Migrations
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.HasOne("ERP.WEB.Domain.Entities.Company", "Company")
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Brand");
 
                     b.Navigation("Category");
+
+                    b.Navigation("Company");
                 });
 
             modelBuilder.Entity("ERP.WEB.Domain.Entities.ProductImage", b =>
                 {
+                    b.HasOne("ERP.WEB.Domain.Entities.Company", "Company")
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("ERP.WEB.Domain.Entities.Product", "Product")
                         .WithMany("Images")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("ERP.WEB.Domain.Entities.ProductVariant", "Variant")
+                        .WithMany("Images")
+                        .HasForeignKey("VariantId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Company");
+
+                    b.Navigation("Product");
+
+                    b.Navigation("Variant");
+                });
+
+            modelBuilder.Entity("ERP.WEB.Domain.Entities.ProductVariant", b =>
+                {
+                    b.HasOne("ERP.WEB.Domain.Entities.Company", "Company")
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ERP.WEB.Domain.Entities.Product", "Product")
+                        .WithMany("Variants")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Company");
+
                     b.Navigation("Product");
                 });
 
             modelBuilder.Entity("ERP.WEB.Domain.Entities.Promotion", b =>
                 {
+                    b.HasOne("ERP.WEB.Domain.Entities.Company", "Company")
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("ERP.WEB.Domain.Entities.Product", "Product")
                         .WithMany("Promotions")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("Company");
+
                     b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("ERP.WEB.Domain.Entities.Tag", b =>
+                {
+                    b.HasOne("ERP.WEB.Domain.Entities.Company", "Company")
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Company");
+                });
+
+            modelBuilder.Entity("ERP.WEB.Domain.Entities.User", b =>
+                {
+                    b.HasOne("ERP.WEB.Domain.Entities.Company", "Company")
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Company");
                 });
 
             modelBuilder.Entity("ProductTag", b =>
@@ -451,6 +709,15 @@ namespace ERP.WEB.Infrastructure.Migrations
                     b.Navigation("Inventory");
 
                     b.Navigation("Promotions");
+
+                    b.Navigation("Variants");
+                });
+
+            modelBuilder.Entity("ERP.WEB.Domain.Entities.ProductVariant", b =>
+                {
+                    b.Navigation("Images");
+
+                    b.Navigation("Inventory");
                 });
 #pragma warning restore 612, 618
         }

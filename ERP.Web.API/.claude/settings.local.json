@@ -220,7 +220,11 @@
       "Bash(/tmp/fix_remaining2.ps1:*)",
       "Bash(/tmp/check_strict.ps1:*)",
       "Bash(/tmp/show_key_lines.ps1:*)",
-      "Bash(/tmp/check_147.ps1:*)"
+      "Bash(/tmp/check_147.ps1:*)",
+      "Bash(find \"C:\\\\Users\\\\vpaz1\\\\Desktop\\\\ERP.WEB.API\" -name \"*.cs\" -type f -exec grep -l \"record LoginDto\\\\|public class LoginDto\\\\|public record LoginResultDto\" {} ;)",
+      "Bash(while read f)",
+      "Bash(do basename \"$f\")",
+      "Bash(done)"
     ]
   }
 }

@@ -27,7 +27,8 @@ public class GetAllInventoryQueryHandler : IRequestHandler<GetAllInventoryQuery,
             i.SuggestedRetailPrice - i.PurchaseCost,
             i.LastRestockDate,
             i.LastSaleDate,
-            i.NeedsRestock
+            i.NeedsRestock,
+            i.VariantId
         ));
     }
 }

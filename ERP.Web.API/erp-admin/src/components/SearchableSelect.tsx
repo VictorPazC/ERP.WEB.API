@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { ChevronDown, Search, X } from 'lucide-react';
 
 export interface SelectOption {
@@ -15,13 +15,26 @@ interface Props {
   clearLabel?: string;
 }
 
+interface DropdownPos {
+  top?: number;
+  bottom?: number;
+  left: number;
+  width: number;
+  maxH: number;
+  flip: boolean;
+}
+
+const DROPDOWN_HEADER = 42; // search bar height approx
+const MIN_SPACE = 120;      // minimum space for dropdown to be useful
+
 export default function SearchableSelect({ label, options, value, onChange, placeholder = 'Search…', clearLabel = 'None' }: Props) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
-  const [pos, setPos] = useState<{ top: number; left: number; width: number } | null>(null);
+  const [pos, setPos] = useState<DropdownPos | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const selected = options.find(o => o.value === value);
 
@@ -29,10 +42,24 @@ export default function SearchableSelect({ label, options, value, onChange, plac
     ? options.filter(o => o.label.toLowerCase().includes(query.toLowerCase()))
     : options;
 
+  const calcPosition = useCallback((): DropdownPos | null => {
+    if (!buttonRef.current) return null;
+    const r = buttonRef.current.getBoundingClientRect();
+    const vh = window.innerHeight;
+    const spaceBelow = vh - r.bottom - 8;
+    const spaceAbove = r.top - 8;
+    const flip = spaceBelow < MIN_SPACE && spaceAbove > spaceBelow;
+    const maxH = Math.min(280, flip ? spaceAbove : spaceBelow);
+    if (flip) {
+      return { bottom: vh - r.top + 4, left: r.left, width: r.width, maxH, flip };
+    }
+    return { top: r.bottom + 4, left: r.left, width: r.width, maxH, flip };
+  }, []);
+
   const handleToggle = () => {
-    if (!open && buttonRef.current) {
-      const r = buttonRef.current.getBoundingClientRect();
-      setPos({ top: r.bottom + 4, left: r.left, width: r.width });
+    if (!open) {
+      const p = calcPosition();
+      if (p) setPos(p);
     }
     setOpen(o => !o);
   };
@@ -42,15 +69,40 @@ export default function SearchableSelect({ label, options, value, onChange, plac
     setTimeout(() => inputRef.current?.focus(), 0);
   }, [open]);
 
+  // Close on outside click — check both container and dropdown (portal)
   useEffect(() => {
     const handle = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) setOpen(false);
+      const target = e.target as Node;
+      if (
+        containerRef.current && !containerRef.current.contains(target) &&
+        dropdownRef.current && !dropdownRef.current.contains(target)
+      ) {
+        setOpen(false);
+      }
     };
     document.addEventListener('mousedown', handle);
     return () => document.removeEventListener('mousedown', handle);
   }, []);
 
+  // Close on scroll of any ancestor (modal scrolls)
+  useEffect(() => {
+    if (!open) return;
+    const close = () => setOpen(false);
+    // Use capture to catch scroll on any scrollable parent
+    window.addEventListener('scroll', close, true);
+    return () => window.removeEventListener('scroll', close, true);
+  }, [open]);
+
   const pick = (v: string) => { onChange(v); setOpen(false); };
+
+  const dropdownStyle: React.CSSProperties = pos
+    ? {
+        ...(pos.flip ? { bottom: pos.bottom } : { top: pos.top }),
+        left: pos.left,
+        width: pos.width,
+        maxHeight: pos.maxH,
+      }
+    : {};
 
   return (
     <div ref={containerRef} className="flex flex-col gap-1.5">
@@ -72,10 +124,11 @@ export default function SearchableSelect({ label, options, value, onChange, plac
 
       {open && pos && (
         <div
-          className="fixed z-[300] bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/60 rounded-xl shadow-2xl shadow-black/10 dark:shadow-black/40 overflow-hidden"
-          style={{ top: pos.top, left: pos.left, width: pos.width }}
+          ref={dropdownRef}
+          className="fixed z-[300] bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/60 rounded-xl shadow-2xl shadow-black/10 dark:shadow-black/40 overflow-hidden flex flex-col"
+          style={dropdownStyle}
         >
-          <div className="flex items-center gap-2 px-3 py-2 border-b border-gray-100 dark:border-gray-800/60">
+          <div className="flex items-center gap-2 px-3 py-2 border-b border-gray-100 dark:border-gray-800/60 flex-shrink-0">
             <Search size={14} className="text-gray-400 flex-shrink-0" />
             <input
               ref={inputRef}
@@ -91,7 +144,7 @@ export default function SearchableSelect({ label, options, value, onChange, plac
               </button>
             )}
           </div>
-          <ul className="max-h-52 overflow-y-auto py-1">
+          <ul className="overflow-y-auto py-1 flex-1">
             <li>
               <button type="button" onClick={() => pick('')}
                 className={`w-full text-left px-3 py-2 text-sm transition-colors ${!value ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5'}`}>

@@ -32,7 +32,8 @@ public class UpdateProductImageCommandHandler : IRequestHandler<UpdateProductIma
             image.ImagePath,
             image.IsPrimary,
             image.DisplayOrder,
-            image.RegisteredAt
+            image.RegisteredAt,
+            image.VariantId
         );
     }
 }

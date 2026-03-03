@@ -7,10 +7,12 @@ using ERP.WEB.Application.Features.Inventory.Queries.GetAllInventory;
 using ERP.WEB.Application.Features.Inventory.Queries.GetInventoryById;
 using ERP.WEB.Application.Features.Inventory.Queries.GetInventoryByProductId;
 using Mediator;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ERP.Web.API.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class InventoryController : ControllerBase

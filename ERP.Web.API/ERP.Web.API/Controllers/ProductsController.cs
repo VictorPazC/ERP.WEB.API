@@ -7,12 +7,14 @@ using ERP.WEB.Application.Features.Products.Commands.UpdateProduct;
 using ERP.WEB.Application.Features.Products.Queries.GetAllProducts;
 using ERP.WEB.Application.Features.Products.Queries.GetProductById;
 using Mediator;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ERP.Web.API.Controllers;
 
 public record SetStockStatusRequest(string? Status);
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class ProductsController : ControllerBase

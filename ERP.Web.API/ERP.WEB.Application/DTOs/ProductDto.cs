@@ -15,5 +15,6 @@ public record ProductDto(
     bool IsFavorite,
     string? StockStatus,
     bool HasInventory,
-    int? CurrentStock
+    int? CurrentStock,
+    int VariantCount
 );

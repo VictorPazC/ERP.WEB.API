@@ -58,6 +58,7 @@ export interface Product {
   stockStatus?: StockStatus;
   hasInventory: boolean;
   currentStock?: number;
+  variantCount: number;
 }
 
 export interface CreateProductDto {
@@ -93,8 +94,32 @@ export interface Inventory {
   needsRestock: boolean;
 }
 
+export interface ProductVariant {
+  variantId: number;
+  productId: number;
+  name: string;
+  description?: string;
+  createdAt: string;
+  hasInventory: boolean;
+  currentStock?: number;
+  primaryImagePath?: string;
+}
+
+export interface CreateProductVariantDto {
+  productId: number;
+  name?: string;
+  description?: string;
+}
+
+export interface UpdateProductVariantDto {
+  variantId: number;
+  name: string;
+  description?: string;
+}
+
 export interface CreateInventoryDto {
   productId: number;
+  variantId?: number;
   purchaseCost: number;
   suggestedRetailPrice: number;
   currentStock: number;
@@ -159,6 +184,7 @@ export interface UpdatePromotionDto {
 export interface ProductImage {
   imageId: number;
   productId: number;
+  variantId?: number;
   imagePath: string;
   isPrimary: boolean;
   displayOrder: number;
@@ -210,10 +236,54 @@ export interface LoginDto {
 }
 
 export interface LoginResultDto {
+  token: string;
   userId: number;
   name: string;
   email: string;
   role: string;
+  companyId: number;
+  companyName: string;
+  isSuperAdmin: boolean;
+  companies?: CompanySummary[];
+}
+
+export interface CompanySummary {
+  companyId: number;
+  name: string;
+  slug: string;
+  logoUrl?: string;
+}
+
+export interface Company {
+  companyId: number;
+  name: string;
+  slug: string;
+  description?: string;
+  logoUrl?: string;
+  customDomain?: string;
+  primaryColor?: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface CreateCompanyDto {
+  name: string;
+  slug: string;
+  description?: string;
+  logoUrl?: string;
+  customDomain?: string;
+  primaryColor?: string;
+}
+
+export interface UpdateCompanyDto {
+  companyId: number;
+  name: string;
+  slug: string;
+  description?: string;
+  logoUrl?: string;
+  customDomain?: string;
+  primaryColor?: string;
+  isActive: boolean;
 }
 
 export interface AvailableArticle {

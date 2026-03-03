@@ -8,10 +8,12 @@ using ERP.WEB.Application.Features.Tags.Queries.GetAllTags;
 using ERP.WEB.Application.Features.Tags.Queries.GetTagById;
 using ERP.WEB.Application.Features.Tags.Queries.GetTagsByProductId;
 using Mediator;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ERP.Web.API.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class TagsController : ControllerBase

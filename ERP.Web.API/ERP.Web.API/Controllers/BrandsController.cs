@@ -6,10 +6,12 @@ using ERP.WEB.Application.Features.Brands.Commands.UpdateBrand;
 using ERP.WEB.Application.Features.Brands.Queries.GetAllBrands;
 using ERP.WEB.Application.Features.Brands.Queries.GetBrandById;
 using Mediator;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ERP.Web.API.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class BrandsController : ControllerBase

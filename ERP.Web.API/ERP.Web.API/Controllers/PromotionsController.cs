@@ -7,10 +7,12 @@ using ERP.WEB.Application.Features.Promotions.Queries.GetAllPromotions;
 using ERP.WEB.Application.Features.Promotions.Queries.GetPromotionById;
 using ERP.WEB.Application.Features.Promotions.Queries.GetPromotionsByProductId;
 using Mediator;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ERP.Web.API.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class PromotionsController : ControllerBase

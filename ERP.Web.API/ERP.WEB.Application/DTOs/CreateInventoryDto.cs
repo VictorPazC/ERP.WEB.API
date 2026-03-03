@@ -6,5 +6,6 @@ public record CreateInventoryDto(
     decimal SuggestedRetailPrice,
     int CurrentStock,
     DateTime LastRestockDate,
-    DateTime? LastSaleDate
+    DateTime? LastSaleDate,
+    int? VariantId = null
 );

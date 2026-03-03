@@ -512,3 +512,4 @@ C:\Users\Kathia\Documents\GitHub\ERP.WEB.API\ERP.Web.API\ERP.Web.API\obj\Debug\n
 C:\Users\vpaz1\Desktop\ERP.WEB.API\ERP.Web.API\ERP.Web.API\bin\Debug\net10.0\dotnet-tools.json
 C:\Users\vpaz1\Desktop\ERP.WEB.API\ERP.Web.API\ERP.Web.API\bin\Debug\net10.0\ERP.Web.API.staticwebassets.runtime.json
 C:\Users\vpaz1\Desktop\ERP.WEB.API\ERP.Web.API\ERP.Web.API\bin\Debug\net10.0\BCrypt.Net-Next.dll
+C:\Users\vpaz1\Desktop\ERP.WEB.API\ERP.Web.API\ERP.Web.API\bin\Debug\net10.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll

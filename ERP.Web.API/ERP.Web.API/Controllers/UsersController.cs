@@ -6,10 +6,12 @@ using ERP.WEB.Application.Features.Users.Commands.UpdateUser;
 using ERP.WEB.Application.Features.Users.Queries.GetAllUsers;
 using ERP.WEB.Application.Features.Users.Queries.GetUserById;
 using Mediator;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ERP.Web.API.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class UsersController : ControllerBase
@@ -74,6 +76,7 @@ public class UsersController : ControllerBase
         return Ok(user);
     }
 
+    [AllowAnonymous]
     [HttpPost("login")]
     public async Task<ActionResult<LoginResultDto>> Login([FromBody] LoginDto dto)
     {

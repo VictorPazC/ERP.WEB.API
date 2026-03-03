@@ -46,7 +46,8 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
             created.IsFavorite,
             created.StockStatus,
             false,
-            null
+            null,
+            0
         );
     }
 }

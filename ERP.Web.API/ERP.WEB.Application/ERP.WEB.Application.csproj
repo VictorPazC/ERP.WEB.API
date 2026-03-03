@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
     <PackageReference Include="Mediator.SourceGenerator" Version="3.0.1">
       <PrivateAssets>all</PrivateAssets>
@@ -18,6 +22,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ERP.WEB.Domain\ERP.WEB.Domain.csproj" />
+    <ProjectReference Include="..\ERP.WEB.Infrastructure\ERP.WEB.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

@@ -3,10 +3,11 @@ import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Package, Tag, Percent, Image, Archive, Layers,
   ChevronLeft, ChevronRight, Boxes, Menu, X, Sun, Moon, Users, ShoppingBag,
-  ShoppingCart, Shield, Eye, LogOut, Bookmark,
+  ShoppingCart, Shield, Eye, LogOut, Bookmark, Factory,
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useUser } from '../context/UserContext';
+import CompanySelector from './CompanySelector';
 
 const nav = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
@@ -20,14 +21,15 @@ const nav = [
   { to: '/promotions', icon: Percent, label: 'Promotions' },
   { to: '/product-images', icon: Image, label: 'Images' },
   { to: '/users', icon: Users, label: 'Users' },
-];
+  { to: '/companies', icon: Factory, label: 'Companies', superAdminOnly: true },
+] as const;
 
 export default function Layout() {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
   const { theme, toggle } = useTheme();
-  const { user, logout, isAdmin } = useUser();
+  const { user, logout, isAdmin, isSuperAdmin } = useUser();
 
   useEffect(() => {
     setMobileOpen(false);
@@ -63,8 +65,25 @@ export default function Layout() {
         </div>
       </div>
 
+      {/* Company Selector (SuperAdmin only) */}
+      {isSuperAdmin && (isMobile || !collapsed) && (
+        <div className="px-3 py-2 border-b border-gray-200 dark:border-gray-800/60">
+          <CompanySelector />
+        </div>
+      )}
+
+      {/* Company name badge for regular users */}
+      {!isSuperAdmin && user.companyName && (isMobile || !collapsed) && (
+        <div className="px-3 py-2 border-b border-gray-200 dark:border-gray-800/60">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-50 dark:bg-white/5">
+            <Factory size={13} className="text-gray-400" />
+            <span className="text-xs font-medium text-gray-600 dark:text-gray-400 truncate">{user.companyName}</span>
+          </div>
+        </div>
+      )}
+
       <nav className={`flex-1 ${!isMobile && collapsed ? 'px-2' : 'px-3'} py-4 space-y-1 overflow-y-auto`}>
-        {nav.map(({ to, icon: Icon, label }) => {
+        {nav.filter(item => !('superAdminOnly' in item && item.superAdminOnly) || isSuperAdmin).map(({ to, icon: Icon, label }) => {
           const isActive = to === '/' ? location.pathname === '/' : location.pathname.startsWith(to);
           return (
             <NavLink

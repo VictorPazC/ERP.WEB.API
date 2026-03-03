@@ -31,8 +31,20 @@ public record LoginDto(
 );
 
 public record LoginResultDto(
+    string Token,
     int UserId,
     string Name,
     string Email,
-    string Role
+    string Role,
+    int CompanyId,
+    string CompanyName,
+    bool IsSuperAdmin,
+    CompanySummaryDto[]? Companies
+);
+
+public record CompanySummaryDto(
+    int CompanyId,
+    string Name,
+    string Slug,
+    string? LogoUrl
 );

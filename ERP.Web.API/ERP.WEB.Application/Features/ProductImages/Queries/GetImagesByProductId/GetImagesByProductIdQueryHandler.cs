@@ -23,7 +23,8 @@ public class GetImagesByProductIdQueryHandler : IRequestHandler<GetImagesByProdu
             i.ImagePath,
             i.IsPrimary,
             i.DisplayOrder,
-            i.RegisteredAt
+            i.RegisteredAt,
+            i.VariantId
         ));
     }
 }

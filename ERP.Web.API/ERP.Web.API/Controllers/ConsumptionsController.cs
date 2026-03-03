@@ -4,10 +4,12 @@ using ERP.WEB.Application.Features.Consumptions.Commands.DeleteConsumption;
 using ERP.WEB.Application.Features.Consumptions.Queries.GetAllConsumptions;
 using ERP.WEB.Application.Features.Consumptions.Queries.GetAvailableArticles;
 using Mediator;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ERP.Web.API.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class ConsumptionsController : ControllerBase

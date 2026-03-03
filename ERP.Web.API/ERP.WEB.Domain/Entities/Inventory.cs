@@ -1,11 +1,17 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using ERP.WEB.Domain.Interfaces;
 
 namespace ERP.WEB.Domain.Entities;
 
 [Table("Inventory")]
-public class Inventory
+public class Inventory : ICompanyEntity
 {
+    public int CompanyId { get; set; }
+
+    [ForeignKey(nameof(CompanyId))]
+    public Company? Company { get; set; }
+
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int InventoryId { get; set; }
@@ -31,4 +37,9 @@ public class Inventory
 
     [ForeignKey(nameof(ProductId))]
     public Product Product { get; set; } = null!;
+
+    public int? VariantId { get; set; }
+
+    [ForeignKey(nameof(VariantId))]
+    public ProductVariant? Variant { get; set; }
 }

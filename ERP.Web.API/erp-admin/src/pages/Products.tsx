@@ -1,6 +1,6 @@
 ﻿import { useState, useRef, useCallback, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Pencil, Trash2, Package, ExternalLink, Search, Upload, X, Tag as TagIcon, Camera, Archive, TrendingUp, Star } from 'lucide-react';
+import { Plus, Pencil, Trash2, Package, ExternalLink, Search, Upload, X, Tag as TagIcon, Camera, Archive, TrendingUp, Star, Layers } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { productsApi } from '../api/products';
 import { brandsApi } from '../api/brands';
@@ -8,7 +8,8 @@ import { categoriesApi } from '../api/categories';
 import { productImagesApi } from '../api/productImages';
 import { tagsApi } from '../api/tags';
 import { inventoryApi } from '../api/inventory';
-import type { Product, CreateProductDto, UpdateProductDto, CreateInventoryDto } from '../types';
+import { productVariantsApi } from '../api/productVariants';
+import type { Product, CreateProductDto, UpdateProductDto, CreateInventoryDto, CreateProductVariantDto } from '../types';
 import PageHeader from '../components/PageHeader';
 import Modal from '../components/Modal';
 import ConfirmDialog from '../components/ConfirmDialog';
@@ -126,8 +127,24 @@ function TagSelector({ productId }: { productId: number }) {
   );
 }
 
+/* ── Session key for surviving mobile page reloads ────────── */
+const PENDING_IMAGE_KEY = 'erp-pending-image-product';
+
+function clearPendingImage() {
+  try { sessionStorage.removeItem(PENDING_IMAGE_KEY); } catch {}
+}
+function savePendingImage(productId: number) {
+  try { sessionStorage.setItem(PENDING_IMAGE_KEY, String(productId)); } catch {}
+}
+function loadPendingImage(): number | null {
+  try {
+    const v = sessionStorage.getItem(PENDING_IMAGE_KEY);
+    return v ? Number(v) : null;
+  } catch { return null; }
+}
+
 /* ── Image uploader (step 2 when creating) ────────────────── */
-function ImageUploader({ productId, onDone }: { productId: number; onDone: () => void }) {
+function ImageUploader({ productId, variantId, onDone }: { productId: number; variantId?: number; onDone: () => void }) {
   const qc = useQueryClient();
   const [files, setFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
@@ -154,16 +171,21 @@ function ImageUploader({ productId, onDone }: { productId: number; onDone: () =>
     setPreviews(prev => prev.filter((_, i) => i !== idx));
   };
 
+  const handleDone = () => {
+    clearPendingImage();
+    onDone();
+  };
+
   const handleUpload = async () => {
-    if (files.length === 0) { onDone(); return; }
+    if (files.length === 0) { handleDone(); return; }
     setLoading(true);
     try {
       for (let i = 0; i < files.length; i++) {
-        await productImagesApi.upload(files[i], productId, i === 0, i);
+        await productImagesApi.upload(files[i], productId, i === 0, i, variantId);
       }
       qc.invalidateQueries({ queryKey: ['product-images'] });
       toast.success(`${files.length} image${files.length > 1 ? 's' : ''} uploaded`);
-      onDone();
+      handleDone();
     } catch {
       toast.error('Error uploading images');
     } finally {
@@ -215,7 +237,7 @@ function ImageUploader({ productId, onDone }: { productId: number; onDone: () =>
       )}
 
       <div className="flex gap-3">
-        <button type="button" onClick={onDone}
+        <button type="button" onClick={handleDone}
           className="flex-1 px-4 py-2.5 border border-gray-300 dark:border-gray-700/60 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors text-sm font-medium">
           Skip
         </button>
@@ -237,8 +259,10 @@ function ProductForm({ initial, onSave, onClose }: {
   const { data: categories } = useQuery({ queryKey: ['categories'], queryFn: categoriesApi.getAll, staleTime: Infinity, refetchOnWindowFocus: false });
   const { data: brands } = useQuery({ queryKey: ['brands'], queryFn: brandsApi.getAll, staleTime: Infinity, refetchOnWindowFocus: false });
   const defaultBrandApplied = useRef(false);
-  const [step, setStep] = useState<'form' | 'images'>('form');
-  const [createdProductId, setCreatedProductId] = useState<number | null>(null);
+  // Restore pending image upload if page was reloaded (mobile file picker can kill the tab)
+  const pending = loadPendingImage();
+  const [step, setStep] = useState<'form' | 'images'>(pending && !initial ? 'images' : 'form');
+  const [createdProductId, setCreatedProductId] = useState<number | null>(pending && !initial ? pending : null);
   const [form, setForm] = useState({
     name: initial?.name ?? '',
     description: initial?.description ?? '',
@@ -280,6 +304,7 @@ function ProductForm({ initial, onSave, onClose }: {
         : base as CreateProductDto
       );
       if (!initial) {
+        savePendingImage(productId);
         setCreatedProductId(productId);
         setStep('images');
       } else {
@@ -354,7 +379,7 @@ function ProductForm({ initial, onSave, onClose }: {
 }
 
 /* ── Quick inventory form ─────────────────────────────────── */
-function QuickInventoryForm({ product, onClose }: { product: Product; onClose: () => void }) {
+function QuickInventoryForm({ product, variantId, onClose }: { product: Product; variantId?: number; onClose: () => void }) {
   const qc = useQueryClient();
   const today = new Date().toISOString().slice(0, 10);
   const [form, setForm] = useState({
@@ -377,6 +402,7 @@ function QuickInventoryForm({ product, onClose }: { product: Product; onClose: (
     try {
       await createMut.mutateAsync({
         productId: product.productId,
+        variantId,
         purchaseCost: Number(form.purchaseCost),
         suggestedRetailPrice: Number(form.suggestedRetailPrice),
         currentStock: Number(form.currentStock),
@@ -423,14 +449,141 @@ function QuickInventoryForm({ product, onClose }: { product: Product; onClose: (
   );
 }
 
+/* ── Variant panel ────────────────────────────────────────── */
+function VariantPanel({ product, onClose }: { product: Product; onClose: () => void }) {
+  const qc = useQueryClient();
+  const { isAdmin } = useUser();
+  const { data: variants, isLoading } = useQuery({
+    queryKey: ['product-variants', product.productId],
+    queryFn: () => productVariantsApi.getByProduct(product.productId),
+  });
+
+  const createMut = useMutation({
+    mutationFn: (dto: CreateProductVariantDto) => productVariantsApi.create(dto),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['product-variants', product.productId] }); qc.invalidateQueries({ queryKey: ['products'] }); toast.success('Variant created'); },
+  });
+  const deleteMut = useMutation({
+    mutationFn: (id: number) => productVariantsApi.delete(id),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['product-variants', product.productId] }); qc.invalidateQueries({ queryKey: ['products'] }); toast.success('Variant deleted'); },
+  });
+
+  const [showForm, setShowForm] = useState(false);
+  const [formName, setFormName] = useState('');
+  const [formDesc, setFormDesc] = useState('');
+  const [uploadingFor, setUploadingFor] = useState<{ variantId: number; productId: number } | null>(null);
+  const [inventoryFor, setInventoryFor] = useState<{ variantId: number } | null>(null);
+
+  const handleCreate = async () => {
+    const variantId = await createMut.mutateAsync({ productId: product.productId, name: formName || undefined, description: formDesc || undefined });
+    setShowForm(false);
+    setFormName('');
+    setFormDesc('');
+    setUploadingFor({ variantId, productId: product.productId });
+  };
+
+  if (isLoading) return <LoadingSpinner />;
+
+  return (
+    <div className="space-y-4">
+      {/* Variant cards grid */}
+      {variants && variants.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {variants.map(v => {
+            const src = imageUrl(v.primaryImagePath);
+            return (
+              <div key={v.variantId} className="bg-white dark:bg-gray-900/60 border border-gray-200 dark:border-gray-800/60 rounded-2xl p-3 flex items-start gap-3">
+                <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800/60 ring-1 ring-gray-200 dark:ring-gray-700/30 flex items-center justify-center flex-shrink-0">
+                  {src
+                    ? <img src={src} alt="" className="w-full h-full object-cover" loading="lazy" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                    : <Package size={16} className="text-gray-400" />}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{v.name}</p>
+                  {v.description && <p className="text-xs text-gray-500 dark:text-gray-600 truncate mt-0.5">{v.description}</p>}
+                  <div className="flex items-center gap-1.5 mt-1.5">
+                    {v.hasInventory
+                      ? <Badge color={(v.currentStock ?? 0) > 0 ? 'green' : 'red'}>{v.currentStock ?? 0} units</Badge>
+                      : <Badge color="gray">No inv.</Badge>}
+                  </div>
+                  {isAdmin && (
+                    <div className="flex items-center gap-1 mt-2">
+                      <button onClick={() => setUploadingFor({ variantId: v.variantId, productId: product.productId })}
+                        className="p-1.5 rounded-lg text-gray-500 hover:text-indigo-500 dark:hover:text-indigo-400 hover:bg-indigo-500/10 transition-colors" title="Upload images">
+                        <Camera size={13} />
+                      </button>
+                      <button onClick={() => setInventoryFor({ variantId: v.variantId })}
+                        className="p-1.5 rounded-lg text-gray-500 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-500/10 transition-colors" title="Add inventory">
+                        <Archive size={13} />
+                      </button>
+                      <button onClick={() => deleteMut.mutate(v.variantId)}
+                        className="p-1.5 rounded-lg text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-500/10 transition-colors" title="Delete variant">
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <p className="text-sm text-gray-400 dark:text-gray-600 text-center py-4">No variants yet.</p>
+      )}
+
+      {/* Add variant form */}
+      {isAdmin && (
+        <>
+          {showForm ? (
+            <div className="bg-gray-50 dark:bg-white/[0.03] border border-gray-200 dark:border-gray-800/60 rounded-2xl p-4 space-y-3">
+              <FormField label="Name" value={formName} onChange={e => setFormName(e.target.value)} placeholder="Leave empty for auto v1, v2..." />
+              <FormField label="Description" value={formDesc} onChange={e => setFormDesc(e.target.value)} placeholder="Optional description" />
+              <div className="flex gap-2">
+                <button type="button" onClick={() => { setShowForm(false); setFormName(''); setFormDesc(''); }}
+                  className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-700/60 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors text-sm font-medium">
+                  Cancel
+                </button>
+                <button type="button" onClick={handleCreate} disabled={createMut.isPending}
+                  className="flex-1 px-3 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-white font-medium transition-colors text-sm disabled:opacity-50">
+                  {createMut.isPending ? 'Creating...' : 'Create variant'}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button onClick={() => setShowForm(true)}
+              className="flex items-center gap-2 px-4 py-2.5 border border-dashed border-gray-300 dark:border-gray-700/60 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:border-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-500/5 transition-all w-full justify-center">
+              <Plus size={15} /> Add variant
+            </button>
+          )}
+        </>
+      )}
+
+      {/* Image uploader modal for variant */}
+      {uploadingFor && (
+        <Modal title="Upload variant images" onClose={() => setUploadingFor(null)} size="lg">
+          <ImageUploader productId={uploadingFor.productId} variantId={uploadingFor.variantId} onDone={() => { setUploadingFor(null); qc.invalidateQueries({ queryKey: ['product-variants', product.productId] }); }} />
+        </Modal>
+      )}
+
+      {/* Inventory modal for variant */}
+      {inventoryFor && (
+        <Modal title="Add variant inventory" onClose={() => setInventoryFor(null)} size="sm">
+          <QuickInventoryForm product={product} variantId={inventoryFor.variantId} onClose={() => { setInventoryFor(null); qc.invalidateQueries({ queryKey: ['product-variants', product.productId] }); }} />
+        </Modal>
+      )}
+    </div>
+  );
+}
+
 /* ── Main page ────────────────────────────────────────────── */
 export default function Products() {
   const qc = useQueryClient();
   const { isAdmin } = useUser();
-  const [modal, setModal] = useState<'create' | 'edit' | null>(null);
+  // Auto-open modal to resume image upload if page was reloaded on mobile
+  const [modal, setModal] = useState<'create' | 'edit' | null>(() => loadPendingImage() ? 'create' : null);
   const [selected, setSelected] = useState<Product | null>(null);
   const [deleting, setDeleting] = useState<Product | null>(null);
   const [inventoryFor, setInventoryFor] = useState<Product | null>(null);
+  const [expandedProduct, setExpandedProduct] = useState<Product | null>(null);
   const [search, setSearch] = useState('');
   const [lightbox, setLightbox] = useState<{ src: string; alt: string } | null>(null);
   const [filterBrand, setFilterBrand] = useState<number | null>(null);
@@ -598,7 +751,10 @@ export default function Products() {
                         <td className="px-5 py-3">
                           <div className="flex items-start gap-1.5">
                             <div>
-                              <p className="text-sm font-medium text-gray-900 dark:text-white">{p.name}</p>
+                              <div className="flex items-center gap-1.5">
+                                <p className="text-sm font-medium text-gray-900 dark:text-white">{p.name}</p>
+                                {p.variantCount > 0 && <Badge color="indigo">{p.variantCount} variant{p.variantCount > 1 ? 's' : ''}</Badge>}
+                              </div>
                               {p.description && <p className="text-xs text-gray-500 dark:text-gray-600 truncate max-w-[200px]">{p.description}</p>}
                             </div>
                             <button
@@ -637,6 +793,7 @@ export default function Products() {
                           <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                             {p.referenceLink && <a href={p.referenceLink} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded-lg text-gray-500 hover:text-blue-500 dark:hover:text-blue-400 hover:bg-blue-500/10 transition-colors"><ExternalLink size={14} /></a>}
                             {isAdmin && <>
+                              <button onClick={(e) => { e.stopPropagation(); setExpandedProduct(p); }} title="Variants" className="p-1.5 rounded-lg text-gray-500 hover:text-indigo-500 dark:hover:text-indigo-400 hover:bg-indigo-500/10 transition-colors"><Layers size={14} /></button>
                               <button onClick={() => setInventoryFor(p)} title="Add inventory" className="p-1.5 rounded-lg text-gray-500 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-500/10 transition-colors"><Archive size={14} /></button>
                               <button onClick={() => { setSelected(p); setModal('edit'); }} className="p-1.5 rounded-lg text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"><Pencil size={14} /></button>
                               <button onClick={() => setDeleting(p)} className="p-1.5 rounded-lg text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-500/10 transition-colors"><Trash2 size={14} /></button>
@@ -684,6 +841,7 @@ export default function Products() {
                           <div className="flex gap-1 flex-shrink-0">
                             {p.referenceLink && <a href={p.referenceLink} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded-lg text-gray-500 hover:text-blue-500 hover:bg-blue-500/10 transition-colors"><ExternalLink size={13} /></a>}
                             {isAdmin && <>
+                              <button onClick={(e) => { e.stopPropagation(); setExpandedProduct(p); }} title="Variants" className="p-1.5 rounded-lg text-gray-500 hover:text-indigo-500 dark:hover:text-indigo-400 hover:bg-indigo-500/10 transition-colors"><Layers size={13} /></button>
                               <button onClick={() => setInventoryFor(p)} title="Add inventory" className="p-1.5 rounded-lg text-gray-500 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-500/10 transition-colors"><Archive size={13} /></button>
                               <button onClick={() => { setSelected(p); setModal('edit'); }} className="p-1.5 rounded-lg text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"><Pencil size={13} /></button>
                               <button onClick={() => setDeleting(p)} className="p-1.5 rounded-lg text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-500/10 transition-colors"><Trash2 size={13} /></button>
@@ -697,6 +855,7 @@ export default function Products() {
                             : <Badge color="gray">No inv.</Badge>
                           }
                           {p.stockStatus && <StockStatusBadge status={p.stockStatus} />}
+                          {p.variantCount > 0 && <Badge color="indigo">{p.variantCount} variant{p.variantCount > 1 ? 's' : ''}</Badge>}
                           {p.brandName && <Badge color="gray">{p.brandName}</Badge>}
                           {p.categoryName && <Badge color="indigo">{p.categoryName}</Badge>}
                         </div>
@@ -720,11 +879,11 @@ export default function Products() {
       </div>
 
       {(modal === 'create' || modal === 'edit') && isAdmin && (
-        <Modal title={modal === 'edit' ? 'Edit product' : 'New product'} onClose={() => setModal(null)} size="lg">
+        <Modal title={modal === 'edit' ? 'Edit product' : 'New product'} onClose={() => { clearPendingImage(); setModal(null); }} size="lg">
           <ProductForm
             initial={modal === 'edit' ? selected ?? undefined : undefined}
             onSave={handleSave}
-            onClose={() => setModal(null)}
+            onClose={() => { clearPendingImage(); setModal(null); }}
           />
         </Modal>
       )}
@@ -740,6 +899,12 @@ export default function Products() {
       {inventoryFor && isAdmin && (
         <Modal title="Add inventory" onClose={() => setInventoryFor(null)} size="sm">
           <QuickInventoryForm product={inventoryFor} onClose={() => setInventoryFor(null)} />
+        </Modal>
+      )}
+
+      {expandedProduct && (
+        <Modal title={`${expandedProduct.name} — Variants`} onClose={() => setExpandedProduct(null)} size="lg">
+          <VariantPanel product={expandedProduct} onClose={() => setExpandedProduct(null)} />
         </Modal>
       )}
 

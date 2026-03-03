@@ -1,11 +1,17 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using ERP.WEB.Domain.Interfaces;
 
 namespace ERP.WEB.Domain.Entities;
 
 [Table("Products")]
-public class Product
+public class Product : ICompanyEntity
 {
+    public int CompanyId { get; set; }
+
+    [ForeignKey(nameof(CompanyId))]
+    public Company? Company { get; set; }
+
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int ProductId { get; set; }
@@ -48,4 +54,6 @@ public class Product
     public ICollection<Promotion> Promotions { get; set; } = new List<Promotion>();
 
     public ICollection<ProductImage> Images { get; set; } = new List<ProductImage>();
+
+    public ICollection<ProductVariant> Variants { get; set; } = new List<ProductVariant>();
 }

@@ -32,7 +32,8 @@ public class GetAllProductsQueryHandler : IRequestHandler<GetAllProductsQuery, I
             p.IsFavorite,
             p.StockStatus,
             p.Inventory is not null,
-            p.Inventory?.CurrentStock
+            p.Inventory?.CurrentStock,
+            p.Variants.Count
         ));
     }
 }
