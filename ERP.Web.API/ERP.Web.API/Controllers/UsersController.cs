@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ERP.Web.API.Controllers;
 
-[Authorize]
+//[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class UsersController : ControllerBase

@@ -31,4 +31,16 @@ public class Company
     public bool IsActive { get; set; } = true;
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    // Navigation properties
+    public ICollection<Product> Products { get; set; } = new List<Product>();
+    public ICollection<Category> Categories { get; set; } = new List<Category>();
+    public ICollection<Brand> Brands { get; set; } = new List<Brand>();
+    public ICollection<Inventory> Inventories { get; set; } = new List<Inventory>();
+    public ICollection<Tag> Tags { get; set; } = new List<Tag>();
+    public ICollection<Promotion> Promotions { get; set; } = new List<Promotion>();
+    public ICollection<ProductImage> ProductImages { get; set; } = new List<ProductImage>();
+    public ICollection<ProductVariant> ProductVariants { get; set; } = new List<ProductVariant>();
+    public ICollection<User> Users { get; set; } = new List<User>();
+    public ICollection<Consumption> Consumptions { get; set; } = new List<Consumption>();
 }

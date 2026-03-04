@@ -3759,24 +3759,24 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\vpaz1\\.nuget\\packages\\": {},
+    "C:\\Users\\Kathia\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\vpaz1\\Desktop\\ERP.WEB.API\\ERP.Web.API\\ERP.Web.API\\ERP.Web.API.csproj",
+      "projectUniqueName": "C:\\Users\\Kathia\\Documents\\GitHub\\ERP.WEB.API\\ERP.Web.API\\ERP.Web.API\\ERP.Web.API.csproj",
       "projectName": "ERP.Web.API",
-      "projectPath": "C:\\Users\\vpaz1\\Desktop\\ERP.WEB.API\\ERP.Web.API\\ERP.Web.API\\ERP.Web.API.csproj",
-      "packagesPath": "C:\\Users\\vpaz1\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\vpaz1\\Desktop\\ERP.WEB.API\\ERP.Web.API\\ERP.Web.API\\obj\\",
+      "projectPath": "C:\\Users\\Kathia\\Documents\\GitHub\\ERP.WEB.API\\ERP.Web.API\\ERP.Web.API\\ERP.Web.API.csproj",
+      "packagesPath": "C:\\Users\\Kathia\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\Kathia\\Documents\\GitHub\\ERP.WEB.API\\ERP.Web.API\\ERP.Web.API\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\vpaz1\\Desktop\\ERP.WEB.API\\ERP.Web.API\\NuGet.Config",
-        "C:\\Users\\vpaz1\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\Kathia\\Documents\\GitHub\\ERP.WEB.API\\ERP.Web.API\\NuGet.Config",
+        "C:\\Users\\Kathia\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
@@ -3784,17 +3784,18 @@
         "net10.0"
       ],
       "sources": {
+        "C:\\Program Files\\dotnet\\library-packs": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
         "net10.0": {
           "targetAlias": "net10.0",
           "projectReferences": {
-            "C:\\Users\\vpaz1\\Desktop\\ERP.WEB.API\\ERP.Web.API\\ERP.WEB.Application\\ERP.WEB.Application.csproj": {
-              "projectPath": "C:\\Users\\vpaz1\\Desktop\\ERP.WEB.API\\ERP.Web.API\\ERP.WEB.Application\\ERP.WEB.Application.csproj"
+            "C:\\Users\\Kathia\\Documents\\GitHub\\ERP.WEB.API\\ERP.Web.API\\ERP.WEB.Application\\ERP.WEB.Application.csproj": {
+              "projectPath": "C:\\Users\\Kathia\\Documents\\GitHub\\ERP.WEB.API\\ERP.Web.API\\ERP.WEB.Application\\ERP.WEB.Application.csproj"
             },
-            "C:\\Users\\vpaz1\\Desktop\\ERP.WEB.API\\ERP.Web.API\\ERP.WEB.Infrastructure\\ERP.WEB.Infrastructure.csproj": {
-              "projectPath": "C:\\Users\\vpaz1\\Desktop\\ERP.WEB.API\\ERP.Web.API\\ERP.WEB.Infrastructure\\ERP.WEB.Infrastructure.csproj"
+            "C:\\Users\\Kathia\\Documents\\GitHub\\ERP.WEB.API\\ERP.Web.API\\ERP.WEB.Infrastructure\\ERP.WEB.Infrastructure.csproj": {
+              "projectPath": "C:\\Users\\Kathia\\Documents\\GitHub\\ERP.WEB.API\\ERP.Web.API\\ERP.WEB.Infrastructure\\ERP.WEB.Infrastructure.csproj"
             }
           }
         }
@@ -3853,7 +3854,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.103/PortableRuntimeIdentifierGraph.json",
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.102/PortableRuntimeIdentifierGraph.json",
         "packagesToPrune": {
           "Microsoft.AspNetCore": "(,10.0.32767]",
           "Microsoft.AspNetCore.Antiforgery": "(,10.0.32767]",

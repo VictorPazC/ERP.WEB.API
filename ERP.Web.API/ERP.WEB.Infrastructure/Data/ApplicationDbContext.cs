@@ -61,6 +61,10 @@ public class ApplicationDbContext : DbContext
         {
             entity.HasKey(e => e.BrandId);
             entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+            entity.HasOne(e => e.Company)
+                  .WithMany(c => c.Brands)
+                  .HasForeignKey(e => e.CompanyId)
+                  .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<Product>(entity =>
@@ -71,11 +75,15 @@ public class ApplicationDbContext : DbContext
             entity.HasOne(e => e.Category)
                   .WithMany(c => c.Products)
                   .HasForeignKey(e => e.CategoryId)
-                  .OnDelete(DeleteBehavior.SetNull);
+                  .OnDelete(DeleteBehavior.Restrict);  // Cambiar de SetNull a Restrict
             entity.HasOne(e => e.Brand)
                   .WithMany(b => b.Products)
                   .HasForeignKey(e => e.BrandId)
-                  .OnDelete(DeleteBehavior.SetNull);
+                  .OnDelete(DeleteBehavior.Restrict);  // Cambiar de SetNull a Restrict
+            entity.HasOne(e => e.Company)
+                  .WithMany(c => c.Products)
+                  .HasForeignKey(e => e.CompanyId)
+                  .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<Category>(entity =>
@@ -85,6 +93,10 @@ public class ApplicationDbContext : DbContext
             entity.HasOne(e => e.ParentCategory)
                   .WithMany(c => c.SubCategories)
                   .HasForeignKey(e => e.ParentCategoryId)
+                  .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.Company)
+                  .WithMany(c => c.Categories)
+                  .HasForeignKey(e => e.CompanyId)
                   .OnDelete(DeleteBehavior.Restrict);
         });
 
@@ -100,10 +112,14 @@ public class ApplicationDbContext : DbContext
             entity.HasOne(e => e.Product)
                   .WithOne(p => p.Inventory)
                   .HasForeignKey<Inventory>(e => e.ProductId)
-                  .OnDelete(DeleteBehavior.Cascade);
+                  .OnDelete(DeleteBehavior.Restrict);
             entity.HasOne(e => e.Variant)
                   .WithOne(v => v.Inventory)
                   .HasForeignKey<Inventory>(e => e.VariantId)
+                  .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.Company)
+                  .WithMany(c => c.Inventories)
+                  .HasForeignKey(e => e.CompanyId)
                   .OnDelete(DeleteBehavior.Restrict);
         });
 
@@ -115,6 +131,10 @@ public class ApplicationDbContext : DbContext
             entity.HasMany(e => e.Products)
                   .WithMany(p => p.Tags)
                   .UsingEntity(j => j.ToTable("Product_Tags"));
+            entity.HasOne(e => e.Company)
+                  .WithMany(c => c.Tags)
+                  .HasForeignKey(e => e.CompanyId)
+                  .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<Promotion>(entity =>
@@ -124,7 +144,11 @@ public class ApplicationDbContext : DbContext
             entity.HasOne(e => e.Product)
                   .WithMany(p => p.Promotions)
                   .HasForeignKey(e => e.ProductId)
-                  .OnDelete(DeleteBehavior.Cascade);
+                  .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.Company)
+                  .WithMany(c => c.Promotions)
+                  .HasForeignKey(e => e.CompanyId)
+                  .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<ProductImage>(entity =>
@@ -137,10 +161,14 @@ public class ApplicationDbContext : DbContext
             entity.HasOne(e => e.Product)
                   .WithMany(p => p.Images)
                   .HasForeignKey(e => e.ProductId)
-                  .OnDelete(DeleteBehavior.Cascade);
+                  .OnDelete(DeleteBehavior.Restrict);
             entity.HasOne(e => e.Variant)
                   .WithMany(v => v.Images)
                   .HasForeignKey(e => e.VariantId)
+                  .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.Company)
+                  .WithMany(c => c.ProductImages)
+                  .HasForeignKey(e => e.CompanyId)
                   .OnDelete(DeleteBehavior.Restrict);
         });
 
@@ -151,7 +179,11 @@ public class ApplicationDbContext : DbContext
             entity.HasOne(e => e.Product)
                   .WithMany(p => p.Variants)
                   .HasForeignKey(e => e.ProductId)
-                  .OnDelete(DeleteBehavior.Cascade);
+                  .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.Company)
+                  .WithMany(c => c.ProductVariants)
+                  .HasForeignKey(e => e.CompanyId)
+                  .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<User>(entity =>
@@ -164,6 +196,10 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.Status).HasMaxLength(50).HasDefaultValue("Active");
             entity.Property(e => e.PasswordHash).HasMaxLength(256).IsRequired(false);
             entity.Property(e => e.IsSuperAdmin).HasDefaultValue(false);
+            entity.HasOne(e => e.Company)
+                  .WithMany(c => c.Users)
+                  .HasForeignKey(e => e.CompanyId)
+                  .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<Consumption>(entity =>
@@ -173,7 +209,11 @@ public class ApplicationDbContext : DbContext
             entity.HasOne(e => e.Inventory)
                   .WithMany()
                   .HasForeignKey(e => e.InventoryId)
-                  .OnDelete(DeleteBehavior.Cascade);
+                  .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.Company)
+                  .WithMany(c => c.Consumptions)
+                  .HasForeignKey(e => e.CompanyId)
+                  .OnDelete(DeleteBehavior.Restrict);
         });
     }
 

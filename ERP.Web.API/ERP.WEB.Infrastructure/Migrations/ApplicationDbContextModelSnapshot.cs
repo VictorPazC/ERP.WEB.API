@@ -493,9 +493,9 @@ namespace ERP.WEB.Infrastructure.Migrations
             modelBuilder.Entity("ERP.WEB.Domain.Entities.Brand", b =>
                 {
                     b.HasOne("ERP.WEB.Domain.Entities.Company", "Company")
-                        .WithMany()
+                        .WithMany("Brands")
                         .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Company");
@@ -504,9 +504,9 @@ namespace ERP.WEB.Infrastructure.Migrations
             modelBuilder.Entity("ERP.WEB.Domain.Entities.Category", b =>
                 {
                     b.HasOne("ERP.WEB.Domain.Entities.Company", "Company")
-                        .WithMany()
+                        .WithMany("Categories")
                         .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("ERP.WEB.Domain.Entities.Category", "ParentCategory")
@@ -522,15 +522,15 @@ namespace ERP.WEB.Infrastructure.Migrations
             modelBuilder.Entity("ERP.WEB.Domain.Entities.Consumption", b =>
                 {
                     b.HasOne("ERP.WEB.Domain.Entities.Company", "Company")
-                        .WithMany()
+                        .WithMany("Consumptions")
                         .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("ERP.WEB.Domain.Entities.Inventory", "Inventory")
                         .WithMany()
                         .HasForeignKey("InventoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Company");
@@ -541,15 +541,15 @@ namespace ERP.WEB.Infrastructure.Migrations
             modelBuilder.Entity("ERP.WEB.Domain.Entities.Inventory", b =>
                 {
                     b.HasOne("ERP.WEB.Domain.Entities.Company", "Company")
-                        .WithMany()
+                        .WithMany("Inventories")
                         .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("ERP.WEB.Domain.Entities.Product", "Product")
                         .WithOne("Inventory")
                         .HasForeignKey("ERP.WEB.Domain.Entities.Inventory", "ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("ERP.WEB.Domain.Entities.ProductVariant", "Variant")
@@ -569,17 +569,17 @@ namespace ERP.WEB.Infrastructure.Migrations
                     b.HasOne("ERP.WEB.Domain.Entities.Brand", "Brand")
                         .WithMany("Products")
                         .HasForeignKey("BrandId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("ERP.WEB.Domain.Entities.Category", "Category")
                         .WithMany("Products")
                         .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("ERP.WEB.Domain.Entities.Company", "Company")
-                        .WithMany()
+                        .WithMany("Products")
                         .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Brand");
@@ -592,15 +592,15 @@ namespace ERP.WEB.Infrastructure.Migrations
             modelBuilder.Entity("ERP.WEB.Domain.Entities.ProductImage", b =>
                 {
                     b.HasOne("ERP.WEB.Domain.Entities.Company", "Company")
-                        .WithMany()
+                        .WithMany("ProductImages")
                         .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("ERP.WEB.Domain.Entities.Product", "Product")
                         .WithMany("Images")
                         .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("ERP.WEB.Domain.Entities.ProductVariant", "Variant")
@@ -618,15 +618,15 @@ namespace ERP.WEB.Infrastructure.Migrations
             modelBuilder.Entity("ERP.WEB.Domain.Entities.ProductVariant", b =>
                 {
                     b.HasOne("ERP.WEB.Domain.Entities.Company", "Company")
-                        .WithMany()
+                        .WithMany("ProductVariants")
                         .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("ERP.WEB.Domain.Entities.Product", "Product")
                         .WithMany("Variants")
                         .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Company");
@@ -637,15 +637,15 @@ namespace ERP.WEB.Infrastructure.Migrations
             modelBuilder.Entity("ERP.WEB.Domain.Entities.Promotion", b =>
                 {
                     b.HasOne("ERP.WEB.Domain.Entities.Company", "Company")
-                        .WithMany()
+                        .WithMany("Promotions")
                         .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("ERP.WEB.Domain.Entities.Product", "Product")
                         .WithMany("Promotions")
                         .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Company");
@@ -656,9 +656,9 @@ namespace ERP.WEB.Infrastructure.Migrations
             modelBuilder.Entity("ERP.WEB.Domain.Entities.Tag", b =>
                 {
                     b.HasOne("ERP.WEB.Domain.Entities.Company", "Company")
-                        .WithMany()
+                        .WithMany("Tags")
                         .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Company");
@@ -667,9 +667,9 @@ namespace ERP.WEB.Infrastructure.Migrations
             modelBuilder.Entity("ERP.WEB.Domain.Entities.User", b =>
                 {
                     b.HasOne("ERP.WEB.Domain.Entities.Company", "Company")
-                        .WithMany()
+                        .WithMany("Users")
                         .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Company");
@@ -700,6 +700,29 @@ namespace ERP.WEB.Infrastructure.Migrations
                     b.Navigation("Products");
 
                     b.Navigation("SubCategories");
+                });
+
+            modelBuilder.Entity("ERP.WEB.Domain.Entities.Company", b =>
+                {
+                    b.Navigation("Brands");
+
+                    b.Navigation("Categories");
+
+                    b.Navigation("Consumptions");
+
+                    b.Navigation("Inventories");
+
+                    b.Navigation("ProductImages");
+
+                    b.Navigation("ProductVariants");
+
+                    b.Navigation("Products");
+
+                    b.Navigation("Promotions");
+
+                    b.Navigation("Tags");
+
+                    b.Navigation("Users");
                 });
 
             modelBuilder.Entity("ERP.WEB.Domain.Entities.Product", b =>
