@@ -164,9 +164,60 @@ Sistema ERP multi-tenant orientado a **gestión de inventario y catálogo de pro
 
 ## Estado
 
-> **Recuperación de contexto — pendiente de completar con dueño del proyecto**
+Roadmap de Ejecución (Etapas)
+Etapa 1: Seguridad y Robustez Core (Prioridad Actual)
+Autorización: Implementar Enum para UserRole y políticas en [Authorize].
 
-- Migración inicial aplicada: `20260304001142_InitialCreate`
-- Branch activo: `Dev`
-- Branch principal: `main`
-- Frontend (`erp-admin/`) existe pero su estado de integración con la API no está verificado
+Validación: Integrar FluentValidation en la capa de Application.
+
+Tipado: Migrar Status y StockStatus a Enums mapeados como strings en DB.
+
+Paginación: Implementar PagedList<T> genérico para todos los GetAll.
+
+Etapa 2: Normalización de Proveedores y Costos
+Entidad Supplier: Extraer PurchaseLocation y ReferenceLink a una tabla Suppliers.
+
+Histórico de Precios: Ajustar Inventory para soportar cambios de costo sin perder el histórico.
+
+Venta Real: Agregar UnitPrice a Consumptions para capturar el precio de venta exacto en el momento de la transacción.
+
+Etapa 3: Inteligencia de Negocio y Auditoría
+Kardex: Tabla StockMovement para auditoría total (Entradas/Salidas/Ajustes).
+
+Alertas: Implementar MinStockThreshold para notificaciones de reabastecimiento.
+
+Dashboard: Endpoints para cálculo de utilidad bruta y valor de inventario en tiempo real.
+
+Modelo de Dominio Actualizado
+Entidades Core
+Company: El Tenant principal.
+
+User: Con roles definidos (Admin, User, StockManager).
+
+Product: Catálogo base (Nombre, descripción, marca, categoría).
+
+ProductVariant: Variaciones del producto (talla, color, etc).
+
+Inventory: El núcleo financiero (Stock actual, costo de compra, precio sugerido).
+
+Consumption: Registro de salidas (ventas o mermas) con precio histórico.
+
+Supplier (Pendiente): Centralización de fuentes de compra.
+
+Deuda Técnica Detectada
+[ ] Seguridad: El UsersController tiene la autorización comentada.
+
+[ ] Validación: No hay detección de FluentValidation en DTOs de entrada.
+
+[ ] Escalabilidad: Los GetAll no tienen paginación ni filtros de búsqueda.
+
+[ ] DB: Falta de índices en FKs (CompanyId) para optimizar el Multi-tenancy.
+
+[ ] Consistencia: El índice único en Inventory.ProductId impide manejar múltiples lotes de compra por producto.
+
+Estado del Proyecto
+Migración Inicial: 20260304001142_InitialCreate aplicada.
+
+Branch: Dev
+
+Enfoque de Negocio: SaaS para emprendedores enfocado en control de márgenes, costos y stock.
