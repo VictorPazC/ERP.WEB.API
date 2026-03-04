@@ -1,38 +1,30 @@
+using ERP.WEB.Application.Common;
 using ERP.WEB.Application.DTOs;
-using ERP.WEB.Infrastructure.Data;
+using ERP.WEB.Domain.Interfaces;
 using Mediator;
-using Microsoft.EntityFrameworkCore;
 
 namespace ERP.WEB.Application.Features.ProductVariants.Queries.GetVariantsByProduct;
 
-public class GetVariantsByProductQueryHandler : IRequestHandler<GetVariantsByProductQuery, List<ProductVariantDto>>
+// Decisión 6B: reemplaza ApplicationDbContext por IProductVariantRepository.
+public class GetVariantsByProductQueryHandler : IRequestHandler<GetVariantsByProductQuery, CursorPagedResult<ProductVariantDto>>
 {
-    private readonly ApplicationDbContext _db;
+    private readonly IProductVariantRepository _repo;
 
-    public GetVariantsByProductQueryHandler(ApplicationDbContext db)
+    public GetVariantsByProductQueryHandler(IProductVariantRepository repo)
     {
-        _db = db;
+        _repo = repo;
     }
 
-    public async ValueTask<List<ProductVariantDto>> Handle(GetVariantsByProductQuery request, CancellationToken cancellationToken)
+    public async ValueTask<CursorPagedResult<ProductVariantDto>> Handle(GetVariantsByProductQuery request, CancellationToken cancellationToken)
     {
-        var variants = await _db.ProductVariants
-            .Where(v => v.ProductId == request.ProductId)
-            .Include(v => v.Inventory)
-            .Include(v => v.Images)
-            .OrderBy(v => v.CreatedAt)
-            .ToListAsync(cancellationToken);
-
-        return variants.Select(v => new ProductVariantDto(
-            v.VariantId,
-            v.ProductId,
-            v.Name,
-            v.Description,
-            v.CreatedAt,
-            v.Inventory is not null,
-            v.Inventory?.CurrentStock,
-            v.Images.Where(i => i.IsPrimary).FirstOrDefault()?.ImagePath
-                ?? v.Images.FirstOrDefault()?.ImagePath
-        )).ToList();
+        var list = await _repo.GetAllByProductAsync(request.ProductId, request.Params, cancellationToken);
+        var hasMore = list.Count > request.Params.PageSize;
+        if (hasMore) list.RemoveAt(list.Count - 1);
+        var nextCursor = hasMore ? CursorHelper.Encode(list[^1].VariantId) : null;
+        var items = list.Select(v => new ProductVariantDto(
+            v.VariantId, v.ProductId, v.Name, v.Description, v.CreatedAt,
+            v.Inventory is not null, v.Inventory?.CurrentStock,
+            v.Images.FirstOrDefault(i => i.IsPrimary)?.ImagePath ?? v.Images.FirstOrDefault()?.ImagePath));
+        return new CursorPagedResult<ProductVariantDto>(items, nextCursor, hasMore);
     }
 }

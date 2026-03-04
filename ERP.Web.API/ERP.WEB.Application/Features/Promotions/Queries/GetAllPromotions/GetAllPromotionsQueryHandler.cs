@@ -1,10 +1,11 @@
+using ERP.WEB.Application.Common;
 using ERP.WEB.Application.DTOs;
 using ERP.WEB.Domain.Interfaces;
 using Mediator;
 
 namespace ERP.WEB.Application.Features.Promotions.Queries.GetAllPromotions;
 
-public class GetAllPromotionsQueryHandler : IRequestHandler<GetAllPromotionsQuery, IEnumerable<PromotionDto>>
+public class GetAllPromotionsQueryHandler : IRequestHandler<GetAllPromotionsQuery, CursorPagedResult<PromotionDto>>
 {
     private readonly IPromotionRepository _repository;
 
@@ -13,19 +14,14 @@ public class GetAllPromotionsQueryHandler : IRequestHandler<GetAllPromotionsQuer
         _repository = repository;
     }
 
-    public async ValueTask<IEnumerable<PromotionDto>> Handle(GetAllPromotionsQuery request, CancellationToken cancellationToken)
+    public async ValueTask<CursorPagedResult<PromotionDto>> Handle(GetAllPromotionsQuery request, CancellationToken cancellationToken)
     {
-        var promotions = await _repository.GetAllAsync();
+        var list = await _repository.GetAllAsync(request.Params, cancellationToken);
+        var hasMore = list.Count > request.Params.PageSize;
+        if (hasMore) list.RemoveAt(list.Count - 1);
         var now = DateTime.UtcNow;
-
-        return promotions.Select(pr => new PromotionDto(
-            pr.PromoId,
-            pr.ProductId,
-            pr.Product?.Name,
-            pr.DiscountPercentage,
-            pr.StartDate,
-            pr.EndDate,
-            pr.StartDate <= now && pr.EndDate >= now
-        ));
+        var nextCursor = hasMore ? CursorHelper.Encode(list[^1].PromoId) : null;
+        var items = list.Select(pr => new PromotionDto(pr.PromoId, pr.ProductId, pr.Product?.Name, pr.DiscountPercentage, pr.StartDate, pr.EndDate, pr.StartDate <= now && pr.EndDate >= now));
+        return new CursorPagedResult<PromotionDto>(items, nextCursor, hasMore);
     }
 }

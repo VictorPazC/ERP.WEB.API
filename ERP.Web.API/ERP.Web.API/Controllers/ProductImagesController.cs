@@ -1,4 +1,5 @@
-﻿using ERP.WEB.Application.DTOs;
+﻿using ERP.WEB.Application.Common;
+using ERP.WEB.Application.DTOs;
 using ERP.WEB.Application.Features.ProductImages.Commands.CreateProductImage;
 using ERP.WEB.Application.Features.ProductImages.Commands.DeleteProductImage;
 using ERP.WEB.Application.Features.ProductImages.Commands.UpdateProductImage;
@@ -7,6 +8,7 @@ using ERP.WEB.Application.Features.ProductImages.Queries.GetImagesByProductId;
 using ERP.WEB.Application.Features.ProductImages.Queries.GetProductImageById;
 using Mediator;
 using Microsoft.AspNetCore.Authorization;
+using ERP.Web.API.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ERP.Web.API.Controllers;
@@ -28,11 +30,12 @@ public class ProductImagesController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<ProductImageDto>>> GetAll()
+    public async Task<ActionResult<CursorPagedResult<ProductImageDto>>> GetAll(
+        [FromQuery] string? cursor, [FromQuery] int pageSize = 20)
     {
-        _logger.LogDebug("[DEBUG] GetAll product images requested");
-        var result = await _mediator.Send(new GetAllProductImagesQuery());
-        _logger.LogInformation("[INFO]  Returned {Count} product images", result.Count());
+        _logger.LogDebug("[DEBUG] GetAll product images cursor={Cursor} pageSize={PageSize}", cursor, pageSize);
+        var result = await _mediator.Send(new GetAllProductImagesQuery(new CursorParams(cursor, pageSize)));
+        _logger.LogInformation("[INFO]  Returned {Count} product images hasMore={HasMore}", result.Items.Count(), result.HasMore);
         return Ok(result);
     }
 
@@ -60,6 +63,7 @@ public class ProductImagesController : ControllerBase
         return Ok(result);
     }
 
+    [Authorize(Policy = Policies.Admin)]
     [HttpPost]
     public async Task<ActionResult<ProductImageDto>> Create([FromBody] CreateProductImageDto dto)
     {
@@ -69,6 +73,7 @@ public class ProductImagesController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = result.ImageId }, result);
     }
 
+    [Authorize(Policy = Policies.Admin)]
     [HttpPost("upload")]
     [RequestSizeLimit(10 * 1024 * 1024)]
     public async Task<ActionResult<ProductImageDto>> Upload([FromForm] int productId, [FromForm] bool isPrimary, [FromForm] int displayOrder, IFormFile file, [FromForm] int? variantId = null)
@@ -110,6 +115,7 @@ public class ProductImagesController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = result.ImageId }, result);
     }
 
+    [Authorize(Policy = Policies.Admin)]
     [HttpPut("{id}")]
     public async Task<ActionResult<ProductImageDto>> Update(int id, [FromBody] UpdateProductImageDto dto)
     {
@@ -132,6 +138,7 @@ public class ProductImagesController : ControllerBase
         return Ok(result);
     }
 
+    [Authorize(Policy = Policies.Admin)]
     [HttpDelete("{id}")]
     public async Task<ActionResult> Delete(int id)
     {

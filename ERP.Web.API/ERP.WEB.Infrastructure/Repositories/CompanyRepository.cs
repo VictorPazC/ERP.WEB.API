@@ -1,3 +1,4 @@
+using ERP.WEB.Application.Common;
 using ERP.WEB.Domain.Entities;
 using ERP.WEB.Domain.Interfaces;
 using ERP.WEB.Infrastructure.Data;
@@ -14,11 +15,14 @@ public class CompanyRepository : ICompanyRepository
         _context = context;
     }
 
-    public async Task<IEnumerable<Company>> GetAllAsync()
+    public async Task<List<Company>> GetAllAsync(CursorParams p, CancellationToken ct = default)
     {
+        var afterId = CursorHelper.Decode(p.Cursor) ?? 0;
         return await _context.Companies
-            .OrderBy(p => p.Name)
-            .ToListAsync();
+            .Where(p => p.CompanyId > afterId)
+            .OrderBy(p => p.CompanyId)
+            .Take(p.PageSize + 1)
+            .ToListAsync(ct);
     }
 
     public async Task<Company?> GetByIdAsync(int id)

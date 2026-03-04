@@ -1,10 +1,13 @@
+using ERP.WEB.Application.Common;
 using ERP.WEB.Application.DTOs;
 using ERP.WEB.Application.Features.Companies.Commands.CreateCompany;
+using ERP.WEB.Application.Features.Companies.Commands.DeleteCompany;
 using ERP.WEB.Application.Features.Companies.Commands.UpdateCompany;
 using ERP.WEB.Application.Features.Companies.Queries.GetAllCompanies;
 using ERP.WEB.Application.Features.Companies.Queries.GetCompanyById;
 using Mediator;
 using Microsoft.AspNetCore.Authorization;
+using ERP.Web.API.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ERP.Web.API.Controllers;
@@ -22,10 +25,11 @@ public class CompaniesController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<CompanyDto>>> GetAll()
+    public async Task<ActionResult<CursorPagedResult<CompanyDto>>> GetAll(
+        [FromQuery] string? cursor, [FromQuery] int pageSize = 20)
     {
-        var companies = await _mediator.Send(new GetAllCompaniesQuery());
-        return Ok(companies);
+        var result = await _mediator.Send(new GetAllCompaniesQuery(new CursorParams(cursor, pageSize)));
+        return Ok(result);
     }
 
     [HttpGet("{id}")]
@@ -36,6 +40,7 @@ public class CompaniesController : ControllerBase
         return Ok(company);
     }
 
+    [Authorize(Policy = Policies.Admin)]
     [HttpPost]
     public async Task<ActionResult<CompanyDto>> Create([FromBody] CreateCompanyDto dto)
     {
@@ -43,6 +48,7 @@ public class CompaniesController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = company.CompanyId }, company);
     }
 
+    [Authorize(Policy = Policies.Admin)]
     [HttpPut("{id}")]
     public async Task<ActionResult<CompanyDto>> Update(int id, [FromBody] UpdateCompanyDto dto)
     {
@@ -52,11 +58,13 @@ public class CompaniesController : ControllerBase
         return Ok(company);
     }
 
+    [Authorize(Policy = Policies.Admin)]
     [HttpDelete("{id}")]
     public async Task<ActionResult> Delete(int id)
     {
-        var repo = HttpContext.RequestServices.GetRequiredService<ERP.WEB.Domain.Interfaces.ICompanyRepository>();
-        await repo.DeleteAsync(id);
+        // Reemplaza el acceso directo al repositorio por Mediator,
+        // alineando Delete con el patrón CQRS del resto de endpoints.
+        await _mediator.Send(new DeleteCompanyCommand(id));
         return NoContent();
     }
 }

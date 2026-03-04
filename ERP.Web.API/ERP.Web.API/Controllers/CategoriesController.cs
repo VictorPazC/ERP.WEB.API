@@ -1,3 +1,4 @@
+using ERP.WEB.Application.Common;
 using ERP.WEB.Application.DTOs;
 using ERP.WEB.Application.Features.Categories.Commands.CreateCategory;
 using ERP.WEB.Application.Features.Categories.Commands.DeleteCategory;
@@ -8,6 +9,7 @@ using ERP.WEB.Application.Features.Categories.Queries.GetMainCategories;
 using ERP.WEB.Application.Features.Categories.Queries.GetSubCategories;
 using Mediator;
 using Microsoft.AspNetCore.Authorization;
+using ERP.Web.API.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ERP.Web.API.Controllers;
@@ -27,12 +29,13 @@ public class CategoriesController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<CategoryDto>>> GetAll()
+    public async Task<ActionResult<CursorPagedResult<CategoryDto>>> GetAll(
+        [FromQuery] string? cursor, [FromQuery] int pageSize = 20)
     {
-        _logger.LogDebug("[DEBUG] GetAll categories requested");
-        var categories = await _mediator.Send(new GetAllCategoriesQuery());
-        _logger.LogInformation("[INFO]  Returned {Count} categories", categories.Count());
-        return Ok(categories);
+        _logger.LogDebug("[DEBUG] GetAll categories cursor={Cursor} pageSize={PageSize}", cursor, pageSize);
+        var result = await _mediator.Send(new GetAllCategoriesQuery(new CursorParams(cursor, pageSize)));
+        _logger.LogInformation("[INFO]  Returned {Count} categories hasMore={HasMore}", result.Items.Count(), result.HasMore);
+        return Ok(result);
     }
 
     [HttpGet("main")]
@@ -69,6 +72,7 @@ public class CategoriesController : ControllerBase
         return Ok(categories);
     }
 
+    [Authorize(Policy = Policies.Admin)]
     [HttpPost]
     public async Task<ActionResult<CategoryDto>> Create([FromBody] CreateCategoryDto dto)
     {
@@ -78,6 +82,7 @@ public class CategoriesController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = category.CategoryId }, category);
     }
 
+    [Authorize(Policy = Policies.Admin)]
     [HttpPut("{id}")]
     public async Task<ActionResult<CategoryDto>> Update(int id, [FromBody] UpdateCategoryDto dto)
     {
@@ -100,6 +105,7 @@ public class CategoriesController : ControllerBase
         return Ok(category);
     }
 
+    [Authorize(Policy = Policies.Admin)]
     [HttpDelete("{id}")]
     public async Task<ActionResult> Delete(int id)
     {

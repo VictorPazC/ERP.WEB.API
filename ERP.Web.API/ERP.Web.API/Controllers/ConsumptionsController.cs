@@ -1,10 +1,13 @@
+using ERP.WEB.Application.Common;
 using ERP.WEB.Application.DTOs;
 using ERP.WEB.Application.Features.Consumptions.Commands.CreateConsumption;
 using ERP.WEB.Application.Features.Consumptions.Commands.DeleteConsumption;
+using ERP.WEB.Application.Features.Consumptions.Commands.UpdateConsumption;
 using ERP.WEB.Application.Features.Consumptions.Queries.GetAllConsumptions;
 using ERP.WEB.Application.Features.Consumptions.Queries.GetAvailableArticles;
 using Mediator;
 using Microsoft.AspNetCore.Authorization;
+using ERP.Web.API.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ERP.Web.API.Controllers;
@@ -24,12 +27,13 @@ public class ConsumptionsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<ConsumptionDto>>> GetAll()
+    public async Task<ActionResult<CursorPagedResult<ConsumptionDto>>> GetAll(
+        [FromQuery] string? cursor, [FromQuery] int pageSize = 20)
     {
-        _logger.LogDebug("[DEBUG] GetAll consumptions requested");
-        var consumptions = await _mediator.Send(new GetAllConsumptionsQuery());
-        _logger.LogInformation("[INFO]  Returned {Count} consumptions", consumptions.Count());
-        return Ok(consumptions);
+        _logger.LogDebug("[DEBUG] GetAll consumptions cursor={Cursor} pageSize={PageSize}", cursor, pageSize);
+        var result = await _mediator.Send(new GetAllConsumptionsQuery(new CursorParams(cursor, pageSize)));
+        _logger.LogInformation("[INFO]  Returned {Count} consumptions hasMore={HasMore}", result.Items.Count(), result.HasMore);
+        return Ok(result);
     }
 
     [HttpGet("available")]
@@ -41,6 +45,7 @@ public class ConsumptionsController : ControllerBase
         return Ok(articles);
     }
 
+    [Authorize(Policy = Policies.Admin)]
     [HttpPost]
     public async Task<ActionResult<ConsumptionDto>> Create([FromBody] CreateConsumptionDto dto)
     {
@@ -50,6 +55,31 @@ public class ConsumptionsController : ControllerBase
         return Ok(consumption);
     }
 
+    [Authorize(Policy = Policies.Admin)]
+    [HttpPut("{id}")]
+    public async Task<ActionResult> Update(int id, [FromBody] UpdateConsumptionDto dto)
+    {
+        // Decisión 7B: edita Quantity + Notes y ajusta stock en una sola operación.
+        if (id != dto.ConsumptionId)
+        {
+            _logger.LogWarning("[WARN]  Update consumption id mismatch: route={RouteId} body={BodyId}", id, dto.ConsumptionId);
+            return BadRequest();
+        }
+
+        _logger.LogInformation("[INFO]  Updating consumption id={Id} quantity={Quantity}", id, dto.Quantity);
+        var result = await _mediator.Send(new UpdateConsumptionCommand(dto.ConsumptionId, dto.Quantity, dto.Notes));
+
+        if (!result)
+        {
+            _logger.LogWarning("[WARN]  Consumption id={Id} not found for update", id);
+            return NotFound();
+        }
+
+        _logger.LogInformation("[INFO]  Consumption id={Id} updated", id);
+        return NoContent();
+    }
+
+    [Authorize(Policy = Policies.Admin)]
     [HttpDelete("{id}")]
     public async Task<ActionResult> Delete(int id)
     {

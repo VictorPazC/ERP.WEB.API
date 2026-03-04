@@ -1,3 +1,4 @@
+using ERP.WEB.Application.Common;
 using ERP.WEB.Application.DTOs;
 using ERP.WEB.Application.Features.Products.Commands.CreateProduct;
 using ERP.WEB.Application.Features.Products.Commands.DeleteProduct;
@@ -8,6 +9,7 @@ using ERP.WEB.Application.Features.Products.Queries.GetAllProducts;
 using ERP.WEB.Application.Features.Products.Queries.GetProductById;
 using Mediator;
 using Microsoft.AspNetCore.Authorization;
+using ERP.Web.API.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ERP.Web.API.Controllers;
@@ -29,12 +31,13 @@ public class ProductsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<ProductDto>>> GetAll()
+    public async Task<ActionResult<CursorPagedResult<ProductDto>>> GetAll(
+        [FromQuery] string? cursor, [FromQuery] int pageSize = 20)
     {
-        _logger.LogDebug("[DEBUG] GetAll products requested");
-        var products = await _mediator.Send(new GetAllProductsQuery());
-        _logger.LogInformation("[INFO]  Returned {Count} products", products.Count());
-        return Ok(products);
+        _logger.LogDebug("[DEBUG] GetAll products cursor={Cursor} pageSize={PageSize}", cursor, pageSize);
+        var result = await _mediator.Send(new GetAllProductsQuery(new CursorParams(cursor, pageSize)));
+        _logger.LogInformation("[INFO]  Returned {Count} products hasMore={HasMore}", result.Items.Count(), result.HasMore);
+        return Ok(result);
     }
 
     [HttpGet("{id}")]
@@ -53,6 +56,7 @@ public class ProductsController : ControllerBase
         return Ok(product);
     }
 
+    [Authorize(Policy = Policies.Admin)]
     [HttpPost]
     public async Task<ActionResult<ProductDto>> Create([FromBody] CreateProductDto dto)
     {
@@ -62,6 +66,7 @@ public class ProductsController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = product.ProductId }, product);
     }
 
+    [Authorize(Policy = Policies.Admin)]
     [HttpPut("{id}")]
     public async Task<ActionResult<ProductDto>> Update(int id, [FromBody] UpdateProductDto dto)
     {
@@ -84,6 +89,7 @@ public class ProductsController : ControllerBase
         return Ok(product);
     }
 
+    [Authorize(Policy = Policies.Admin)]
     [HttpDelete("{id}")]
     public async Task<ActionResult> Delete(int id)
     {
@@ -100,6 +106,7 @@ public class ProductsController : ControllerBase
         return NoContent();
     }
 
+    [Authorize(Policy = Policies.Admin)]
     [HttpPut("{id}/toggle-favorite")]
     public async Task<ActionResult<bool>> ToggleFavorite(int id)
     {
@@ -108,6 +115,7 @@ public class ProductsController : ControllerBase
         return Ok(result);
     }
 
+    [Authorize(Policy = Policies.Admin)]
     [HttpPut("{id}/stock-status")]
     public async Task<ActionResult> SetStockStatus(int id, [FromBody] SetStockStatusRequest req)
     {

@@ -1,3 +1,4 @@
+using ERP.WEB.Application.Common;
 using ERP.WEB.Application.DTOs;
 using ERP.WEB.Application.Features.Inventory.Commands.CreateInventory;
 using ERP.WEB.Application.Features.Inventory.Commands.DeleteInventory;
@@ -8,6 +9,7 @@ using ERP.WEB.Application.Features.Inventory.Queries.GetInventoryById;
 using ERP.WEB.Application.Features.Inventory.Queries.GetInventoryByProductId;
 using Mediator;
 using Microsoft.AspNetCore.Authorization;
+using ERP.Web.API.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ERP.Web.API.Controllers;
@@ -27,11 +29,12 @@ public class InventoryController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<InventoryDto>>> GetAll()
+    public async Task<ActionResult<CursorPagedResult<InventoryDto>>> GetAll(
+        [FromQuery] string? cursor, [FromQuery] int pageSize = 20)
     {
-        _logger.LogDebug("[DEBUG] GetAll inventory requested");
-        var result = await _mediator.Send(new GetAllInventoryQuery());
-        _logger.LogInformation("[INFO]  Returned {Count} inventory records", result.Count());
+        _logger.LogDebug("[DEBUG] GetAll inventory cursor={Cursor} pageSize={PageSize}", cursor, pageSize);
+        var result = await _mediator.Send(new GetAllInventoryQuery(new CursorParams(cursor, pageSize)));
+        _logger.LogInformation("[INFO]  Returned {Count} inventory records hasMore={HasMore}", result.Items.Count(), result.HasMore);
         return Ok(result);
     }
 
@@ -66,6 +69,7 @@ public class InventoryController : ControllerBase
         return Ok(result);
     }
 
+    [Authorize(Policy = Policies.Admin)]
     [HttpPost]
     public async Task<ActionResult<InventoryDto>> Create([FromBody] CreateInventoryDto dto)
     {
@@ -75,6 +79,7 @@ public class InventoryController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = result.InventoryId }, result);
     }
 
+    [Authorize(Policy = Policies.Admin)]
     [HttpPut("{id}")]
     public async Task<ActionResult<InventoryDto>> Update(int id, [FromBody] UpdateInventoryDto dto)
     {
@@ -97,6 +102,7 @@ public class InventoryController : ControllerBase
         return Ok(result);
     }
 
+    [Authorize(Policy = Policies.Admin)]
     [HttpPatch("{id}/restock")]
     public async Task<ActionResult<InventoryDto>> Restock(int id, [FromBody] RestockInventoryDto dto)
     {
@@ -114,6 +120,7 @@ public class InventoryController : ControllerBase
         return Ok(result);
     }
 
+    [Authorize(Policy = Policies.Admin)]
     [HttpDelete("{id}")]
     public async Task<ActionResult> Delete(int id)
     {

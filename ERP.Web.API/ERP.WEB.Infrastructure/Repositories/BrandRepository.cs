@@ -1,3 +1,4 @@
+using ERP.WEB.Application.Common;
 using ERP.WEB.Domain.Entities;
 using ERP.WEB.Domain.Interfaces;
 using ERP.WEB.Infrastructure.Data;
@@ -14,12 +15,15 @@ public class BrandRepository : IBrandRepository
         _context = context;
     }
 
-    public async Task<IEnumerable<Brand>> GetAllAsync()
+    public async Task<List<Brand>> GetAllAsync(CursorParams p, CancellationToken ct = default)
     {
+        var afterId = CursorHelper.Decode(p.Cursor) ?? 0;
         return await _context.Brands
+            .Where(b => b.BrandId > afterId)
             .Include(b => b.Products)
-            .OrderBy(b => b.Name)
-            .ToListAsync();
+            .OrderBy(b => b.BrandId)
+            .Take(p.PageSize + 1)
+            .ToListAsync(ct);
     }
 
     public async Task<Brand?> GetByIdAsync(int id)

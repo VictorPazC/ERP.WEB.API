@@ -1,9 +1,12 @@
 using System.Text;
+using ERP.Web.API.Authorization;
 using ERP.Web.API.Middleware;
+using ERP.WEB.Application.Validators;
 using ERP.WEB.Domain.Interfaces;
 using ERP.WEB.Infrastructure.Data;
 using ERP.WEB.Infrastructure.Repositories;
 using ERP.WEB.Infrastructure.Services;
+using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -22,6 +25,12 @@ builder.Logging.AddDebug();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// FluentValidation — valida automáticamente [FromBody] DTOs en la pipeline de controller.
+// Devuelve 400 con errores de validación antes de despachar el command al mediator.
+// AddValidatorsFromAssemblyContaining escanea todo el ensamblado ERP.WEB.Application.
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddValidatorsFromAssemblyContaining<CreateBrandValidator>();
 
 // Database
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -44,7 +53,18 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ClockSkew = TimeSpan.FromMinutes(1)
         };
     });
-builder.Services.AddAuthorization();
+// Políticas de autorización por rol (Decisión 3A — role matrix fija).
+// Admin  → Admin + SuperAdmin: operaciones de escritura (POST/PUT/PATCH/DELETE).
+// Viewer → todos los roles autenticados: operaciones de lectura (GET).
+// Los valores de rol en el JWT (ClaimTypes.Role) deben coincidir con User.Role en DB.
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy(Policies.Admin, policy =>
+        policy.RequireRole("Admin", "SuperAdmin"));
+
+    options.AddPolicy(Policies.Viewer, policy =>
+        policy.RequireRole("Viewer", "Admin", "SuperAdmin"));
+});
 
 // Mediator (Scoped lifetime so handlers can consume scoped DbContext/repositories)
 builder.Services.AddMediator(options =>
@@ -67,6 +87,9 @@ builder.Services.AddScoped<IProductImageRepository, ProductImageRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IConsumptionRepository, ConsumptionRepository>();
 builder.Services.AddScoped<IBrandRepository, BrandRepository>();
+builder.Services.AddScoped<IProductVariantRepository, ProductVariantRepository>(); // Decisión 6B
+builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 
 // CORS
 builder.Services.AddCors(options => options.AddDefaultPolicy(p => p.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin()));
@@ -80,6 +103,10 @@ app.UseSwagger();
 app.UseSwaggerUI();
 
 app.UseCors("AllowReact");
+
+// Garantiza que la carpeta de uploads existe antes de servir archivos estáticos.
+// Evita que StaticFiles falle en primera ejecución si wwwroot/uploads/products no existe.
+Directory.CreateDirectory(Path.Combine(builder.Environment.ContentRootPath, "wwwroot", "uploads", "products"));
 
 // Serve uploaded images from wwwroot
 app.UseStaticFiles();

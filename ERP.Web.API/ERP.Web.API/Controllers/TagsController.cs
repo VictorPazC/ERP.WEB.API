@@ -1,3 +1,4 @@
+using ERP.WEB.Application.Common;
 using ERP.WEB.Application.DTOs;
 using ERP.WEB.Application.Features.Tags.Commands.AddTagToProduct;
 using ERP.WEB.Application.Features.Tags.Commands.CreateTag;
@@ -9,6 +10,7 @@ using ERP.WEB.Application.Features.Tags.Queries.GetTagById;
 using ERP.WEB.Application.Features.Tags.Queries.GetTagsByProductId;
 using Mediator;
 using Microsoft.AspNetCore.Authorization;
+using ERP.Web.API.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ERP.Web.API.Controllers;
@@ -28,11 +30,12 @@ public class TagsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<TagDto>>> GetAll()
+    public async Task<ActionResult<CursorPagedResult<TagDto>>> GetAll(
+        [FromQuery] string? cursor, [FromQuery] int pageSize = 20)
     {
-        _logger.LogDebug("[DEBUG] GetAll tags requested");
-        var result = await _mediator.Send(new GetAllTagsQuery());
-        _logger.LogInformation("[INFO]  Returned {Count} tags", result.Count());
+        _logger.LogDebug("[DEBUG] GetAll tags cursor={Cursor} pageSize={PageSize}", cursor, pageSize);
+        var result = await _mediator.Send(new GetAllTagsQuery(new CursorParams(cursor, pageSize)));
+        _logger.LogInformation("[INFO]  Returned {Count} tags hasMore={HasMore}", result.Items.Count(), result.HasMore);
         return Ok(result);
     }
 
@@ -61,6 +64,7 @@ public class TagsController : ControllerBase
         return Ok(result);
     }
 
+    [Authorize(Policy = Policies.Admin)]
     [HttpPost]
     public async Task<ActionResult<TagDto>> Create([FromBody] CreateTagDto dto)
     {
@@ -70,6 +74,7 @@ public class TagsController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = result.TagId }, result);
     }
 
+    [Authorize(Policy = Policies.Admin)]
     [HttpPut("{id}")]
     public async Task<ActionResult<TagDto>> Update(int id, [FromBody] UpdateTagDto dto)
     {
@@ -92,6 +97,7 @@ public class TagsController : ControllerBase
         return Ok(result);
     }
 
+    [Authorize(Policy = Policies.Admin)]
     [HttpDelete("{id}")]
     public async Task<ActionResult> Delete(int id)
     {
@@ -108,6 +114,7 @@ public class TagsController : ControllerBase
         return NoContent();
     }
 
+    [Authorize(Policy = Policies.Admin)]
     [HttpPost("{tagId}/products/{productId}")]
     public async Task<ActionResult> AddTagToProduct(int tagId, int productId)
     {
@@ -117,6 +124,7 @@ public class TagsController : ControllerBase
         return NoContent();
     }
 
+    [Authorize(Policy = Policies.Admin)]
     [HttpDelete("{tagId}/products/{productId}")]
     public async Task<ActionResult> RemoveTagFromProduct(int tagId, int productId)
     {

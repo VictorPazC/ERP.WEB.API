@@ -1,6 +1,7 @@
+using ERP.WEB.Application.Common;
 using ERP.WEB.Application.DTOs;
 using Mediator;
 
 namespace ERP.WEB.Application.Features.Promotions.Queries.GetAllPromotions;
 
-public record GetAllPromotionsQuery : IRequest<IEnumerable<PromotionDto>>;
+public record GetAllPromotionsQuery(CursorParams Params) : IRequest<CursorPagedResult<PromotionDto>>;

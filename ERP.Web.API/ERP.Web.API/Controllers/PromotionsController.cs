@@ -1,3 +1,4 @@
+using ERP.WEB.Application.Common;
 using ERP.WEB.Application.DTOs;
 using ERP.WEB.Application.Features.Promotions.Commands.CreatePromotion;
 using ERP.WEB.Application.Features.Promotions.Commands.DeletePromotion;
@@ -8,6 +9,7 @@ using ERP.WEB.Application.Features.Promotions.Queries.GetPromotionById;
 using ERP.WEB.Application.Features.Promotions.Queries.GetPromotionsByProductId;
 using Mediator;
 using Microsoft.AspNetCore.Authorization;
+using ERP.Web.API.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ERP.Web.API.Controllers;
@@ -27,11 +29,12 @@ public class PromotionsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<PromotionDto>>> GetAll()
+    public async Task<ActionResult<CursorPagedResult<PromotionDto>>> GetAll(
+        [FromQuery] string? cursor, [FromQuery] int pageSize = 20)
     {
-        _logger.LogDebug("[DEBUG] GetAll promotions requested");
-        var result = await _mediator.Send(new GetAllPromotionsQuery());
-        _logger.LogInformation("[INFO]  Returned {Count} promotions", result.Count());
+        _logger.LogDebug("[DEBUG] GetAll promotions cursor={Cursor} pageSize={PageSize}", cursor, pageSize);
+        var result = await _mediator.Send(new GetAllPromotionsQuery(new CursorParams(cursor, pageSize)));
+        _logger.LogInformation("[INFO]  Returned {Count} promotions hasMore={HasMore}", result.Items.Count(), result.HasMore);
         return Ok(result);
     }
 
@@ -69,6 +72,7 @@ public class PromotionsController : ControllerBase
         return Ok(result);
     }
 
+    [Authorize(Policy = Policies.Admin)]
     [HttpPost]
     public async Task<ActionResult<PromotionDto>> Create([FromBody] CreatePromotionDto dto)
     {
@@ -78,6 +82,7 @@ public class PromotionsController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = result.PromoId }, result);
     }
 
+    [Authorize(Policy = Policies.Admin)]
     [HttpPut("{id}")]
     public async Task<ActionResult<PromotionDto>> Update(int id, [FromBody] UpdatePromotionDto dto)
     {
@@ -100,6 +105,7 @@ public class PromotionsController : ControllerBase
         return Ok(result);
     }
 
+    [Authorize(Policy = Policies.Admin)]
     [HttpDelete("{id}")]
     public async Task<ActionResult> Delete(int id)
     {

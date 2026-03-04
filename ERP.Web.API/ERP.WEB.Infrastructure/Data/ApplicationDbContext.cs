@@ -25,6 +25,9 @@ public class ApplicationDbContext : DbContext
     public DbSet<User> Users => Set<User>();
     public DbSet<Consumption> Consumptions => Set<Consumption>();
     public DbSet<ProductVariant> ProductVariants => Set<ProductVariant>();
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<Order> Orders => Set<Order>();
+    public DbSet<OrderItem> OrderItems => Set<OrderItem>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -55,6 +58,7 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<User>().HasQueryFilter(e => _companyContext == null || _companyContext.CompanyId == 0 || _companyContext.IsSuperAdmin || e.CompanyId == _companyContext.CompanyId);
         modelBuilder.Entity<Consumption>().HasQueryFilter(e => _companyContext == null || _companyContext.CompanyId == 0 || _companyContext.IsSuperAdmin || e.CompanyId == _companyContext.CompanyId);
         modelBuilder.Entity<ProductVariant>().HasQueryFilter(e => _companyContext == null || _companyContext.CompanyId == 0 || _companyContext.IsSuperAdmin || e.CompanyId == _companyContext.CompanyId);
+        modelBuilder.Entity<Order>().HasQueryFilter(e => _companyContext == null || _companyContext.CompanyId == 0 || _companyContext.IsSuperAdmin || e.CompanyId == _companyContext.CompanyId);
 
         // ── Entity configurations ───────────────────────────────────────────
         modelBuilder.Entity<Brand>(entity =>
@@ -214,6 +218,44 @@ public class ApplicationDbContext : DbContext
                   .WithMany(c => c.Consumptions)
                   .HasForeignKey(e => e.CompanyId)
                   .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // ── Order + OrderItem entities ──────────────────────────────────────
+        modelBuilder.Entity<Order>(entity =>
+        {
+            entity.HasKey(e => e.OrderId);
+            entity.Property(e => e.Status).HasMaxLength(50).HasDefaultValue("Draft");
+            entity.Property(e => e.TotalAmount).HasColumnType("decimal(18,2)");
+            entity.HasOne(e => e.Company)
+                  .WithMany(c => c.Orders)
+                  .HasForeignKey(e => e.CompanyId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<OrderItem>(entity =>
+        {
+            entity.HasKey(e => e.OrderItemId);
+            entity.Property(e => e.UnitPrice).HasColumnType("decimal(18,2)");
+            entity.HasOne(e => e.Order)
+                  .WithMany(o => o.Items)
+                  .HasForeignKey(e => e.OrderId)
+                  .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(e => e.Inventory)
+                  .WithMany()
+                  .HasForeignKey(e => e.InventoryId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // ── RefreshToken entity (no HasQueryFilter — no es multi-tenant) ────────
+        modelBuilder.Entity<RefreshToken>(entity =>
+        {
+            entity.HasKey(e => e.RefreshTokenId);
+            entity.Property(e => e.Token).IsRequired();
+            entity.HasIndex(e => e.Token).IsUnique();
+            entity.HasOne(e => e.User)
+                  .WithMany()
+                  .HasForeignKey(e => e.UserId)
+                  .OnDelete(DeleteBehavior.Cascade);
         });
     }
 

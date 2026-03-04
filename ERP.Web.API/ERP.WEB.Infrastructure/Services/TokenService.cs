@@ -44,4 +44,11 @@ public class TokenService : ITokenService
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
+
+    public (string Token, DateTime ExpiresAt) GenerateRefreshToken()
+    {
+        var token      = Guid.NewGuid().ToString("N");
+        var expiryDays = int.TryParse(_config["Jwt:RefreshTokenExpiryDays"], out var d) ? d : 7;
+        return (token, DateTime.UtcNow.AddDays(expiryDays));
+    }
 }

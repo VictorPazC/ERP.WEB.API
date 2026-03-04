@@ -43,4 +43,5 @@ public class Company
     public ICollection<ProductVariant> ProductVariants { get; set; } = new List<ProductVariant>();
     public ICollection<User> Users { get; set; } = new List<User>();
     public ICollection<Consumption> Consumptions { get; set; } = new List<Consumption>();
+    public ICollection<Order> Orders { get; set; } = new List<Order>();
 }

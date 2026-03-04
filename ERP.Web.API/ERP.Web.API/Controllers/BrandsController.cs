@@ -1,3 +1,4 @@
+using ERP.WEB.Application.Common;
 using ERP.WEB.Application.DTOs;
 using ERP.WEB.Application.Features.Brands.Commands.CreateBrand;
 using ERP.WEB.Application.Features.Brands.Commands.DeleteBrand;
@@ -5,6 +6,7 @@ using ERP.WEB.Application.Features.Brands.Commands.SetDefaultBrand;
 using ERP.WEB.Application.Features.Brands.Commands.UpdateBrand;
 using ERP.WEB.Application.Features.Brands.Queries.GetAllBrands;
 using ERP.WEB.Application.Features.Brands.Queries.GetBrandById;
+using ERP.Web.API.Authorization;
 using Mediator;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -26,11 +28,12 @@ public class BrandsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<BrandDto>>> GetAll()
+    public async Task<ActionResult<CursorPagedResult<BrandDto>>> GetAll(
+        [FromQuery] string? cursor, [FromQuery] int pageSize = 20)
     {
-        _logger.LogDebug("[DEBUG] GetAll brands requested");
-        var result = await _mediator.Send(new GetAllBrandsQuery());
-        _logger.LogInformation("[INFO]  Returned {Count} brands", result.Count());
+        _logger.LogDebug("[DEBUG] GetAll brands cursor={Cursor} pageSize={PageSize}", cursor, pageSize);
+        var result = await _mediator.Send(new GetAllBrandsQuery(new CursorParams(cursor, pageSize)));
+        _logger.LogInformation("[INFO]  Returned {Count} brands hasMore={HasMore}", result.Items.Count(), result.HasMore);
         return Ok(result);
     }
 
@@ -50,6 +53,7 @@ public class BrandsController : ControllerBase
         return Ok(result);
     }
 
+    [Authorize(Policy = Policies.Admin)]
     [HttpPost]
     public async Task<ActionResult<BrandDto>> Create([FromBody] CreateBrandDto dto)
     {
@@ -59,6 +63,7 @@ public class BrandsController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = result.BrandId }, result);
     }
 
+    [Authorize(Policy = Policies.Admin)]
     [HttpPut("{id}")]
     public async Task<ActionResult<BrandDto>> Update(int id, [FromBody] UpdateBrandDto dto)
     {
@@ -81,6 +86,7 @@ public class BrandsController : ControllerBase
         return Ok(result);
     }
 
+    [Authorize(Policy = Policies.Admin)]
     [HttpPut("{id}/set-default")]
     public async Task<ActionResult> SetDefault(int id)
     {
@@ -97,6 +103,7 @@ public class BrandsController : ControllerBase
         return NoContent();
     }
 
+    [Authorize(Policy = Policies.Admin)]
     [HttpDelete("{id}")]
     public async Task<ActionResult> Delete(int id)
     {

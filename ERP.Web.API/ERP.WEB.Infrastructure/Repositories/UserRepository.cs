@@ -1,3 +1,4 @@
+using ERP.WEB.Application.Common;
 using ERP.WEB.Domain.Entities;
 using ERP.WEB.Domain.Interfaces;
 using ERP.WEB.Infrastructure.Data;
@@ -14,9 +15,14 @@ public class UserRepository : IUserRepository
         _context = context;
     }
 
-    public async Task<IEnumerable<User>> GetAllAsync()
+    public async Task<List<User>> GetAllAsync(CursorParams p, CancellationToken ct = default)
     {
-        return await _context.Users.ToListAsync();
+        var afterId = CursorHelper.Decode(p.Cursor) ?? 0;
+        return await _context.Users
+            .Where(u => u.UserId > afterId)
+            .OrderBy(u => u.UserId)
+            .Take(p.PageSize + 1)
+            .ToListAsync(ct);
     }
 
     public async Task<User?> GetByIdAsync(int id)

@@ -1,17 +1,18 @@
 using ERP.WEB.Domain.Entities;
-using ERP.WEB.Infrastructure.Data;
+using ERP.WEB.Domain.Interfaces;
 using Mediator;
-using Microsoft.EntityFrameworkCore;
 
 namespace ERP.WEB.Application.Features.ProductVariants.Commands.CreateVariant;
 
+// Decisión 6B: reemplaza ApplicationDbContext por IProductVariantRepository.
+// La lógica de auto-nombre "v{n+1}" se mantiene usando CountByProductAsync.
 public class CreateVariantCommandHandler : IRequestHandler<CreateVariantCommand, int>
 {
-    private readonly ApplicationDbContext _db;
+    private readonly IProductVariantRepository _repo;
 
-    public CreateVariantCommandHandler(ApplicationDbContext db)
+    public CreateVariantCommandHandler(IProductVariantRepository repo)
     {
-        _db = db;
+        _repo = repo;
     }
 
     public async ValueTask<int> Handle(CreateVariantCommand request, CancellationToken cancellationToken)
@@ -20,23 +21,20 @@ public class CreateVariantCommandHandler : IRequestHandler<CreateVariantCommand,
 
         if (string.IsNullOrWhiteSpace(name))
         {
-            var count = await _db.ProductVariants
-                .Where(v => v.ProductId == request.Dto.ProductId)
-                .CountAsync(cancellationToken);
+            // Auto-nombre: cuenta variantes existentes del producto para generar "v{n+1}".
+            var count = await _repo.CountByProductAsync(request.Dto.ProductId);
             name = $"v{count + 1}";
         }
 
         var variant = new ProductVariant
         {
-            ProductId = request.Dto.ProductId,
-            Name = name,
+            ProductId   = request.Dto.ProductId,
+            Name        = name,
             Description = request.Dto.Description,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt   = DateTime.UtcNow
         };
 
-        _db.ProductVariants.Add(variant);
-        await _db.SaveChangesAsync(cancellationToken);
-
+        await _repo.AddAsync(variant);
         return variant.VariantId;
     }
 }
