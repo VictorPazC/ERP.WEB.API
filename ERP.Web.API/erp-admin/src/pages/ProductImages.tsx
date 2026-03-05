@@ -1,5 +1,5 @@
 ﻿import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Pencil, Trash2, Image, Star, Upload, X, Camera } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { productImagesApi } from '../api/productImages';
@@ -265,7 +265,13 @@ export default function ProductImages() {
   const [deleting, setDeleting] = useState<ProductImage | null>(null);
   const [lightbox, setLightbox] = useState<{ src: string; alt: string } | null>(null);
 
-  const { data: images, isLoading } = useQuery({ queryKey: ['product-images'], queryFn: productImagesApi.getAll });
+  const { data: imagesData, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
+    queryKey: ['product-images'],
+    queryFn: ({ pageParam }: { pageParam: string | undefined }) => productImagesApi.getAll(pageParam),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) => lastPage.hasMore ? lastPage.nextCursor ?? undefined : undefined,
+  });
+  const images = imagesData?.pages.flatMap(p => p.items) ?? [];
   const { data: products } = useQuery({ queryKey: ['products'], queryFn: productsApi.getAll });
 
   // productId → name map
@@ -284,7 +290,7 @@ export default function ProductImages() {
     <div>
       <PageHeader
         title="Product Images"
-        subtitle={`${images?.length ?? 0} images`}
+        subtitle={`${images.length} images`}
         action={isAdmin ? (
           <button onClick={() => { setSelected(null); setModal('upload'); }}
             className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-sm font-medium text-white transition-all shadow-lg shadow-indigo-600/20 hover:shadow-indigo-500/30">
@@ -293,11 +299,12 @@ export default function ProductImages() {
         ) : undefined}
       />
       <div className="p-4 sm:p-6 lg:p-8">
-        {isLoading ? <LoadingSpinner /> : images?.length === 0 ? (
+        {isLoading ? <LoadingSpinner /> : images.length === 0 ? (
           <EmptyState icon={Image} title="No images" description="Upload images for your products to display the catalog" />
         ) : (
+          <>
           <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-2 sm:gap-3">
-            {images?.map(img => {
+            {images.map(img => {
               const src = imageUrl(img.imagePath);
               const productName = productNameMap.get(img.productId);
               return (
@@ -352,6 +359,18 @@ export default function ProductImages() {
               );
             })}
           </div>
+          {hasNextPage && (
+            <div className="flex justify-center p-4 border-t border-gray-100 dark:border-gray-800/40">
+              <button
+                onClick={() => fetchNextPage()}
+                disabled={isFetchingNextPage}
+                className="px-4 py-2 text-sm text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 rounded-xl transition-colors disabled:opacity-50"
+              >
+                {isFetchingNextPage ? 'Cargando…' : 'Cargar más'}
+              </button>
+            </div>
+          )}
+          </>
         )}
       </div>
 

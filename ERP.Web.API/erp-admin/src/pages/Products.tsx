@@ -1,5 +1,5 @@
 ﻿import { useState, useRef, useCallback, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Pencil, Trash2, Package, ExternalLink, Search, Upload, X, Tag as TagIcon, Camera, Archive, TrendingUp, Star, Layers } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { productsApi } from '../api/products';
@@ -592,7 +592,13 @@ export default function Products() {
   const [filterStock, setFilterStock] = useState<'noInventory' | 'noStock' | null>(null);
   const [filterFavorites, setFilterFavorites] = useState(false);
 
-  const { data: products, isLoading } = useQuery({ queryKey: ['products'], queryFn: productsApi.getAll });
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
+    queryKey: ['products'],
+    queryFn: ({ pageParam }: { pageParam: string | undefined }) => productsApi.getAll(pageParam),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) => lastPage.hasMore ? lastPage.nextCursor ?? undefined : undefined,
+  });
+  const products = data?.pages.flatMap(p => p.items) ?? [];
   const { data: allImages } = useQuery({ queryKey: ['product-images'], queryFn: productImagesApi.getAll });
   const { data: brands } = useQuery({ queryKey: ['brands'], queryFn: brandsApi.getAll });
   const { data: categories } = useQuery({ queryKey: ['categories'], queryFn: categoriesApi.getAll });
@@ -635,7 +641,7 @@ export default function Products() {
     }
   };
 
-  const filtered = products?.filter(p => {
+  const filtered = products.filter(p => {
     if (search && !p.name.toLowerCase().includes(search.toLowerCase()) && !p.brandName?.toLowerCase().includes(search.toLowerCase())) return false;
     if (filterBrand && p.brandId !== filterBrand) return false;
     if (filterCategory && p.categoryId !== filterCategory) return false;
@@ -658,7 +664,7 @@ export default function Products() {
     <div>
       <PageHeader
         title="Products"
-        subtitle={`${products?.length ?? 0} total`}
+        subtitle={`${products.length} total`}
         action={isAdmin ? (
           <button onClick={() => { setSelected(null); setModal('create'); }}
             className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-sm font-medium text-white transition-all shadow-lg shadow-indigo-600/20 hover:shadow-indigo-500/30">
@@ -713,11 +719,11 @@ export default function Products() {
                 <X size={12} /> Clear
               </button>
             )}
-            <span className="self-center text-xs text-gray-400 dark:text-gray-600 shrink-0">{filtered?.length ?? 0} results</span>
+            <span className="self-center text-xs text-gray-400 dark:text-gray-600 shrink-0">{filtered.length} results</span>
           </div>
         </div>
 
-        {isLoading ? <LoadingSpinner /> : filtered?.length === 0 ? (
+        {isLoading ? <LoadingSpinner /> : filtered.length === 0 ? (
           <EmptyState icon={Package} title="No products" description="Create your first product" />
         ) : (
           <>
@@ -732,7 +738,7 @@ export default function Products() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-gray-800/40">
-                  {filtered?.map(p => {
+                  {filtered.map(p => {
                     const imgPath = primaryImageMap.get(p.productId);
                     const src = imageUrl(imgPath);
                     return (
@@ -805,11 +811,22 @@ export default function Products() {
                   })}
                 </tbody>
               </table>
+              {hasNextPage && (
+                <div className="flex justify-center p-4 border-t border-gray-100 dark:border-gray-800/40">
+                  <button
+                    onClick={() => fetchNextPage()}
+                    disabled={isFetchingNextPage}
+                    className="px-4 py-2 text-sm text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 rounded-xl transition-colors disabled:opacity-50"
+                  >
+                    {isFetchingNextPage ? 'Cargando…' : 'Cargar más'}
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Mobile cards */}
             <div className="md:hidden space-y-3">
-              {filtered?.map(p => {
+              {filtered.map(p => {
                 const imgPath = primaryImageMap.get(p.productId);
                 const src = imageUrl(imgPath);
                 return (

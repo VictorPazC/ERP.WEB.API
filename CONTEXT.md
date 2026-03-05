@@ -489,5 +489,5 @@ Todos los controllers con `GetAll`:
 | ✅ FASE 5 | Autorización por roles (`UserRole` enum + policies) — COMPLETADA | ✅ FASE 1 |
 | ✅ FASE 6 | Refresh tokens (nueva tabla en DB) — COMPLETADA | FASE 1 |
 | ✅ FASE 7 | Módulo Orders/Ventas (nuevas tablas en DB) — COMPLETADA | FASE 2 (IInventoryRepository para reducir stock) |
-| ➡️ FASE 8 | Índices en DB | FASE 7 (incluye índices de Orders) |
-| FASE 9 | Mapster uniforme + CORS restrictivo + Secrets | Cualquier fase completada |
+| ✅ FASE 8 | Índices en DB — COMPLETADA | FASE 7 (incluye índices de Orders) |
+| ✅ FASE 9 | Mapster uniforme + CORS restrictivo + Secrets — COMPLETADA | Cualquier fase completada |

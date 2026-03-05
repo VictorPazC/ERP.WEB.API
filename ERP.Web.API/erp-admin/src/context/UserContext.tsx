@@ -17,6 +17,7 @@ export interface ActiveUser {
   companyName?: string;
   isSuperAdmin?: boolean;
   companies?: CompanySummary[];
+  refreshToken?: string;
 }
 
 interface UserContextValue {
@@ -63,6 +64,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     // Also store token and companyId separately for the API interceptor
     if (u.token) localStorage.setItem('erp-token', u.token);
     if (u.companyId) localStorage.setItem('erp-company-id', String(u.companyId));
+    if (u.refreshToken) localStorage.setItem('erp-refresh-token', u.refreshToken);
   }, []);
 
   const logout = useCallback(() => {
@@ -70,6 +72,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem(STORAGE_KEY);
     localStorage.removeItem('erp-token');
     localStorage.removeItem('erp-company-id');
+    localStorage.removeItem('erp-refresh-token');
   }, []);
 
   const switchCompany = useCallback((companyId: number, companyName: string) => {
@@ -87,7 +90,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
       setUser,
       logout,
       switchCompany,
-      isAdmin: user.role === 'Admin',
+      isAdmin: user.role === 'Admin' || user.isSuperAdmin === true,
       isAuthenticated: user.authenticated,
       isSuperAdmin: user.isSuperAdmin ?? false,
     }}>

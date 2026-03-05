@@ -1,6 +1,7 @@
 using System.Text;
 using ERP.Web.API.Authorization;
 using ERP.Web.API.Middleware;
+using ERP.WEB.Application;
 using ERP.WEB.Application.Validators;
 using ERP.WEB.Domain.Interfaces;
 using ERP.WEB.Infrastructure.Data;
@@ -25,6 +26,10 @@ builder.Logging.AddDebug();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// Mapster — TypeAdapterConfig global (FlexibleNameMatching + PreserveReference).
+// Usar entity.Adapt<XxxDto>() en handlers sin lógica embebida en el mapeo.
+builder.Services.AddMapsterConfig();
 
 // FluentValidation — valida automáticamente [FromBody] DTOs en la pipeline de controller.
 // Devuelve 400 con errores de validación antes de despachar el command al mediator.
@@ -91,8 +96,16 @@ builder.Services.AddScoped<IProductVariantRepository, ProductVariantRepository>(
 builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 
-// CORS
-builder.Services.AddCors(options => options.AddDefaultPolicy(p => p.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin()));
+// CORS — orígenes permitidos desde config (Cors:AllowedOrigins, separados por coma).
+// En producción, poner solo el dominio del frontend. En desarrollo: appsettings.Development.json hereda.
+var allowedOrigins = builder.Configuration["Cors:AllowedOrigins"]?
+    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+    ?? [];
+builder.Services.AddCors(options =>
+    options.AddPolicy("AllowReact", p =>
+        p.WithOrigins(allowedOrigins)
+         .AllowAnyHeader()
+         .AllowAnyMethod()));
 
 var app = builder.Build();
 

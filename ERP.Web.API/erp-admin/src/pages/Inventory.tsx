@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Pencil, Trash2, Archive, TrendingUp, Search, Check, ChevronDown, Package, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { inventoryApi } from '../api/inventory';
@@ -253,7 +253,13 @@ export default function InventoryPage() {
   const [deleting, setDeleting] = useState<Inventory | null>(null);
   const [lightbox, setLightbox] = useState<{ src: string; alt: string } | null>(null);
 
-  const { data: inventory, isLoading } = useQuery({ queryKey: ['inventory'], queryFn: inventoryApi.getAll });
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
+    queryKey: ['inventory'],
+    queryFn: ({ pageParam }: { pageParam: string | undefined }) => inventoryApi.getAll(pageParam),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) => lastPage.hasMore ? lastPage.nextCursor ?? undefined : undefined,
+  });
+  const inventory = data?.pages.flatMap(p => p.items) ?? [];
   const { data: allImages } = useQuery({ queryKey: ['product-images'], queryFn: productImagesApi.getAll });
 
   const createMut = useMutation({ mutationFn: (dto: CreateInventoryDto) => inventoryApi.create(dto), onSuccess: () => { qc.invalidateQueries({ queryKey: ['inventory'] }); toast.success('Inventory created'); } });
@@ -276,7 +282,7 @@ export default function InventoryPage() {
     <div>
       <PageHeader
         title="Inventory"
-        subtitle={`${inventory?.length ?? 0} records`}
+        subtitle={`${inventory.length} records`}
         action={isAdmin ? (
           <button onClick={() => { setSelected(null); setModal('create'); }} className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-sm font-medium text-white transition-all shadow-lg shadow-indigo-600/20 hover:shadow-indigo-500/30">
             <Plus size={16} /> Add Inventory
@@ -284,7 +290,7 @@ export default function InventoryPage() {
         ) : undefined}
       />
       <div className="p-4 sm:p-6 lg:p-8">
-        {isLoading ? <LoadingSpinner /> : inventory?.length === 0 ? (
+        {isLoading ? <LoadingSpinner /> : inventory.length === 0 ? (
           <EmptyState icon={Archive} title="No inventory records" description="Add your first inventory record" />
         ) : (
           <>
@@ -299,7 +305,7 @@ export default function InventoryPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-gray-800/40">
-                  {inventory?.map(inv => (
+                  {inventory.map(inv => (
                     <tr key={inv.inventoryId} className="hover:bg-gray-50 dark:hover:bg-white/[0.02] transition-colors group">
                       <td className="px-5 py-3">
                         <ProductThumb
@@ -326,11 +332,22 @@ export default function InventoryPage() {
                   ))}
                 </tbody>
               </table>
+              {hasNextPage && (
+                <div className="flex justify-center p-4 border-t border-gray-100 dark:border-gray-800/40">
+                  <button
+                    onClick={() => fetchNextPage()}
+                    disabled={isFetchingNextPage}
+                    className="px-4 py-2 text-sm text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 rounded-xl transition-colors disabled:opacity-50"
+                  >
+                    {isFetchingNextPage ? 'Cargando…' : 'Cargar más'}
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Mobile cards */}
             <div className="md:hidden space-y-3">
-              {inventory?.map(inv => (
+              {inventory.map(inv => (
                 <div key={inv.inventoryId} className="bg-white dark:bg-gray-900/60 border border-gray-200 dark:border-gray-800/60 rounded-xl p-4">
                   <div className="flex items-start gap-3">
                     <div

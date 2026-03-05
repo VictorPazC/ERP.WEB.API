@@ -1,8 +1,10 @@
 import client from './client';
 import type { Category, CreateCategoryDto, UpdateCategoryDto } from '../types';
+import type { CursorPagedResult } from '../types';
 
 export const categoriesApi = {
-  getAll: () => client.get<Category[]>('/api/categories').then(r => r.data),
+  getAll: (cursor?: string, pageSize = 20) =>
+    client.get<CursorPagedResult<Category>>('/api/categories', { params: { cursor, pageSize } }).then(r => r.data),
   getById: (id: number) => client.get<Category>(`/api/categories/${id}`).then(r => r.data),
   getMain: () => client.get<Category[]>('/api/categories/main').then(r => r.data),
   create: (dto: CreateCategoryDto) => client.post<Category>('/api/categories', dto).then(r => r.data),

@@ -1,5 +1,5 @@
 ﻿import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Pencil, Trash2, Users as UsersIcon, Search } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { usersApi } from '../api/users';
@@ -95,7 +95,13 @@ export default function Users() {
   const [deleting, setDeleting] = useState<User | null>(null);
   const [search, setSearch] = useState('');
 
-  const { data: users, isLoading } = useQuery({ queryKey: ['users'], queryFn: usersApi.getAll });
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
+    queryKey: ['users'],
+    queryFn: ({ pageParam }: { pageParam: string | undefined }) => usersApi.getAll(pageParam),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) => lastPage.hasMore ? lastPage.nextCursor ?? undefined : undefined,
+  });
+  const users = data?.pages.flatMap(p => p.items) ?? [];
   const { isAdmin } = useUser();
 
   const createMut = useMutation({ mutationFn: (dto: CreateUserDto) => usersApi.create(dto), onSuccess: () => { qc.invalidateQueries({ queryKey: ['users'] }); toast.success('User created'); } });
@@ -107,7 +113,7 @@ export default function Users() {
     else await createMut.mutateAsync(data as CreateUserDto);
   };
 
-  const filtered = users?.filter(u =>
+  const filtered = users.filter(u =>
     u.name.toLowerCase().includes(search.toLowerCase()) ||
     u.email.toLowerCase().includes(search.toLowerCase())
   );
@@ -119,7 +125,7 @@ export default function Users() {
     <div>
       <PageHeader
         title="Users"
-        subtitle={`${users?.length ?? 0} total`}
+        subtitle={`${users.length} total`}
         action={
           isAdmin ? (
             <button onClick={() => { setSelected(null); setModal('create'); }} className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-sm font-medium text-white transition-all shadow-lg shadow-indigo-600/20 hover:shadow-indigo-500/30">
@@ -138,7 +144,7 @@ export default function Users() {
           />
         </div>
 
-        {isLoading ? <LoadingSpinner /> : filtered?.length === 0 ? (
+        {isLoading ? <LoadingSpinner /> : filtered.length === 0 ? (
           <EmptyState icon={UsersIcon} title="No users found" description="Create your first user or adjust the search" />
         ) : (
           <>
@@ -152,7 +158,7 @@ export default function Users() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-gray-800/40">
-                  {filtered?.map(u => (
+                  {filtered.map(u => (
                     <tr key={u.userId} className="hover:bg-gray-50 dark:hover:bg-white/[0.02] transition-colors group">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
@@ -181,7 +187,7 @@ export default function Users() {
             </div>
 
             <div className="md:hidden space-y-3">
-              {filtered?.map(u => (
+              {filtered.map(u => (
                 <div key={u.userId} className="bg-white dark:bg-gray-900/60 border border-gray-200 dark:border-gray-800/60 rounded-xl p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3 min-w-0">
@@ -208,6 +214,17 @@ export default function Users() {
                 </div>
               ))}
             </div>
+            {hasNextPage && (
+              <div className="flex justify-center p-4 border-t border-gray-100 dark:border-gray-800/40">
+                <button
+                  onClick={() => fetchNextPage()}
+                  disabled={isFetchingNextPage}
+                  className="px-4 py-2 text-sm text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 rounded-xl transition-colors disabled:opacity-50"
+                >
+                  {isFetchingNextPage ? 'Cargando…' : 'Cargar más'}
+                </button>
+              </div>
+            )}
           </>
         )}
       </div>

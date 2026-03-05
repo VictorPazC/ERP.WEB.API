@@ -35,3 +35,8 @@ bld/
 project.lock.json
 project.fragment.lock.json
 artifacts/
+
+# Secrets — nunca versionar en repositorio público
+appsettings.Development.json
+appsettings.*.json
+!appsettings.json

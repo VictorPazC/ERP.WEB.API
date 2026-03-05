@@ -17,6 +17,7 @@ import Consumptions from './pages/Consumptions';
 import Brands from './pages/Brands';
 import Companies from './pages/Companies';
 import Login from './pages/Login';
+import Orders from './pages/Orders';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -75,6 +76,7 @@ function AppRoutes() {
         <Route path="users" element={<Users />} />
         <Route path="articulos" element={<ArticulosDisponibles />} />
         <Route path="consumptions" element={<Consumptions />} />
+        <Route path="orders" element={<Orders />} />
         <Route path="companies" element={<Companies />} />
         <Route path="login" element={<Navigate to="/" replace />} />
       </Route>

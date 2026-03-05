@@ -65,6 +65,7 @@ public class ApplicationDbContext : DbContext
         {
             entity.HasKey(e => e.BrandId);
             entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+            entity.HasIndex(e => e.CompanyId);
             entity.HasOne(e => e.Company)
                   .WithMany(c => c.Brands)
                   .HasForeignKey(e => e.CompanyId)
@@ -76,14 +77,17 @@ public class ApplicationDbContext : DbContext
             entity.HasKey(e => e.ProductId);
             entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
             entity.Property(e => e.Status).HasMaxLength(50).HasDefaultValue("Active");
+            entity.HasIndex(e => e.CompanyId);
+            entity.HasIndex(e => e.BrandId);
+            entity.HasIndex(e => e.CategoryId);
             entity.HasOne(e => e.Category)
                   .WithMany(c => c.Products)
                   .HasForeignKey(e => e.CategoryId)
-                  .OnDelete(DeleteBehavior.Restrict);  // Cambiar de SetNull a Restrict
+                  .OnDelete(DeleteBehavior.Restrict);
             entity.HasOne(e => e.Brand)
                   .WithMany(b => b.Products)
                   .HasForeignKey(e => e.BrandId)
-                  .OnDelete(DeleteBehavior.Restrict);  // Cambiar de SetNull a Restrict
+                  .OnDelete(DeleteBehavior.Restrict);
             entity.HasOne(e => e.Company)
                   .WithMany(c => c.Products)
                   .HasForeignKey(e => e.CompanyId)
@@ -94,6 +98,8 @@ public class ApplicationDbContext : DbContext
         {
             entity.HasKey(e => e.CategoryId);
             entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+            entity.HasIndex(e => e.CompanyId);
+            entity.HasIndex(e => e.ParentCategoryId);
             entity.HasOne(e => e.ParentCategory)
                   .WithMany(c => c.SubCategories)
                   .HasForeignKey(e => e.ParentCategoryId)
@@ -112,6 +118,9 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.CurrentStock).HasDefaultValue(0);
             entity.Property(e => e.LastRestockDate).HasDefaultValueSql("GETDATE()");
             entity.Property(e => e.NeedsRestock).HasDefaultValue(false);
+            entity.HasIndex(e => e.CompanyId);
+            entity.HasIndex(e => e.ProductId);
+            entity.HasIndex(e => e.VariantId);
             // 1:many — one product can have one base inventory + one per variant
             entity.HasOne(e => e.Product)
                   .WithOne(p => p.Inventory)
@@ -132,6 +141,7 @@ public class ApplicationDbContext : DbContext
             entity.HasKey(e => e.TagId);
             entity.Property(e => e.TagName).IsRequired().HasMaxLength(50);
             entity.HasIndex(e => e.TagName).IsUnique();
+            entity.HasIndex(e => e.CompanyId);
             entity.HasMany(e => e.Products)
                   .WithMany(p => p.Tags)
                   .UsingEntity(j => j.ToTable("Product_Tags"));
@@ -145,6 +155,8 @@ public class ApplicationDbContext : DbContext
         {
             entity.HasKey(e => e.PromoId);
             entity.Property(e => e.DiscountPercentage).HasColumnType("decimal(5,2)");
+            entity.HasIndex(e => e.CompanyId);
+            entity.HasIndex(e => e.ProductId);
             entity.HasOne(e => e.Product)
                   .WithMany(p => p.Promotions)
                   .HasForeignKey(e => e.ProductId)
@@ -162,6 +174,9 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.IsPrimary).HasDefaultValue(false);
             entity.Property(e => e.DisplayOrder).HasDefaultValue(0);
             entity.Property(e => e.RegisteredAt).HasDefaultValueSql("GETDATE()");
+            entity.HasIndex(e => e.CompanyId);
+            entity.HasIndex(e => e.ProductId);
+            entity.HasIndex(e => e.VariantId);
             entity.HasOne(e => e.Product)
                   .WithMany(p => p.Images)
                   .HasForeignKey(e => e.ProductId)
@@ -180,6 +195,8 @@ public class ApplicationDbContext : DbContext
         {
             entity.HasKey(e => e.VariantId);
             entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
+            entity.HasIndex(e => e.CompanyId);
+            entity.HasIndex(e => e.ProductId);
             entity.HasOne(e => e.Product)
                   .WithMany(p => p.Variants)
                   .HasForeignKey(e => e.ProductId)
@@ -196,6 +213,7 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
             entity.Property(e => e.Email).IsRequired().HasMaxLength(200);
             entity.HasIndex(e => e.Email).IsUnique();
+            entity.HasIndex(e => e.CompanyId);
             entity.Property(e => e.Role).HasMaxLength(50).HasDefaultValue("User");
             entity.Property(e => e.Status).HasMaxLength(50).HasDefaultValue("Active");
             entity.Property(e => e.PasswordHash).HasMaxLength(256).IsRequired(false);
@@ -210,6 +228,8 @@ public class ApplicationDbContext : DbContext
         {
             entity.HasKey(e => e.ConsumptionId);
             entity.Property(e => e.Quantity).HasDefaultValue(1);
+            entity.HasIndex(e => e.CompanyId);
+            entity.HasIndex(e => e.InventoryId);
             entity.HasOne(e => e.Inventory)
                   .WithMany()
                   .HasForeignKey(e => e.InventoryId)
@@ -226,6 +246,8 @@ public class ApplicationDbContext : DbContext
             entity.HasKey(e => e.OrderId);
             entity.Property(e => e.Status).HasMaxLength(50).HasDefaultValue("Draft");
             entity.Property(e => e.TotalAmount).HasColumnType("decimal(18,2)");
+            entity.HasIndex(e => e.CompanyId);
+            entity.HasIndex(e => e.Status);
             entity.HasOne(e => e.Company)
                   .WithMany(c => c.Orders)
                   .HasForeignKey(e => e.CompanyId)
@@ -236,6 +258,8 @@ public class ApplicationDbContext : DbContext
         {
             entity.HasKey(e => e.OrderItemId);
             entity.Property(e => e.UnitPrice).HasColumnType("decimal(18,2)");
+            entity.HasIndex(e => e.OrderId);
+            entity.HasIndex(e => e.InventoryId);
             entity.HasOne(e => e.Order)
                   .WithMany(o => o.Items)
                   .HasForeignKey(e => e.OrderId)
@@ -252,6 +276,7 @@ public class ApplicationDbContext : DbContext
             entity.HasKey(e => e.RefreshTokenId);
             entity.Property(e => e.Token).IsRequired();
             entity.HasIndex(e => e.Token).IsUnique();
+            entity.HasIndex(e => e.UserId);
             entity.HasOne(e => e.User)
                   .WithMany()
                   .HasForeignKey(e => e.UserId)
