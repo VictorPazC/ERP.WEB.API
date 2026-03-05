@@ -227,7 +227,9 @@
       "Bash(done)",
       "Bash(Remove-Item \"C:\\\\Users\\\\vpaz1\\\\Desktop\\\\ERP.WEB.API\\\\ERP.Web.API\\\\ERP.WEB.Application\\\\Common\\\\CursorParams.cs\" -Force)",
       "Bash(Write-Host \"Deleted CursorParams.cs from Application/Common\")",
-      "Bash(cut -d'\\(' -f1)"
+      "Bash(cut -d'\\(' -f1)",
+      "Bash(git rm -r --cached \"*/obj/\" \"*/bin/\")",
+      "Bash(git commit:*)"
     ]
   }
 }
