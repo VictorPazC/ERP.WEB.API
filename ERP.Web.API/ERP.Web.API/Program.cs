@@ -8,6 +8,7 @@ using ERP.WEB.Infrastructure.Data;
 using ERP.WEB.Infrastructure.Repositories;
 using ERP.WEB.Infrastructure.Services;
 using FluentValidation;
+using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -28,12 +29,10 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // Mapster — TypeAdapterConfig global (FlexibleNameMatching + PreserveReference).
-// Usar entity.Adapt<XxxDto>() en handlers sin lógica embebida en el mapeo.
 builder.Services.AddMapsterConfig();
 
 // FluentValidation — valida automáticamente [FromBody] DTOs en la pipeline de controller.
 // Devuelve 400 con errores de validación antes de despachar el command al mediator.
-// AddValidatorsFromAssemblyContaining escanea todo el ensamblado ERP.WEB.Application.
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<CreateBrandValidator>();
 

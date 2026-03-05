@@ -24,7 +24,7 @@ interface DropdownPos {
   flip: boolean;
 }
 
-const DROPDOWN_HEADER = 42; // search bar height approx
+// const DROPDOWN_HEADER = 42; // search bar height approx (unused)
 const MIN_SPACE = 120;      // minimum space for dropdown to be useful
 
 export default function SearchableSelect({ label, options, value, onChange, placeholder = 'Search…', clearLabel = 'None' }: Props) {

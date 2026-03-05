@@ -1,4 +1,4 @@
-﻿using ERP.WEB.Application.Common;
+﻿using ERP.WEB.Domain.Common;
 using ERP.WEB.Domain.Entities;
 
 namespace ERP.WEB.Domain.Interfaces;

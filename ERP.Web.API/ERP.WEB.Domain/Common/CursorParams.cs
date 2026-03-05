@@ -1,4 +1,4 @@
-namespace ERP.WEB.Application.Common;
+namespace ERP.WEB.Domain.Common;
 
 // Parámetros de entrada para paginación cursor-based (Decisión 2B).
 // Cursor es el ID del último ítem visto, codificado en Base64.

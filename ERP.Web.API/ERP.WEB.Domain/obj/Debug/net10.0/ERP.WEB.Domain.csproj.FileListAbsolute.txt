@@ -20,6 +20,7 @@ C:\Users\Kathia\Documents\GitHub\ERP.WEB.API\ERP.Web.API\ERP.WEB.Domain\obj\Debu
 C:\Users\Kathia\Documents\GitHub\ERP.WEB.API\ERP.Web.API\ERP.WEB.Domain\obj\Debug\net10.0\refint\ERP.WEB.Domain.dll
 C:\Users\Kathia\Documents\GitHub\ERP.WEB.API\ERP.Web.API\ERP.WEB.Domain\obj\Debug\net10.0\ERP.WEB.Domain.pdb
 C:\Users\Kathia\Documents\GitHub\ERP.WEB.API\ERP.Web.API\ERP.WEB.Domain\obj\Debug\net10.0\ref\ERP.WEB.Domain.dll
+C:\Users\Kathia\Documents\GitHub\ERP.WEB.API\ERP.Web.API\ERP.WEB.Domain\obj\Debug\net10.0\ERP.WEB.Domain.sourcelink.json
 C:\Users\vpaz1\Desktop\ERP.WEB.API\ERP.Web.API\ERP.WEB.Domain\bin\Debug\net10.0\ERP.WEB.Domain.deps.json
 C:\Users\vpaz1\Desktop\ERP.WEB.API\ERP.Web.API\ERP.WEB.Domain\bin\Debug\net10.0\ERP.WEB.Domain.dll
 C:\Users\vpaz1\Desktop\ERP.WEB.API\ERP.Web.API\ERP.WEB.Domain\bin\Debug\net10.0\ERP.WEB.Domain.pdb
@@ -32,4 +33,3 @@ C:\Users\vpaz1\Desktop\ERP.WEB.API\ERP.Web.API\ERP.WEB.Domain\obj\Debug\net10.0\
 C:\Users\vpaz1\Desktop\ERP.WEB.API\ERP.Web.API\ERP.WEB.Domain\obj\Debug\net10.0\refint\ERP.WEB.Domain.dll
 C:\Users\vpaz1\Desktop\ERP.WEB.API\ERP.Web.API\ERP.WEB.Domain\obj\Debug\net10.0\ERP.WEB.Domain.pdb
 C:\Users\vpaz1\Desktop\ERP.WEB.API\ERP.Web.API\ERP.WEB.Domain\obj\Debug\net10.0\ref\ERP.WEB.Domain.dll
-C:\Users\Kathia\Documents\GitHub\ERP.WEB.API\ERP.Web.API\ERP.WEB.Domain\obj\Debug\net10.0\ERP.WEB.Domain.sourcelink.json

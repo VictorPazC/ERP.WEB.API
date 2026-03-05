@@ -1,6 +1,7 @@
 using ERP.WEB.Domain.Entities;
 using ERP.WEB.Domain.Interfaces;
 using Mediator;
+using InventoryEntity = ERP.WEB.Domain.Entities.Inventory;
 
 namespace ERP.WEB.Application.Features.Orders.Commands.ConfirmOrder;
 
@@ -28,7 +29,7 @@ public class ConfirmOrderCommandHandler : IRequestHandler<ConfirmOrderCommand, b
         if (order is null || order.Status != "Draft") return false;
 
         // Paso 1: cargar todos los inventarios y validar stock
-        var inventories = new Dictionary<int, Inventory>();
+        var inventories = new Dictionary<int, InventoryEntity>();
         foreach (var item in order.Items)
         {
             var inv = await _inventoryRepo.GetByIdAsync(item.InventoryId);

@@ -193,14 +193,15 @@ export default function ArticulosDisponibles() {
     queryFn: consumptionsApi.getAvailable,
   });
 
-  const { data: allImages } = useQuery({
+  const { data: rawAllImages } = useQuery({
     queryKey: ['product-images'],
-    queryFn: productImagesApi.getAll,
+    queryFn: () => productImagesApi.getAll(),
   });
+  const allImages = rawAllImages?.items ?? [];
 
   const primaryImageMap = useMemo(() => {
     const map = new Map<number, string>();
-    allImages?.forEach(img => {
+    allImages.forEach(img => {
       if (img.isPrimary || !map.has(img.productId)) {
         map.set(img.productId, img.imagePath);
       }

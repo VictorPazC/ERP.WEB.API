@@ -46,15 +46,17 @@ function ImageLightbox({ src, alt, onClose }: { src: string; alt: string; onClos
 
 function UploadForm({ onClose }: { onClose: () => void }) {
   const qc = useQueryClient();
-  const { data: products } = useQuery({ queryKey: ['products'], queryFn: productsApi.getAll, staleTime: Infinity, refetchOnWindowFocus: false });
+  const { data: rawProducts } = useQuery({ queryKey: ['products'], queryFn: () => productsApi.getAll(), staleTime: Infinity, refetchOnWindowFocus: false });
+  const products = rawProducts?.items;
   // staleTime: Infinity + refetchOnWindowFocus: false prevents opening/closing
   // the OS file picker from triggering a refetch that resets the form state
-  const { data: images } = useQuery({
+  const { data: rawImages } = useQuery({
     queryKey: ['product-images'],
-    queryFn: productImagesApi.getAll,
+    queryFn: () => productImagesApi.getAll(),
     staleTime: Infinity,
     refetchOnWindowFocus: false,
   });
+  const images = rawImages?.items;
   const [productId, setProductId] = useState('');
   const [isPrimary, setIsPrimary] = useState(false);
   const [displayOrder, setDisplayOrder] = useState('0');
@@ -272,7 +274,8 @@ export default function ProductImages() {
     getNextPageParam: (lastPage) => lastPage.hasMore ? lastPage.nextCursor ?? undefined : undefined,
   });
   const images = imagesData?.pages.flatMap(p => p.items) ?? [];
-  const { data: products } = useQuery({ queryKey: ['products'], queryFn: productsApi.getAll });
+  const { data: rawProducts } = useQuery({ queryKey: ['products'], queryFn: () => productsApi.getAll() });
+  const products = rawProducts?.items;
 
   // productId → name map
   const productNameMap = new Map(products?.map(p => [p.productId, p.name]) ?? []);

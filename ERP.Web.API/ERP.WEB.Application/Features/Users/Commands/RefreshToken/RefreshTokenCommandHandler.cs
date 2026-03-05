@@ -3,6 +3,7 @@ using ERP.WEB.Application.DTOs;
 using ERP.WEB.Domain.Entities;
 using ERP.WEB.Domain.Interfaces;
 using Mediator;
+using RefreshTokenEntity = ERP.WEB.Domain.Entities.RefreshToken;
 
 namespace ERP.WEB.Application.Features.Users.Commands.RefreshToken;
 
@@ -42,7 +43,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, L
         var newJwt = _tokenService.GenerateToken(user);
         var (newRefreshToken, newRefreshExpiry) = _tokenService.GenerateRefreshToken();
 
-        await _refreshTokenRepo.AddAsync(new RefreshToken
+        await _refreshTokenRepo.AddAsync(new RefreshTokenEntity
         {
             Token     = newRefreshToken,
             UserId    = user.UserId,

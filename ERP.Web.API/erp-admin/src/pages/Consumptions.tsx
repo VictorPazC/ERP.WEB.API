@@ -43,10 +43,11 @@ export default function Consumptions() {
   });
   const consumptions = data?.pages.flatMap(p => p.items) ?? [];
 
-  const { data: inventory } = useQuery({
+  const { data: rawInventory } = useQuery({
     queryKey: ['inventory'],
-    queryFn: inventoryApi.getAll,
+    queryFn: () => inventoryApi.getAll(),
   });
+  const inventory = rawInventory?.items ?? [];
 
   const deleteMut = useMutation({
     mutationFn: (id: number) => consumptionsApi.delete(id),
@@ -59,7 +60,7 @@ export default function Consumptions() {
   });
 
   const inventoryMap = useMemo(
-    () => new Map(inventory?.map(i => [i.inventoryId, i]) ?? []),
+    () => new Map(inventory.map(i => [i.inventoryId, i])),
     [inventory]
   );
 

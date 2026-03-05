@@ -87,7 +87,7 @@ function ProductSelector({ value, onChange, products, allImages }: {
     const q = search.toLowerCase();
     return p.name.toLowerCase().includes(q)
       || (p.description ?? '').toLowerCase().includes(q)
-      || (p.brand ?? '').toLowerCase().includes(q);
+      || (p.brandName ?? '').toLowerCase().includes(q);
   });
 
   useEffect(() => {
@@ -157,7 +157,7 @@ function ProductSelector({ value, onChange, products, allImages }: {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-sm font-medium text-gray-900 dark:text-white truncate">{p.name}</span>
-                        {p.brand && <Badge color="gray">{p.brand}</Badge>}
+                        {p.brandName && <Badge color="gray">{p.brandName}</Badge>}
                       </div>
                       {p.description && (
                         <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{p.description}</p>
@@ -186,8 +186,10 @@ function InventoryForm({ initial, onSave, onClose }: {
   onSave: (data: CreateInventoryDto | UpdateInventoryDto) => Promise<void>;
   onClose: () => void;
 }) {
-  const { data: products } = useQuery({ queryKey: ['products'], queryFn: productsApi.getAll });
-  const { data: allImages } = useQuery({ queryKey: ['product-images'], queryFn: productImagesApi.getAll });
+  const { data: rawProducts } = useQuery({ queryKey: ['products'], queryFn: () => productsApi.getAll() });
+  const products = rawProducts?.items ?? [];
+  const { data: rawAllImages } = useQuery({ queryKey: ['product-images'], queryFn: () => productImagesApi.getAll() });
+  const allImages = rawAllImages?.items ?? [];
   const [form, setForm] = useState({
     productId: initial?.productId?.toString() ?? '',
     purchaseCost: initial?.purchaseCost?.toString() ?? '',
@@ -260,7 +262,8 @@ export default function InventoryPage() {
     getNextPageParam: (lastPage) => lastPage.hasMore ? lastPage.nextCursor ?? undefined : undefined,
   });
   const inventory = data?.pages.flatMap(p => p.items) ?? [];
-  const { data: allImages } = useQuery({ queryKey: ['product-images'], queryFn: productImagesApi.getAll });
+  const { data: rawAllImages } = useQuery({ queryKey: ['product-images'], queryFn: () => productImagesApi.getAll() });
+  const allImages = rawAllImages?.items;
 
   const createMut = useMutation({ mutationFn: (dto: CreateInventoryDto) => inventoryApi.create(dto), onSuccess: () => { qc.invalidateQueries({ queryKey: ['inventory'] }); toast.success('Inventory created'); } });
   const updateMut = useMutation({ mutationFn: ({ id, dto }: { id: number; dto: UpdateInventoryDto }) => inventoryApi.update(id, dto), onSuccess: () => { qc.invalidateQueries({ queryKey: ['inventory'] }); toast.success('Inventory updated'); } });

@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace ERP.WEB.Application.Common;
+namespace ERP.WEB.Domain.Common;
 
 // Codifica/decodifica el cursor en Base64 del ID (int).
 // Base64 es URL-safe-friendly y opaco para el cliente.

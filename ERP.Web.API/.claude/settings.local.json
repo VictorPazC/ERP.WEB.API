@@ -224,7 +224,10 @@
       "Bash(find \"C:\\\\Users\\\\vpaz1\\\\Desktop\\\\ERP.WEB.API\" -name \"*.cs\" -type f -exec grep -l \"record LoginDto\\\\|public class LoginDto\\\\|public record LoginResultDto\" {} ;)",
       "Bash(while read f)",
       "Bash(do basename \"$f\")",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(Remove-Item \"C:\\\\Users\\\\vpaz1\\\\Desktop\\\\ERP.WEB.API\\\\ERP.Web.API\\\\ERP.WEB.Application\\\\Common\\\\CursorParams.cs\" -Force)",
+      "Bash(Write-Host \"Deleted CursorParams.cs from Application/Common\")",
+      "Bash(cut -d'\\(' -f1)"
     ]
   }
 }

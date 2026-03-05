@@ -15,7 +15,7 @@ public class GetAvailableArticlesQueryHandler : IRequestHandler<GetAvailableArti
 
     public async ValueTask<IEnumerable<AvailableArticleDto>> Handle(GetAvailableArticlesQuery request, CancellationToken cancellationToken)
     {
-        var inventory = await _inventoryRepository.GetAllAsync();
+        var inventory = await _inventoryRepository.GetAllAsync(new CursorParams(null, 10_000), cancellationToken);
         return inventory
             .Where(i => i.CurrentStock > 0)
             .Select(i => new AvailableArticleDto(

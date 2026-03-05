@@ -76,7 +76,8 @@ function ImageLightbox({ src, alt, onClose }: { src: string; alt: string; onClos
 /* ── Tag selector (edit only) ─────────────────────────────── */
 function TagSelector({ productId }: { productId: number }) {
   const qc = useQueryClient();
-  const { data: allTags } = useQuery({ queryKey: ['tags'], queryFn: tagsApi.getAll });
+  const { data: rawAllTags } = useQuery({ queryKey: ['tags'], queryFn: () => tagsApi.getAll() });
+  const allTags = rawAllTags?.items;
   const { data: productTags, isLoading } = useQuery({
     queryKey: ['product-tags', productId],
     queryFn: () => tagsApi.getByProductId(productId),
@@ -256,8 +257,10 @@ function ProductForm({ initial, onSave, onClose }: {
   onSave: (data: CreateProductDto | UpdateProductDto) => Promise<number>;
   onClose: () => void;
 }) {
-  const { data: categories } = useQuery({ queryKey: ['categories'], queryFn: categoriesApi.getAll, staleTime: Infinity, refetchOnWindowFocus: false });
-  const { data: brands } = useQuery({ queryKey: ['brands'], queryFn: brandsApi.getAll, staleTime: Infinity, refetchOnWindowFocus: false });
+  const { data: rawCategories } = useQuery({ queryKey: ['categories'], queryFn: () => categoriesApi.getAll(), staleTime: Infinity, refetchOnWindowFocus: false });
+  const categories = rawCategories?.items;
+  const { data: rawBrands } = useQuery({ queryKey: ['brands'], queryFn: () => brandsApi.getAll(), staleTime: Infinity, refetchOnWindowFocus: false });
+  const brands = rawBrands?.items;
   const defaultBrandApplied = useRef(false);
   // Restore pending image upload if page was reloaded (mobile file picker can kill the tab)
   const pending = loadPendingImage();
@@ -450,7 +453,7 @@ function QuickInventoryForm({ product, variantId, onClose }: { product: Product;
 }
 
 /* ── Variant panel ────────────────────────────────────────── */
-function VariantPanel({ product, onClose }: { product: Product; onClose: () => void }) {
+function VariantPanel({ product, onClose: _onClose }: { product: Product; onClose: () => void }) {
   const qc = useQueryClient();
   const { isAdmin } = useUser();
   const { data: variants, isLoading } = useQuery({
@@ -599,9 +602,12 @@ export default function Products() {
     getNextPageParam: (lastPage) => lastPage.hasMore ? lastPage.nextCursor ?? undefined : undefined,
   });
   const products = data?.pages.flatMap(p => p.items) ?? [];
-  const { data: allImages } = useQuery({ queryKey: ['product-images'], queryFn: productImagesApi.getAll });
-  const { data: brands } = useQuery({ queryKey: ['brands'], queryFn: brandsApi.getAll });
-  const { data: categories } = useQuery({ queryKey: ['categories'], queryFn: categoriesApi.getAll });
+  const { data: rawAllImages } = useQuery({ queryKey: ['product-images'], queryFn: () => productImagesApi.getAll() });
+  const allImages = rawAllImages?.items;
+  const { data: rawBrands } = useQuery({ queryKey: ['brands'], queryFn: () => brandsApi.getAll() });
+  const brands = rawBrands?.items;
+  const { data: rawCategories } = useQuery({ queryKey: ['categories'], queryFn: () => categoriesApi.getAll() });
+  const categories = rawCategories?.items;
 
   const primaryImageMap = new Map<number, string>();
   allImages?.forEach(img => {

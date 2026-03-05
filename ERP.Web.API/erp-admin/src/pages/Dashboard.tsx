@@ -22,9 +22,10 @@ import { imageUrl } from '../utils/imageUrl';
 
 // ─── Product image thumbnail ─────────────────────────────────────────────────
 function ProductThumb({ productId }: { productId: number }) {
-  const { data: images } = useQuery({ queryKey: ['product-images'], queryFn: productImagesApi.getAll });
-  const primary = images?.find(img => img.productId === productId && img.isPrimary)
-    ?? images?.find(img => img.productId === productId);
+  const { data: rawImages } = useQuery({ queryKey: ['product-images'], queryFn: () => productImagesApi.getAll() });
+  const images = rawImages?.items ?? [];
+  const primary = images.find(img => img.productId === productId && img.isPrimary)
+    ?? images.find(img => img.productId === productId);
   const src = primary ? imageUrl(primary.imagePath) : null;
 
   return (
@@ -135,30 +136,37 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [restockItem, setRestockItem] = useState<Inventory | null>(null);
 
-  const { data: categories } = useQuery({ queryKey: ['categories'], queryFn: categoriesApi.getAll });
-  const { data: products } = useQuery({ queryKey: ['products'], queryFn: productsApi.getAll });
-  const { data: inventory } = useQuery({ queryKey: ['inventory'], queryFn: inventoryApi.getAll });
-  const { data: tags } = useQuery({ queryKey: ['tags'], queryFn: tagsApi.getAll });
-  const { data: promotions } = useQuery({ queryKey: ['promotions'], queryFn: promotionsApi.getAll });
-  const { data: images } = useQuery({ queryKey: ['product-images'], queryFn: productImagesApi.getAll });
-  const { data: consumptions } = useQuery({ queryKey: ['consumptions'], queryFn: consumptionsApi.getAll });
+  const { data: rawCategories } = useQuery({ queryKey: ['categories'], queryFn: () => categoriesApi.getAll() });
+  const categories = rawCategories?.items ?? [];
+  const { data: rawProducts } = useQuery({ queryKey: ['products'], queryFn: () => productsApi.getAll() });
+  const products = rawProducts?.items ?? [];
+  const { data: rawInventory } = useQuery({ queryKey: ['inventory'], queryFn: () => inventoryApi.getAll() });
+  const inventory = rawInventory?.items ?? [];
+  const { data: rawTags } = useQuery({ queryKey: ['tags'], queryFn: () => tagsApi.getAll() });
+  const tags = rawTags?.items ?? [];
+  const { data: rawPromotions } = useQuery({ queryKey: ['promotions'], queryFn: () => promotionsApi.getAll() });
+  const promotions = rawPromotions?.items ?? [];
+  const { data: rawImages } = useQuery({ queryKey: ['product-images'], queryFn: () => productImagesApi.getAll() });
+  const images = rawImages?.items ?? [];
+  const { data: rawConsumptions } = useQuery({ queryKey: ['consumptions'], queryFn: () => consumptionsApi.getAll() });
+  const consumptions = rawConsumptions?.items ?? [];
 
-  const activePromotions = promotions?.filter(p => p.isActive).length ?? 0;
-  const totalStock = inventory?.reduce((s, i) => s + i.currentStock, 0) ?? 0;
+  const activePromotions = promotions.filter(p => p.isActive).length;
+  const totalStock = inventory.reduce((s, i) => s + i.currentStock, 0);
 
-  const sortedByProfit = [...(inventory ?? [])].sort((a, b) => b.estimatedProfit - a.estimatedProfit);
+  const sortedByProfit = [...inventory].sort((a, b) => b.estimatedProfit - a.estimatedProfit);
   const totalEstimatedProfit = sortedByProfit.reduce((s, i) => s + i.estimatedProfit, 0);
   const maxProfit = sortedByProfit[0]?.estimatedProfit ?? 1;
 
-  const inventoryMap = new Map(inventory?.map(i => [i.inventoryId, i]) ?? []);
-  const totalRealizedProfit = consumptions?.reduce((sum, c) => {
+  const inventoryMap = new Map(inventory.map(i => [i.inventoryId, i]));
+  const totalRealizedProfit = consumptions.reduce((sum, c) => {
     const inv = inventoryMap.get(c.inventoryId);
     return inv ? sum + c.quantity * (inv.suggestedRetailPrice - inv.purchaseCost) : sum;
-  }, 0) ?? 0;
-  const totalConsumptions = consumptions?.reduce((s, c) => s + c.quantity, 0) ?? 0;
+  }, 0);
+  const totalConsumptions = consumptions.reduce((s, c) => s + c.quantity, 0);
 
-  const needsRestockItems = inventory?.filter(i => i.needsRestock) ?? [];
-  const lowStockItems = inventory?.filter(i => i.currentStock < 10) ?? [];
+  const needsRestockItems = inventory.filter(i => i.needsRestock);
+  const lowStockItems = inventory.filter(i => i.currentStock < 10);
 
   return (
     <div>
@@ -167,7 +175,7 @@ export default function Dashboard() {
 
         {/* Stats row 1 */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          <StatsCard title="Products" value={products?.length ?? 0} icon={Package} color="indigo" />
+          <StatsCard title="Products" value={products.length} icon={Package} color="indigo" />
           <StatsCard title="Total Stock" value={totalStock.toLocaleString()} icon={Archive} color="violet" />
           <StatsCard title="Realized Profit" value={`$${totalRealizedProfit.toFixed(2)}`} icon={DollarSign} color="emerald" />
           <div onClick={() => navigate('/consumptions')} className="cursor-pointer">
@@ -177,10 +185,10 @@ export default function Dashboard() {
 
         {/* Stats row 2 */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          <StatsCard title="Categories" value={categories?.length ?? 0} icon={Layers} color="indigo" />
-          <StatsCard title="Tags" value={tags?.length ?? 0} icon={Tag} color="amber" />
+          <StatsCard title="Categories" value={categories.length} icon={Layers} color="indigo" />
+          <StatsCard title="Tags" value={tags.length} icon={Tag} color="amber" />
           <StatsCard title="Active Promos" value={activePromotions} icon={Percent} color="indigo" />
-          <StatsCard title="Images" value={images?.length ?? 0} icon={Image} color="emerald" />
+          <StatsCard title="Images" value={images.length} icon={Image} color="emerald" />
         </div>
 
         {/* Needs restock panel */}
@@ -244,7 +252,7 @@ export default function Dashboard() {
               </div>
             </div>
             <div className="space-y-1">
-              {consumptions?.slice(0, 6).map(c => {
+              {consumptions.slice(0, 6).map(c => {
                 const inv = inventoryMap.get(c.inventoryId);
                 const profit = inv ? c.quantity * (inv.suggestedRetailPrice - inv.purchaseCost) : 0;
                 return (
@@ -261,12 +269,12 @@ export default function Dashboard() {
                   </div>
                 );
               })}
-              {(!consumptions || consumptions.length === 0) && (
+              {consumptions.length === 0 && (
                 <p className="text-gray-500 dark:text-gray-600 text-sm text-center py-6">No consumptions recorded yet</p>
               )}
             </div>
             {/* Total footer */}
-            {consumptions && consumptions.length > 0 && (
+            {consumptions.length > 0 && (
               <div className="border-t border-gray-200 dark:border-gray-800/60 mt-3 pt-3 flex items-center justify-between px-3">
                 <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Total</span>
                 <div className="flex items-center gap-3">
@@ -309,7 +317,7 @@ export default function Dashboard() {
                   </span>
                 </div>
               ))}
-              {(!inventory || inventory.length === 0) && (
+              {inventory.length === 0 && (
                 <p className="text-gray-500 dark:text-gray-600 text-sm text-center py-6">No inventory</p>
               )}
             </div>
@@ -330,7 +338,7 @@ export default function Dashboard() {
               </div>
             </div>
             <div className="space-y-1">
-              {promotions?.filter(p => p.isActive).slice(0, 5).map(p => (
+              {promotions.filter(p => p.isActive).slice(0, 5).map(p => (
                 <div key={p.promoId} className="flex items-center justify-between py-2.5 px-3 rounded-xl hover:bg-gray-50 dark:hover:bg-white/[0.02] transition-colors gap-2">
                   <span className="text-sm text-gray-700 dark:text-gray-300 truncate min-w-0">{p.productName ?? `Product #${p.productId}`}</span>
                   <Badge color="green">{p.discountPercentage ?? 0}% OFF</Badge>
