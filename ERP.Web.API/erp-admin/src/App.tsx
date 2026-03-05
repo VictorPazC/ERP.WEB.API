@@ -1,3 +1,4 @@
+import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
@@ -24,6 +25,36 @@ const queryClient = new QueryClient({
     queries: { retry: 1, staleTime: 5 * 60_000, refetchOnWindowFocus: false },
   },
 });
+
+class ErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() { return { hasError: true }; }
+  componentDidCatch(error: Error) { console.error('[ErrorBoundary]', error); }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950">
+          <div className="text-center">
+            <p className="text-gray-500 dark:text-gray-400 mb-4">Something went wrong.</p>
+            <button
+              onClick={() => this.setState({ hasError: false })}
+              className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm hover:bg-indigo-500"
+            >
+              Try again
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 function ThemedToaster() {
   const isDark = document.documentElement.classList.contains('dark');
@@ -90,7 +121,9 @@ export default function App() {
       <UserProvider>
         <QueryClientProvider client={queryClient}>
           <BrowserRouter>
-            <AppRoutes />
+            <ErrorBoundary>
+              <AppRoutes />
+            </ErrorBoundary>
           </BrowserRouter>
           <ThemedToaster />
         </QueryClientProvider>
