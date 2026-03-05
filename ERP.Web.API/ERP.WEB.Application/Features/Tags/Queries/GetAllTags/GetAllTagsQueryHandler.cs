@@ -1,10 +1,11 @@
+using ERP.WEB.Application.Common;
 using ERP.WEB.Application.DTOs;
 using ERP.WEB.Domain.Interfaces;
 using Mediator;
 
 namespace ERP.WEB.Application.Features.Tags.Queries.GetAllTags;
 
-public class GetAllTagsQueryHandler : IRequestHandler<GetAllTagsQuery, IEnumerable<TagDto>>
+public class GetAllTagsQueryHandler : IRequestHandler<GetAllTagsQuery, CursorPagedResult<TagDto>>
 {
     private readonly ITagRepository _repository;
 
@@ -13,14 +14,13 @@ public class GetAllTagsQueryHandler : IRequestHandler<GetAllTagsQuery, IEnumerab
         _repository = repository;
     }
 
-    public async ValueTask<IEnumerable<TagDto>> Handle(GetAllTagsQuery request, CancellationToken cancellationToken)
+    public async ValueTask<CursorPagedResult<TagDto>> Handle(GetAllTagsQuery request, CancellationToken cancellationToken)
     {
-        var tags = await _repository.GetAllAsync();
-
-        return tags.Select(t => new TagDto(
-            t.TagId,
-            t.TagName,
-            t.Products.Count
-        ));
+        var list = await _repository.GetAllAsync(request.Params, cancellationToken);
+        var hasMore = list.Count > request.Params.PageSize;
+        if (hasMore) list.RemoveAt(list.Count - 1);
+        var nextCursor = hasMore ? CursorHelper.Encode(list[^1].TagId) : null;
+        var items = list.Select(t => new TagDto(t.TagId, t.TagName, t.Products.Count));
+        return new CursorPagedResult<TagDto>(items, nextCursor, hasMore);
     }
 }

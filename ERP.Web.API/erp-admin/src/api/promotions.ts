@@ -1,8 +1,10 @@
 import client from './client';
 import type { Promotion, CreatePromotionDto, UpdatePromotionDto } from '../types';
+import type { CursorPagedResult } from '../types';
 
 export const promotionsApi = {
-  getAll: () => client.get<Promotion[]>('/api/promotions').then(r => r.data),
+  getAll: (cursor?: string, pageSize = 20) =>
+    client.get<CursorPagedResult<Promotion>>('/api/promotions', { params: { cursor, pageSize } }).then(r => r.data),
   getActive: () => client.get<Promotion[]>('/api/promotions/active').then(r => r.data),
   getById: (id: number) => client.get<Promotion>(`/api/promotions/${id}`).then(r => r.data),
   getByProductId: (productId: number) => client.get<Promotion[]>(`/api/promotions/product/${productId}`).then(r => r.data),

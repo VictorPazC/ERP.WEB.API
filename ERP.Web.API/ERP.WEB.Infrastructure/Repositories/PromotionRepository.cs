@@ -1,3 +1,4 @@
+using ERP.WEB.Application.Common;
 using ERP.WEB.Domain.Entities;
 using ERP.WEB.Domain.Interfaces;
 using ERP.WEB.Infrastructure.Data;
@@ -14,11 +15,15 @@ public class PromotionRepository : IPromotionRepository
         _context = context;
     }
 
-    public async Task<IEnumerable<Promotion>> GetAllAsync()
+    public async Task<List<Promotion>> GetAllAsync(CursorParams p, CancellationToken ct = default)
     {
+        var afterId = CursorHelper.Decode(p.Cursor) ?? 0;
         return await _context.Promotions
+            .Where(pr => pr.PromoId > afterId)
             .Include(pr => pr.Product)
-            .ToListAsync();
+            .OrderBy(pr => pr.PromoId)
+            .Take(p.PageSize + 1)
+            .ToListAsync(ct);
     }
 
     public async Task<Promotion?> GetByIdAsync(int id)

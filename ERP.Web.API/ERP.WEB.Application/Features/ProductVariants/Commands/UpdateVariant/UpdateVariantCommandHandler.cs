@@ -1,29 +1,29 @@
-using ERP.WEB.Infrastructure.Data;
+using ERP.WEB.Domain.Interfaces;
 using Mediator;
 
 namespace ERP.WEB.Application.Features.ProductVariants.Commands.UpdateVariant;
 
+// Decisión 6B: reemplaza ApplicationDbContext por IProductVariantRepository.
 public class UpdateVariantCommandHandler : IRequestHandler<UpdateVariantCommand, bool>
 {
-    private readonly ApplicationDbContext _db;
+    private readonly IProductVariantRepository _repo;
 
-    public UpdateVariantCommandHandler(ApplicationDbContext db)
+    public UpdateVariantCommandHandler(IProductVariantRepository repo)
     {
-        _db = db;
+        _repo = repo;
     }
 
     public async ValueTask<bool> Handle(UpdateVariantCommand request, CancellationToken cancellationToken)
     {
-        var variant = await _db.ProductVariants.FindAsync(
-            new object[] { request.Dto.VariantId }, cancellationToken);
+        var variant = await _repo.GetByIdAsync(request.Dto.VariantId);
 
         if (variant is null)
             return false;
 
-        variant.Name = request.Dto.Name;
+        variant.Name        = request.Dto.Name;
         variant.Description = request.Dto.Description;
 
-        await _db.SaveChangesAsync(cancellationToken);
+        await _repo.UpdateAsync(variant);
         return true;
     }
 }

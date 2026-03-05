@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Pencil, Trash2, Percent, Calendar } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { promotionsApi } from '../api/promotions';
@@ -79,8 +79,14 @@ export default function Promotions() {
   const [deleting, setDeleting] = useState<Promotion | null>(null);
   const [filter, setFilter] = useState<'all' | 'active'>('all');
 
-  const { data: allPromos, isLoading } = useQuery({ queryKey: ['promotions'], queryFn: promotionsApi.getAll });
-  const promotions = filter === 'active' ? allPromos?.filter(p => p.isActive) : allPromos;
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
+    queryKey: ['promotions'],
+    queryFn: ({ pageParam }: { pageParam: string | undefined }) => promotionsApi.getAll(pageParam),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) => lastPage.hasMore ? lastPage.nextCursor ?? undefined : undefined,
+  });
+  const allPromos = data?.pages.flatMap(p => p.items) ?? [];
+  const promotions = filter === 'active' ? allPromos.filter(p => p.isActive) : allPromos;
   const { isAdmin } = useUser();
 
   const createMut = useMutation({ mutationFn: (dto: CreatePromotionDto) => promotionsApi.create(dto), onSuccess: () => { qc.invalidateQueries({ queryKey: ['promotions'] }); toast.success('Promotion created'); } });
@@ -96,7 +102,7 @@ export default function Promotions() {
     <div>
       <PageHeader
         title="Promotions"
-        subtitle={`${allPromos?.length ?? 0} total · ${allPromos?.filter(p => p.isActive).length ?? 0} active`}
+        subtitle={`${allPromos.length} total · ${allPromos.filter(p => p.isActive).length} active`}
         action={
           isAdmin ? (
             <button onClick={() => { setSelected(null); setModal('create'); }} className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-sm font-medium text-white transition-all shadow-lg shadow-indigo-600/20 hover:shadow-indigo-500/30">
@@ -121,11 +127,11 @@ export default function Promotions() {
             </button>
           ))}
         </div>
-        {isLoading ? <LoadingSpinner /> : promotions?.length === 0 ? (
+        {isLoading ? <LoadingSpinner /> : promotions.length === 0 ? (
           <EmptyState icon={Percent} title="No promotions found" description="Create promotions to offer discounts on your products" />
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
-            {promotions?.map(promo => (
+            {promotions.map(promo => (
               <div key={promo.promoId} className={`bg-white dark:bg-gray-900/60 border rounded-2xl p-4 sm:p-5 hover:border-gray-300 dark:hover:border-gray-700/60 transition-all duration-200 group ${promo.isActive ? 'border-emerald-500/20' : 'border-gray-200 dark:border-gray-800/60'}`}>
                 <div className="flex items-start justify-between mb-3 sm:mb-4">
                   <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
@@ -151,6 +157,17 @@ export default function Promotions() {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+        {hasNextPage && (
+          <div className="flex justify-center p-4 border-t border-gray-100 dark:border-gray-800/40">
+            <button
+              onClick={() => fetchNextPage()}
+              disabled={isFetchingNextPage}
+              className="px-4 py-2 text-sm text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 rounded-xl transition-colors disabled:opacity-50"
+            >
+              {isFetchingNextPage ? 'Cargando…' : 'Cargar más'}
+            </button>
           </div>
         )}
       </div>

@@ -1,8 +1,10 @@
 import client from './client';
 import type { Inventory, CreateInventoryDto, UpdateInventoryDto, RestockInventoryDto } from '../types';
+import type { CursorPagedResult } from '../types';
 
 export const inventoryApi = {
-  getAll: () => client.get<Inventory[]>('/api/inventory').then(r => r.data),
+  getAll: (cursor?: string, pageSize = 20) =>
+    client.get<CursorPagedResult<Inventory>>('/api/inventory', { params: { cursor, pageSize } }).then(r => r.data),
   getById: (id: number) => client.get<Inventory>(`/api/inventory/${id}`).then(r => r.data),
   getByProductId: (productId: number) => client.get<Inventory>(`/api/inventory/product/${productId}`).then(r => r.data),
   create: (dto: CreateInventoryDto) => client.post<Inventory>('/api/inventory', dto).then(r => r.data),

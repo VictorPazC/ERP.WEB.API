@@ -16,12 +16,32 @@ client.interceptors.request.use(config => {
   return config;
 });
 
-// Auto-redirect to login on 401 (expired/invalid token)
+// Auto-refresh JWT on 401, then retry. If refresh fails → redirect to login.
 client.interceptors.response.use(
   res => res,
-  error => {
-    if (error.response?.status === 401) {
+  async error => {
+    const original = error.config;
+    if (error.response?.status === 401 && !original._retry) {
+      original._retry = true;
+      const refreshToken = localStorage.getItem('erp-refresh-token');
+      if (refreshToken) {
+        try {
+          const { data } = await axios.post<{ token: string; refreshToken: string }>(
+            `${baseURL}/api/users/refresh`,
+            { token: refreshToken },
+            { headers: { 'Content-Type': 'application/json' } }
+          );
+          localStorage.setItem('erp-token', data.token);
+          localStorage.setItem('erp-refresh-token', data.refreshToken);
+          original.headers = original.headers ?? {};
+          original.headers.Authorization = `Bearer ${data.token}`;
+          return client(original);
+        } catch {
+          // refresh failed → fall through to logout
+        }
+      }
       localStorage.removeItem('erp-token');
+      localStorage.removeItem('erp-refresh-token');
       localStorage.removeItem('erp-company-id');
       localStorage.removeItem('erp-active-user');
       window.location.href = '/login';

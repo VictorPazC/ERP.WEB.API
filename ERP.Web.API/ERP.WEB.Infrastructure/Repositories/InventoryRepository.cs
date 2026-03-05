@@ -1,3 +1,4 @@
+using ERP.WEB.Application.Common;
 using ERP.WEB.Domain.Entities;
 using ERP.WEB.Domain.Interfaces;
 using ERP.WEB.Infrastructure.Data;
@@ -14,12 +15,16 @@ public class InventoryRepository : IInventoryRepository
         _context = context;
     }
 
-    public async Task<IEnumerable<Inventory>> GetAllAsync()
+    public async Task<List<Inventory>> GetAllAsync(CursorParams p, CancellationToken ct = default)
     {
+        var afterId = CursorHelper.Decode(p.Cursor) ?? 0;
         return await _context.Inventories
+            .Where(i => i.InventoryId > afterId)
             .Include(i => i.Product)
                 .ThenInclude(p => p!.Category)
-            .ToListAsync();
+            .OrderBy(i => i.InventoryId)
+            .Take(p.PageSize + 1)
+            .ToListAsync(ct);
     }
 
     public async Task<Inventory?> GetByIdAsync(int id)

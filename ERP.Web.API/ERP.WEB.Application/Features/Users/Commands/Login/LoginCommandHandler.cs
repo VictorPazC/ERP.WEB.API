@@ -1,4 +1,6 @@
+using ERP.WEB.Application.Common;
 using ERP.WEB.Application.DTOs;
+using ERP.WEB.Domain.Entities;
 using ERP.WEB.Domain.Interfaces;
 using Mediator;
 
@@ -9,15 +11,18 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, LoginResultDto?
     private readonly IUserRepository _userRepository;
     private readonly ITokenService _tokenService;
     private readonly ICompanyRepository _companyRepo;
+    private readonly IRefreshTokenRepository _refreshTokenRepo;
 
     public LoginCommandHandler(
         IUserRepository userRepository,
         ITokenService tokenService,
-        ICompanyRepository companyRepo)
+        ICompanyRepository companyRepo,
+        IRefreshTokenRepository refreshTokenRepo)
     {
-        _userRepository = userRepository;
-        _tokenService = tokenService;
-        _companyRepo = companyRepo;
+        _userRepository   = userRepository;
+        _tokenService     = tokenService;
+        _companyRepo      = companyRepo;
+        _refreshTokenRepo = refreshTokenRepo;
     }
 
     public async ValueTask<LoginResultDto?> Handle(LoginCommand request, CancellationToken cancellationToken)
@@ -33,15 +38,24 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, LoginResultDto?
         // Generate JWT token
         var token = _tokenService.GenerateToken(user);
 
+        // Generate refresh token and persist it
+        var (refreshToken, refreshExpiry) = _tokenService.GenerateRefreshToken();
+        await _refreshTokenRepo.AddAsync(new RefreshToken
+        {
+            Token     = refreshToken,
+            UserId    = user.UserId,
+            ExpiresAt = refreshExpiry
+        }, cancellationToken);
+
         // Get company info
-        var company = await _companyRepo.GetByIdAsync(user.CompanyId);
+        var company     = await _companyRepo.GetByIdAsync(user.CompanyId);
         var companyName = company?.Name ?? "Unknown";
 
         // If SuperAdmin, include list of all companies
         CompanySummaryDto[]? companies = null;
         if (user.IsSuperAdmin)
         {
-            var allCompanies = await _companyRepo.GetAllAsync();
+            var allCompanies = await _companyRepo.GetAllAsync(new CursorParams(null, 10_000), cancellationToken);
             companies = allCompanies
                 .Where(p => p.IsActive)
                 .Select(p => new CompanySummaryDto(p.CompanyId, p.Name, p.Slug, p.LogoUrl))
@@ -57,7 +71,9 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, LoginResultDto?
             user.CompanyId,
             companyName,
             user.IsSuperAdmin,
-            companies
+            companies,
+            refreshToken,
+            refreshExpiry
         );
     }
 }

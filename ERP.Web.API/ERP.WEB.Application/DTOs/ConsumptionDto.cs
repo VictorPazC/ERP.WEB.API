@@ -18,6 +18,13 @@ public record CreateConsumptionDto(
     string? Notes
 );
 
+// Decisión 7B: edición de Quantity + Notes con ajuste de stock por delta.
+public record UpdateConsumptionDto(
+    int ConsumptionId,
+    int Quantity,
+    string? Notes
+);
+
 public record AvailableArticleDto(
     int InventoryId,
     int ProductId,

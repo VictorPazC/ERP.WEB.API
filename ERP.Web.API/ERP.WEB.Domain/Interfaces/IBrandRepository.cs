@@ -1,10 +1,11 @@
+using ERP.WEB.Application.Common;
 using ERP.WEB.Domain.Entities;
 
 namespace ERP.WEB.Domain.Interfaces;
 
 public interface IBrandRepository
 {
-    Task<IEnumerable<Brand>> GetAllAsync();
+    Task<List<Brand>> GetAllAsync(CursorParams p, CancellationToken ct = default);
     Task<Brand?> GetByIdAsync(int id);
     Task<Brand> AddAsync(Brand brand);
     Task UpdateAsync(Brand brand);

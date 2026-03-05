@@ -1,3 +1,4 @@
+using ERP.WEB.Application.Common;
 using ERP.WEB.Domain.Entities;
 using ERP.WEB.Domain.Interfaces;
 using ERP.WEB.Infrastructure.Data;
@@ -14,11 +15,15 @@ public class TagRepository : ITagRepository
         _context = context;
     }
 
-    public async Task<IEnumerable<Tag>> GetAllAsync()
+    public async Task<List<Tag>> GetAllAsync(CursorParams p, CancellationToken ct = default)
     {
+        var afterId = CursorHelper.Decode(p.Cursor) ?? 0;
         return await _context.Tags
+            .Where(t => t.TagId > afterId)
             .Include(t => t.Products)
-            .ToListAsync();
+            .OrderBy(t => t.TagId)
+            .Take(p.PageSize + 1)
+            .ToListAsync(ct);
     }
 
     public async Task<Tag?> GetByIdAsync(int id)

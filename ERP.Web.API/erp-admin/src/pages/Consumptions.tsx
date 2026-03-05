@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ShoppingCart, Trash2, Calendar } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { consumptionsApi } from '../api/consumptions';
@@ -35,10 +35,13 @@ export default function Consumptions() {
   const [dateTo, setDateTo] = useState(todayStr());
   const [deleting, setDeleting] = useState<Consumption | null>(null);
 
-  const { data: consumptions, isLoading } = useQuery({
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
     queryKey: ['consumptions'],
-    queryFn: consumptionsApi.getAll,
+    queryFn: ({ pageParam }: { pageParam: string | undefined }) => consumptionsApi.getAll(pageParam),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) => lastPage.hasMore ? lastPage.nextCursor ?? undefined : undefined,
   });
+  const consumptions = data?.pages.flatMap(p => p.items) ?? [];
 
   const { data: inventory } = useQuery({
     queryKey: ['inventory'],
@@ -61,7 +64,6 @@ export default function Consumptions() {
   );
 
   const filtered = useMemo(() => {
-    if (!consumptions) return [];
     return consumptions.filter(c => {
       const d = c.consumedAt.slice(0, 10);
       return d >= dateFrom && d <= dateTo;
@@ -277,6 +279,17 @@ export default function Consumptions() {
                 <p className="text-xl font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">${totalProfit.toFixed(2)}</p>
               </div>
             </div>
+            {hasNextPage && (
+              <div className="flex justify-center p-4 border-t border-gray-100 dark:border-gray-800/40">
+                <button
+                  onClick={() => fetchNextPage()}
+                  disabled={isFetchingNextPage}
+                  className="px-4 py-2 text-sm text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 rounded-xl transition-colors disabled:opacity-50"
+                >
+                  {isFetchingNextPage ? 'Cargando…' : 'Cargar más'}
+                </button>
+              </div>
+            )}
           </>
         )}
       </div>

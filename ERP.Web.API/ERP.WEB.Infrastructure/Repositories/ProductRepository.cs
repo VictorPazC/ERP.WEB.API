@@ -1,3 +1,4 @@
+using ERP.WEB.Application.Common;
 using ERP.WEB.Domain.Entities;
 using ERP.WEB.Domain.Interfaces;
 using ERP.WEB.Infrastructure.Data;
@@ -14,15 +15,18 @@ public class ProductRepository : IProductRepository
         _context = context;
     }
 
-    public async Task<IEnumerable<Product>> GetAllAsync()
+    public async Task<List<Product>> GetAllAsync(CursorParams p, CancellationToken ct = default)
     {
+        var afterId = CursorHelper.Decode(p.Cursor) ?? 0;
         return await _context.Products
+            .Where(p => p.ProductId > afterId)
             .Include(p => p.Category)
             .Include(p => p.Brand)
             .Include(p => p.Inventory)
             .Include(p => p.Variants)
-            .OrderBy(p => p.Name)
-            .ToListAsync();
+            .OrderBy(p => p.ProductId)
+            .Take(p.PageSize + 1)
+            .ToListAsync(ct);
     }
 
     public async Task<Product?> GetByIdAsync(int id)

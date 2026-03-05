@@ -1,3 +1,4 @@
+using ERP.WEB.Application.Common;
 using ERP.WEB.Domain.Entities;
 using ERP.WEB.Domain.Interfaces;
 using ERP.WEB.Infrastructure.Data;
@@ -14,11 +15,15 @@ public class ProductImageRepository : IProductImageRepository
         _context = context;
     }
 
-    public async Task<IEnumerable<ProductImage>> GetAllAsync()
+    public async Task<List<ProductImage>> GetAllAsync(CursorParams p, CancellationToken ct = default)
     {
+        var afterId = CursorHelper.Decode(p.Cursor) ?? 0;
         return await _context.ProductImages
+            .Where(i => i.ImageId > afterId)
             .Include(i => i.Product)
-            .ToListAsync();
+            .OrderBy(i => i.ImageId)
+            .Take(p.PageSize + 1)
+            .ToListAsync(ct);
     }
 
     public async Task<ProductImage?> GetByIdAsync(int id)

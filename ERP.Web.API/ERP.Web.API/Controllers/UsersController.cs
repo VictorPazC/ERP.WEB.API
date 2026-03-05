@@ -1,17 +1,25 @@
+using ERP.WEB.Application.Common;
 using ERP.WEB.Application.DTOs;
 using ERP.WEB.Application.Features.Users.Commands.CreateUser;
 using ERP.WEB.Application.Features.Users.Commands.DeleteUser;
 using ERP.WEB.Application.Features.Users.Commands.Login;
+using ERP.WEB.Application.Features.Users.Commands.RefreshToken;
+using ERP.WEB.Application.Features.Users.Commands.RevokeToken;
 using ERP.WEB.Application.Features.Users.Commands.UpdateUser;
 using ERP.WEB.Application.Features.Users.Queries.GetAllUsers;
 using ERP.WEB.Application.Features.Users.Queries.GetUserById;
+using ERP.Web.API.Authorization;
 using Mediator;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ERP.Web.API.Controllers;
 
-//[Authorize]
+public record RefreshTokenRequest(string Token);
+public record RevokeTokenRequest(string Token);
+
+// Protege todos los endpoints de usuarios. Login y Refresh quedan públicos vía [AllowAnonymous].
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class UsersController : ControllerBase
@@ -26,12 +34,13 @@ public class UsersController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<UserDto>>> GetAll()
+    public async Task<ActionResult<CursorPagedResult<UserDto>>> GetAll(
+        [FromQuery] string? cursor, [FromQuery] int pageSize = 20)
     {
-        _logger.LogDebug("[DEBUG] GetAll users requested");
-        var users = await _mediator.Send(new GetAllUsersQuery());
-        _logger.LogInformation("[INFO]  Returned {Count} users", users.Count());
-        return Ok(users);
+        _logger.LogDebug("[DEBUG] GetAll users cursor={Cursor} pageSize={PageSize}", cursor, pageSize);
+        var result = await _mediator.Send(new GetAllUsersQuery(new CursorParams(cursor, pageSize)));
+        _logger.LogInformation("[INFO]  Returned {Count} users hasMore={HasMore}", result.Items.Count(), result.HasMore);
+        return Ok(result);
     }
 
     [HttpGet("{id}")]
@@ -48,6 +57,7 @@ public class UsersController : ControllerBase
         return Ok(user);
     }
 
+    [Authorize(Policy = Policies.Admin)]
     [HttpPost]
     public async Task<ActionResult<UserDto>> Create([FromBody] CreateUserDto dto)
     {
@@ -57,6 +67,7 @@ public class UsersController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = user.UserId }, user);
     }
 
+    [Authorize(Policy = Policies.Admin)]
     [HttpPut("{id}")]
     public async Task<ActionResult<UserDto>> Update(int id, [FromBody] UpdateUserDto dto)
     {
@@ -92,6 +103,36 @@ public class UsersController : ControllerBase
         return Ok(result);
     }
 
+    [AllowAnonymous]
+    [HttpPost("refresh")]
+    public async Task<ActionResult<LoginResultDto>> Refresh([FromBody] RefreshTokenRequest req)
+    {
+        _logger.LogInformation("[INFO]  Token refresh requested");
+        var result = await _mediator.Send(new RefreshTokenCommand(req.Token));
+        if (result is null)
+        {
+            _logger.LogWarning("[WARN]  Token refresh failed — invalid or expired token");
+            return Unauthorized(new { message = "Invalid or expired refresh token" });
+        }
+        _logger.LogInformation("[INFO]  Token refresh successful for userId={UserId}", result.UserId);
+        return Ok(result);
+    }
+
+    [HttpPost("revoke")]
+    public async Task<ActionResult> Revoke([FromBody] RevokeTokenRequest req)
+    {
+        _logger.LogInformation("[INFO]  Token revoke requested");
+        var result = await _mediator.Send(new RevokeTokenCommand(req.Token));
+        if (!result)
+        {
+            _logger.LogWarning("[WARN]  Token revoke failed — token not found or already revoked");
+            return NotFound(new { message = "Token not found or already revoked" });
+        }
+        _logger.LogInformation("[INFO]  Token revoked successfully");
+        return NoContent();
+    }
+
+    [Authorize(Policy = Policies.Admin)]
     [HttpDelete("{id}")]
     public async Task<ActionResult> Delete(int id)
     {

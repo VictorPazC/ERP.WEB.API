@@ -1,10 +1,11 @@
+using ERP.WEB.Application.Common;
 using ERP.WEB.Domain.Entities;
 
 namespace ERP.WEB.Domain.Interfaces;
 
 public interface IPromotionRepository
 {
-    Task<IEnumerable<Promotion>> GetAllAsync();
+    Task<List<Promotion>> GetAllAsync(CursorParams p, CancellationToken ct = default);
     Task<Promotion?> GetByIdAsync(int id);
     Task<IEnumerable<Promotion>> GetByProductIdAsync(int productId);
     Task<IEnumerable<Promotion>> GetActiveAsync();

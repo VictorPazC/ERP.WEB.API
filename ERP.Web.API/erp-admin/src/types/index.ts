@@ -1,3 +1,9 @@
+export interface CursorPagedResult<T> {
+  items: T[];
+  nextCursor: string | null;
+  hasMore: boolean;
+}
+
 export interface Brand {
   brandId: number;
   name: string;
@@ -245,6 +251,8 @@ export interface LoginResultDto {
   companyName: string;
   isSuperAdmin: boolean;
   companies?: CompanySummary[];
+  refreshToken: string;
+  refreshTokenExpiry: string;
 }
 
 export interface CompanySummary {
@@ -313,4 +321,35 @@ export interface CreateConsumptionDto {
   quantity: number;
   consumedAt: string;
   notes?: string;
+}
+
+export type OrderStatus = 'Draft' | 'Confirmed' | 'Cancelled';
+
+export interface OrderItem {
+  orderItemId: number;
+  inventoryId: number;
+  productName: string;
+  quantity: number;
+  unitPrice: number;
+  subtotal: number;
+}
+
+export interface Order {
+  orderId: number;
+  status: OrderStatus;
+  notes?: string;
+  totalAmount: number;
+  createdAt: string;
+  items: OrderItem[];
+}
+
+export interface CreateOrderItemDto {
+  inventoryId: number;
+  quantity: number;
+  unitPrice: number;
+}
+
+export interface CreateOrderDto {
+  notes?: string;
+  items: CreateOrderItemDto[];
 }

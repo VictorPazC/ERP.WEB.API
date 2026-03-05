@@ -1,10 +1,11 @@
+using ERP.WEB.Application.Common;
 using ERP.WEB.Domain.Entities;
 
 namespace ERP.WEB.Domain.Interfaces;
 
 public interface IProductImageRepository
 {
-    Task<IEnumerable<ProductImage>> GetAllAsync();
+    Task<List<ProductImage>> GetAllAsync(CursorParams p, CancellationToken ct = default);
     Task<ProductImage?> GetByIdAsync(int id);
     Task<IEnumerable<ProductImage>> GetByProductIdAsync(int productId);
     Task<ProductImage?> GetPrimaryByProductIdAsync(int productId);

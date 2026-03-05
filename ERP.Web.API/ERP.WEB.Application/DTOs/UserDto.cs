@@ -39,7 +39,9 @@ public record LoginResultDto(
     int CompanyId,
     string CompanyName,
     bool IsSuperAdmin,
-    CompanySummaryDto[]? Companies
+    CompanySummaryDto[]? Companies,
+    string RefreshToken,
+    DateTime RefreshTokenExpiry
 );
 
 public record CompanySummaryDto(

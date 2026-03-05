@@ -1,5 +1,5 @@
 ﻿import { useState, useMemo } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Pencil, Trash2, Layers, ChevronRight, ChevronDown, FolderOpen, Folder } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { categoriesApi } from '../api/categories';
@@ -160,8 +160,14 @@ export default function Categories() {
   const [selected, setSelected] = useState<Category | null>(null);
   const [deleting, setDeleting] = useState<Category | null>(null);
 
-  const { data: categories, isLoading } = useQuery({ queryKey: ['categories'], queryFn: categoriesApi.getAll });
-  const tree = useMemo(() => buildTree(categories ?? []), [categories]);
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
+    queryKey: ['categories'],
+    queryFn: ({ pageParam }: { pageParam: string | undefined }) => categoriesApi.getAll(pageParam),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) => lastPage.hasMore ? lastPage.nextCursor ?? undefined : undefined,
+  });
+  const categories = data?.pages.flatMap(p => p.items) ?? [];
+  const tree = useMemo(() => buildTree(categories), [categories]);
 
   const createMut = useMutation({ mutationFn: (dto: CreateCategoryDto) => categoriesApi.create(dto), onSuccess: () => { qc.invalidateQueries({ queryKey: ['categories'] }); toast.success('Category created'); } });
   const updateMut = useMutation({ mutationFn: ({ id, dto }: { id: number; dto: UpdateCategoryDto }) => categoriesApi.update(id, dto), onSuccess: () => { qc.invalidateQueries({ queryKey: ['categories'] }); toast.success('Category updated'); } });
@@ -181,7 +187,7 @@ export default function Categories() {
     <div>
       <PageHeader
         title="Categories"
-        subtitle={`${categories?.length ?? 0} total`}
+        subtitle={`${categories.length} total`}
         action={isAdmin ? (
           <button onClick={() => { setSelected(null); setModal('create'); }} className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-sm font-medium text-white transition-all shadow-lg shadow-indigo-600/20 hover:shadow-indigo-500/30">
             <Plus size={16} /> New Category
@@ -189,7 +195,7 @@ export default function Categories() {
         ) : undefined}
       />
       <div className="p-4 sm:p-6 lg:p-8">
-        {isLoading ? <LoadingSpinner /> : categories?.length === 0 ? (
+        {isLoading ? <LoadingSpinner /> : categories.length === 0 ? (
           <EmptyState icon={Layers} title="No categories yet" description="Create your first category to get started" />
         ) : (
           <div className="bg-white dark:bg-gray-900/60 border border-gray-200 dark:border-gray-800/60 rounded-2xl overflow-hidden">
@@ -204,13 +210,24 @@ export default function Categories() {
                 <CategoryTreeNode key={node.categoryId} node={node} depth={0} onEdit={handleEdit} onDelete={handleDelete} isAdmin={isAdmin} />
               ))}
             </div>
+            {hasNextPage && (
+              <div className="flex justify-center p-4 border-t border-gray-100 dark:border-gray-800/40">
+                <button
+                  onClick={() => fetchNextPage()}
+                  disabled={isFetchingNextPage}
+                  className="px-4 py-2 text-sm text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 rounded-xl transition-colors disabled:opacity-50"
+                >
+                  {isFetchingNextPage ? 'Cargando…' : 'Cargar más'}
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
 
       {isAdmin && (modal === 'create' || modal === 'edit') && (
         <Modal title={modal === 'edit' ? 'Edit Category' : 'New Category'} onClose={() => setModal(null)}>
-          <CategoryForm initial={modal === 'edit' ? selected ?? undefined : undefined} categories={categories ?? []} onSave={handleSave} onClose={() => setModal(null)} />
+          <CategoryForm initial={modal === 'edit' ? selected ?? undefined : undefined} categories={categories} onSave={handleSave} onClose={() => setModal(null)} />
         </Modal>
       )}
       {isAdmin && deleting && (

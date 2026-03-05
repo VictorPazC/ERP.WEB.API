@@ -1,5 +1,5 @@
 ﻿import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Pencil, Trash2, Bookmark, Star } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { brandsApi } from '../api/brands';
@@ -58,7 +58,13 @@ export default function Brands() {
   const [selected, setSelected] = useState<Brand | null>(null);
   const [deleting, setDeleting] = useState<Brand | null>(null);
 
-  const { data: brands, isLoading } = useQuery({ queryKey: ['brands'], queryFn: brandsApi.getAll });
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
+    queryKey: ['brands'],
+    queryFn: ({ pageParam }: { pageParam: string | undefined }) => brandsApi.getAll(pageParam),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) => lastPage.hasMore ? lastPage.nextCursor ?? undefined : undefined,
+  });
+  const brands = data?.pages.flatMap(p => p.items) ?? [];
 
   const createMut = useMutation({
     mutationFn: (dto: CreateBrandDto) => brandsApi.create(dto),
@@ -86,7 +92,7 @@ export default function Brands() {
     <div>
       <PageHeader
         title="Brands"
-        subtitle={`${brands?.length ?? 0} total`}
+        subtitle={`${brands.length} total`}
         action={isAdmin ? (
           <button onClick={() => { setSelected(null); setModal('create'); }}
             className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-sm font-medium text-white transition-all shadow-lg shadow-indigo-600/20 hover:shadow-indigo-500/30">
@@ -95,7 +101,7 @@ export default function Brands() {
         ) : undefined}
       />
       <div className="p-4 sm:p-6 lg:p-8">
-        {isLoading ? <LoadingSpinner /> : brands?.length === 0 ? (
+        {isLoading ? <LoadingSpinner /> : brands.length === 0 ? (
           <EmptyState icon={Bookmark} title="No brands" description="Create brands to assign them to products" />
         ) : (
           <div className="bg-white dark:bg-gray-900/60 border border-gray-200 dark:border-gray-800/60 rounded-2xl overflow-hidden">
@@ -108,7 +114,7 @@ export default function Brands() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-800/40">
-                {brands?.map(brand => (
+                {brands.map(brand => (
                   <tr key={brand.brandId} className="hover:bg-gray-50 dark:hover:bg-white/[0.02] transition-colors group">
                     <td className="px-5 py-3.5">
                       <div className="flex items-center gap-2.5">
@@ -146,6 +152,17 @@ export default function Brands() {
                 ))}
               </tbody>
             </table>
+            {hasNextPage && (
+              <div className="flex justify-center p-4 border-t border-gray-100 dark:border-gray-800/40">
+                <button
+                  onClick={() => fetchNextPage()}
+                  disabled={isFetchingNextPage}
+                  className="px-4 py-2 text-sm text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 rounded-xl transition-colors disabled:opacity-50"
+                >
+                  {isFetchingNextPage ? 'Cargando…' : 'Cargar más'}
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>

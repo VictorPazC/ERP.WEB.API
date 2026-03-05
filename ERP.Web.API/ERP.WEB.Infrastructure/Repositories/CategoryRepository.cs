@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using ERP.WEB.Application.Common;
 using ERP.WEB.Domain.Entities;
 using ERP.WEB.Domain.Interfaces;
 using ERP.WEB.Infrastructure.Data;
@@ -17,13 +18,17 @@ public class CategoryRepository : ICategoryRepository
         _context = context;
     }
 
-    public async Task<IEnumerable<Category>> GetAllAsync()
+    public async Task<List<Category>> GetAllAsync(CursorParams p, CancellationToken ct = default)
     {
+        var afterId = CursorHelper.Decode(p.Cursor) ?? 0;
         return await _context.Categories
+            .Where(c => c.CategoryId > afterId)
             .Include(c => c.ParentCategory)
             .Include(c => c.SubCategories)
             .Include(c => c.Products)
-            .ToListAsync();
+            .OrderBy(c => c.CategoryId)
+            .Take(p.PageSize + 1)
+            .ToListAsync(ct);
     }
 
     public async Task<Category?> GetByIdAsync(int id)
