@@ -5,6 +5,7 @@ using ERP.WEB.Application.Features.Users.Commands.DeleteUser;
 using ERP.WEB.Application.Features.Users.Commands.Login;
 using ERP.WEB.Application.Features.Users.Commands.RefreshToken;
 using ERP.WEB.Application.Features.Users.Commands.RevokeToken;
+using ERP.WEB.Application.Features.Users.Commands.SeedSuperAdmin;
 using ERP.WEB.Application.Features.Users.Commands.UpdateUser;
 using ERP.WEB.Application.Features.Users.Queries.GetAllUsers;
 using ERP.WEB.Application.Features.Users.Queries.GetUserById;
@@ -85,6 +86,25 @@ public class UsersController : ControllerBase
         }
         _logger.LogInformation("[INFO]  User id={Id} updated successfully", id);
         return Ok(user);
+    }
+
+    /// <summary>
+    /// Crea el primer SuperAdmin del sistema. Devuelve 409 Conflict si ya existe uno.
+    /// Este endpoint no requiere autenticación y sólo puede ejecutarse una vez.
+    /// </summary>
+    [AllowAnonymous]
+    [HttpPost("seed-super-admin")]
+    public async Task<ActionResult<UserDto>> SeedSuperAdmin([FromBody] SeedSuperAdminDto dto)
+    {
+        _logger.LogInformation("[INFO]  SeedSuperAdmin attempt for email={Email}", dto.Email);
+        var user = await _mediator.Send(new SeedSuperAdminCommand(dto));
+        if (user is null)
+        {
+            _logger.LogWarning("[WARN]  SeedSuperAdmin rejected — SuperAdmin already exists");
+            return Conflict(new { message = "A SuperAdmin already exists. Use the normal login." });
+        }
+        _logger.LogInformation("[INFO]  SuperAdmin seeded id={Id} email={Email}", user.UserId, user.Email);
+        return CreatedAtAction(nameof(GetById), new { id = user.UserId }, user);
     }
 
     [AllowAnonymous]

@@ -55,7 +55,13 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<Tag>().HasQueryFilter(e => _companyContext == null || _companyContext.CompanyId == 0 || _companyContext.IsSuperAdmin || e.CompanyId == _companyContext.CompanyId);
         modelBuilder.Entity<Promotion>().HasQueryFilter(e => _companyContext == null || _companyContext.CompanyId == 0 || _companyContext.IsSuperAdmin || e.CompanyId == _companyContext.CompanyId);
         modelBuilder.Entity<ProductImage>().HasQueryFilter(e => _companyContext == null || _companyContext.CompanyId == 0 || _companyContext.IsSuperAdmin || e.CompanyId == _companyContext.CompanyId);
-        modelBuilder.Entity<User>().HasQueryFilter(e => _companyContext == null || _companyContext.CompanyId == 0 || _companyContext.IsSuperAdmin || e.CompanyId == _companyContext.CompanyId);
+        // User.CompanyId is nullable (SuperAdmin has no company).
+        // SuperAdmins and unauthenticated requests (CompanyId == 0) see all users.
+        modelBuilder.Entity<User>().HasQueryFilter(e =>
+            _companyContext == null ||
+            _companyContext.CompanyId == 0 ||
+            _companyContext.IsSuperAdmin ||
+            e.CompanyId == _companyContext.CompanyId);
         modelBuilder.Entity<Consumption>().HasQueryFilter(e => _companyContext == null || _companyContext.CompanyId == 0 || _companyContext.IsSuperAdmin || e.CompanyId == _companyContext.CompanyId);
         modelBuilder.Entity<ProductVariant>().HasQueryFilter(e => _companyContext == null || _companyContext.CompanyId == 0 || _companyContext.IsSuperAdmin || e.CompanyId == _companyContext.CompanyId);
         modelBuilder.Entity<Order>().HasQueryFilter(e => _companyContext == null || _companyContext.CompanyId == 0 || _companyContext.IsSuperAdmin || e.CompanyId == _companyContext.CompanyId);
@@ -214,13 +220,16 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.Email).IsRequired().HasMaxLength(200);
             entity.HasIndex(e => e.Email).IsUnique();
             entity.HasIndex(e => e.CompanyId);
-            entity.Property(e => e.Role).HasMaxLength(50).HasDefaultValue("User");
+            entity.Property(e => e.Role).HasMaxLength(50).HasDefaultValue("Viewer");
             entity.Property(e => e.Status).HasMaxLength(50).HasDefaultValue("Active");
             entity.Property(e => e.PasswordHash).HasMaxLength(256).IsRequired(false);
             entity.Property(e => e.IsSuperAdmin).HasDefaultValue(false);
+            // CompanyId is nullable — SuperAdmin users have no company (CompanyId = NULL).
+            entity.Property(e => e.CompanyId).IsRequired(false);
             entity.HasOne(e => e.Company)
                   .WithMany(c => c.Users)
                   .HasForeignKey(e => e.CompanyId)
+                  .IsRequired(false)
                   .OnDelete(DeleteBehavior.Restrict);
         });
 

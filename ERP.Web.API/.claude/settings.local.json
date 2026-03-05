@@ -230,7 +230,9 @@
       "Bash(cut -d'\\(' -f1)",
       "Bash(git rm -r --cached \"*/obj/\" \"*/bin/\")",
       "Bash(git commit:*)",
-      "Bash(npm uninstall axios)"
+      "Bash(npm uninstall axios)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\vpaz1\\\\Desktop\\\\ERP.WEB.API\\\\ERP.Web.API\" -Filter \"*.sln\" -Recurse)",
+      "Bash(sqlcmd -S \"localhost\\\\SQLEXPRESS\" -d erptest -Q \"SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE=''BASE TABLE'' ORDER BY TABLE_NAME\")"
     ]
   }
 }

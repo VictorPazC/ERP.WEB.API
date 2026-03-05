@@ -9,6 +9,8 @@ export const usersApi = {
   create: (dto: CreateUserDto) => client.post<User>('/api/users', dto),
   update: (id: number, dto: UpdateUserDto) => client.put<User>(`/api/users/${id}`, dto),
   delete: (id: number) => client.delete(`/api/users/${id}`),
+  seedSuperAdmin: (dto: { name: string; email: string; password: string }) =>
+    client.post<User>('/api/users/seed-super-admin', dto),
   login: (dto: LoginDto) => client.post<LoginResultDto>('/api/users/login', dto),
   refresh: (token: string) =>
     client.post<{ token: string; userId: number; name: string; email: string; role: string; companyId: number; companyName: string; isSuperAdmin: boolean; companies?: { companyId: number; name: string; slug: string; logoUrl?: string }[]; refreshToken: string; refreshTokenExpiry: string }>('/api/users/refresh', { token }),

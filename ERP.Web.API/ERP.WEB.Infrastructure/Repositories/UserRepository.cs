@@ -56,4 +56,9 @@ public class UserRepository : IUserRepository
             await _context.SaveChangesAsync();
         }
     }
+
+    public async Task<bool> AnySuperAdminAsync(CancellationToken ct = default)
+    {
+        return await _context.Users.AnyAsync(u => u.IsSuperAdmin, ct);
+    }
 }

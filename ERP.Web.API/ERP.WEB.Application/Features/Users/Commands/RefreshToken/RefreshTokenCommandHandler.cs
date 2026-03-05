@@ -50,9 +50,9 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, L
             ExpiresAt = newRefreshExpiry
         }, cancellationToken);
 
-        // Get company info
-        var company     = await _companyRepo.GetByIdAsync(user.CompanyId);
-        var companyName = company?.Name ?? "Unknown";
+        // Get company info (null for SuperAdmin)
+        var company     = user.CompanyId.HasValue ? await _companyRepo.GetByIdAsync(user.CompanyId.Value) : null;
+        var companyName = company?.Name ?? string.Empty;
 
         CompanySummaryDto[]? companies = null;
         if (user.IsSuperAdmin)
@@ -70,7 +70,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, L
             user.Name,
             user.Email,
             user.Role,
-            user.CompanyId,
+            user.CompanyId ?? 0,
             companyName,
             user.IsSuperAdmin,
             companies,

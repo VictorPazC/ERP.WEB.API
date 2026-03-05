@@ -1,13 +1,16 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using ERP.WEB.Domain.Interfaces;
 
 namespace ERP.WEB.Domain.Entities;
 
 [Table("Users")]
-public class User : ICompanyEntity
+public class User
 {
-    public int CompanyId { get; set; }
+    /// <summary>
+    /// Null for SuperAdmin users who are not tied to a single company.
+    /// All regular users must have a CompanyId.
+    /// </summary>
+    public int? CompanyId { get; set; }
 
     [ForeignKey(nameof(CompanyId))]
     public Company? Company { get; set; }
@@ -27,7 +30,7 @@ public class User : ICompanyEntity
     public string Email { get; set; } = string.Empty;
 
     [MaxLength(50)]
-    public string Role { get; set; } = "User";
+    public string Role { get; set; } = "Viewer";
 
     [MaxLength(50)]
     public string Status { get; set; } = "Active";

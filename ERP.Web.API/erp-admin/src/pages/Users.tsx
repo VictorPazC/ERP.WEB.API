@@ -23,7 +23,7 @@ function UserForm({ initial, onSave, onClose }: {
   const [form, setForm] = useState({
     name: initial?.name ?? '',
     email: initial?.email ?? '',
-    role: initial?.role ?? 'User',
+    role: initial?.role ?? 'Viewer',
     status: initial?.status ?? 'Active',
     password: '',
   });
@@ -63,9 +63,8 @@ function UserForm({ initial, onSave, onClose }: {
         <div className="flex flex-col gap-1.5">
           <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Role</label>
           <select value={form.role} onChange={set('role')} className={selectCls}>
-            <option>User</option>
-            <option>Admin</option>
-            <option>Manager</option>
+            <option value="Viewer">Viewer</option>
+            <option value="Admin">Admin</option>
           </select>
         </div>
         {initial && (
@@ -119,7 +118,7 @@ export default function Users() {
   );
 
   const roleColor = (role: string): 'indigo' | 'yellow' | 'green' | 'gray' =>
-    role === 'Admin' ? 'indigo' : role === 'Manager' ? 'yellow' : 'gray';
+    role === 'SuperAdmin' ? 'yellow' : role === 'Admin' ? 'indigo' : 'gray';
 
   return (
     <div>

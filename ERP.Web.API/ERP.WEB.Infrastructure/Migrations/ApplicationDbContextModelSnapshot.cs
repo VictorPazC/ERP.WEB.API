@@ -525,7 +525,7 @@ namespace ERP.WEB.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserId"));
 
-                    b.Property<int>("CompanyId")
+                    b.Property<int?>("CompanyId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAt")
@@ -555,7 +555,7 @@ namespace ERP.WEB.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)")
-                        .HasDefaultValue("User");
+                        .HasDefaultValue("Viewer");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -809,8 +809,7 @@ namespace ERP.WEB.Infrastructure.Migrations
                     b.HasOne("ERP.WEB.Domain.Entities.Company", "Company")
                         .WithMany("Users")
                         .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Company");
                 });

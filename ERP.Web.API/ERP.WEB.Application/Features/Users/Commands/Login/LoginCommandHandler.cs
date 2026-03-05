@@ -48,9 +48,9 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, LoginResultDto?
             ExpiresAt = refreshExpiry
         }, cancellationToken);
 
-        // Get company info
-        var company     = await _companyRepo.GetByIdAsync(user.CompanyId);
-        var companyName = company?.Name ?? "Unknown";
+        // Get company info (CompanyId is null for SuperAdmin — returns unknown)
+        var company     = user.CompanyId.HasValue ? await _companyRepo.GetByIdAsync(user.CompanyId.Value) : null;
+        var companyName = company?.Name ?? string.Empty;
 
         // If SuperAdmin, include list of all companies
         CompanySummaryDto[]? companies = null;
@@ -69,7 +69,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, LoginResultDto?
             user.Name,
             user.Email,
             user.Role,
-            user.CompanyId,
+            user.CompanyId ?? 0,
             companyName,
             user.IsSuperAdmin,
             companies,

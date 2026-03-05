@@ -25,6 +25,12 @@ public record UpdateUserDto(
     string? Password
 );
 
+public record SeedSuperAdminDto(
+    string Name,
+    string Email,
+    string Password
+);
+
 public record LoginDto(
     string Email,
     string Password

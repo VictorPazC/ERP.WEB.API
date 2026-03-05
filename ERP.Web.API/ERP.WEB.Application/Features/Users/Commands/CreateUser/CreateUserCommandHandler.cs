@@ -8,10 +8,12 @@ namespace ERP.WEB.Application.Features.Users.Commands.CreateUser;
 public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, UserDto>
 {
     private readonly IUserRepository _userRepository;
+    private readonly ICompanyContext _companyContext;
 
-    public CreateUserCommandHandler(IUserRepository userRepository)
+    public CreateUserCommandHandler(IUserRepository userRepository, ICompanyContext companyContext)
     {
         _userRepository = userRepository;
+        _companyContext = companyContext;
     }
 
     public async ValueTask<UserDto> Handle(CreateUserCommand request, CancellationToken cancellationToken)
@@ -21,6 +23,8 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, UserD
             Name = request.UserDto.Name,
             Email = request.UserDto.Email,
             Role = request.UserDto.Role,
+            // Assign company from current request context (set by TenantMiddleware + X-Company-Id header).
+            CompanyId = _companyContext.CompanyId > 0 ? _companyContext.CompanyId : (int?)null,
             PasswordHash = string.IsNullOrWhiteSpace(request.UserDto.Password)
                 ? null
                 : BCrypt.Net.BCrypt.HashPassword(request.UserDto.Password),

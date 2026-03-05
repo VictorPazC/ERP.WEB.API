@@ -28,7 +28,7 @@ public class TokenService : ITokenService
             new(ClaimTypes.Email, user.Email),
             new(ClaimTypes.Name, user.Name),
             new(ClaimTypes.Role, user.Role),
-            new("companyId", user.CompanyId.ToString()),
+            new("companyId", (user.CompanyId ?? 0).ToString()),
             new("isSuperAdmin", user.IsSuperAdmin.ToString().ToLower()),
         };
 
