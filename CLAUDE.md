@@ -352,9 +352,34 @@ npm run lint
 
 ---
 
-## Tests de integración
+## Testing
 
-El proyecto `ERP.Web.API.Tests` usa `WebApplicationFactory<Program>` contra la DB real (`erptest`).
+### Backend — unit tests (sin base de datos)
+
+Proyecto `ERP.Web.API.Unit.Tests/` — xUnit + NSubstitute 5.x + FluentAssertions 6.x. Sin referencia a Infrastructure ni DB.
+
+| Comando (desde `ERP.Web.API/`) | Descripción |
+|---|---|
+| `dotnet test ERP.Web.API.Unit.Tests/` | Corre todos los unit tests |
+| `dotnet test ERP.Web.API.Unit.Tests/ --filter "ClassName=BrandsControllerTests"` | Tests de un archivo específico |
+
+Estructura de tests backend:
+```
+ERP.Web.API.Unit.Tests/
+├── Handlers/Brands/      ← CreateBrandHandlerTests, GetAllBrandsHandlerTests
+├── Handlers/Users/       ← LoginHandlerTests, SeedSuperAdminHandlerTests
+├── Handlers/Orders/      ← CreateOrderHandlerTests
+├── Controllers/          ← BrandsControllerTests, UsersControllerTests
+└── Validators/           ← BrandValidatorTests
+```
+
+### Backend — tests de integración (requiere SQLEXPRESS)
+
+Proyecto `ERP.Web.API.Tests/` — `WebApplicationFactory<Program>` contra la DB real (`erptest`).
+
+| Comando (desde `ERP.Web.API/`) | Descripción |
+|---|---|
+| `dotnet test ERP.Web.API.Tests/` | Corre todos los tests de integración |
 
 - **`ApiFixture`** — fixture compartida para `[Collection("Api")]`: wipe completo de la DB + seed (SuperAdmin, 2 empresas, 2 admins).
 - **`SeedTests`** — fixture propia (`[Collection("Seed")]`): prueba 201 en primera llamada y 409 en segunda.
@@ -363,3 +388,23 @@ El proyecto `ERP.Web.API.Tests` usa `WebApplicationFactory<Program>` contra la D
 
 Orden de wipe (FK inverso):
 `RefreshTokens → OrderItems → Orders → Consumptions → Promotions → Product_Images → Inventory → ProductVariants → Product_Tags → Products → Categories → Brands → Tags → Users → Companies`
+
+### Frontend — unit tests (Vitest, sin red real)
+
+| Comando (desde `erp-admin/`) | Descripción |
+|---|---|
+| `npm run test` | Corre todos los tests una vez |
+| `npm run test:watch` | Modo watch (re-corre al guardar) |
+| `npm run test -- imageUrl` | Tests de un archivo específico |
+| `npm run test:coverage` | Con reporte de cobertura |
+
+Estructura de tests frontend:
+```
+erp-admin/src/__tests__/
+├── utils/imageUrl.test.ts
+├── context/UserContext.test.tsx
+├── context/ThemeContext.test.tsx
+└── api/client.test.ts
+```
+
+> **Regla:** Después de cualquier cambio en controladores o lógica de negocio, ejecuta los tests relevantes y confirma que pasan antes de terminar la tarea.
