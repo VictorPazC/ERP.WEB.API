@@ -42,7 +42,8 @@ function CategoryForm({ initial, categories, onSave, onClose }: {
     }
   };
 
-  const available = categories.filter(c => c.categoryId !== initial?.categoryId && c.subCategoriesCount > 0);
+  const descendantIds = initial ? getDescendantIds(initial.categoryId, categories) : new Set<number>();
+  const available = categories.filter(c => c.categoryId !== initial?.categoryId && !descendantIds.has(c.categoryId));
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -52,11 +53,8 @@ function CategoryForm({ initial, categories, onSave, onClose }: {
         <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Parent Category</label>
         <select value={parentId} onChange={e => setParentId(e.target.value)} className={selectCls}>
           <option value="">None (Main Category)</option>
-          {available.map(c => <option key={c.categoryId} value={c.categoryId}>{c.name} ({c.subCategoriesCount} sub)</option>)}
+          {available.map(c => <option key={c.categoryId} value={c.categoryId}>{c.name}</option>)}
         </select>
-        {available.length === 0 && (
-          <p className="text-[11px] text-gray-400 dark:text-gray-600">No parent categories available. Only categories that already have subcategories can be set as a parent.</p>
-        )}
       </div>
       <div className="flex gap-3 pt-2">
         <button type="button" onClick={onClose} className="flex-1 px-4 py-2.5 border border-gray-300 dark:border-gray-700/60 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors text-sm font-medium">Cancel</button>
@@ -72,6 +70,21 @@ interface TreeNode extends Category {
   children: TreeNode[];
 }
 
+function getDescendantIds(categoryId: number, categories: Category[]): Set<number> {
+  const ids = new Set<number>();
+  const queue = [categoryId];
+  while (queue.length > 0) {
+    const current = queue.shift()!;
+    for (const cat of categories) {
+      if (cat.parentCategoryId === current && !ids.has(cat.categoryId)) {
+        ids.add(cat.categoryId);
+        queue.push(cat.categoryId);
+      }
+    }
+  }
+  return ids;
+}
+
 function buildTree(categories: Category[]): TreeNode[] {
   const map = new Map<number, TreeNode>();
   const roots: TreeNode[] = [];
@@ -83,6 +96,18 @@ function buildTree(categories: Category[]): TreeNode[] {
     } else {
       roots.push(node);
     }
+  }
+  // Nodos atrapados en un ciclo no son alcanzables desde la raíz — los surfaceamos
+  const visited = new Set<number>();
+  const stack = [...roots];
+  while (stack.length > 0) {
+    const node = stack.pop()!;
+    if (visited.has(node.categoryId)) continue;
+    visited.add(node.categoryId);
+    for (const child of node.children) stack.push(child);
+  }
+  for (const [id, node] of map) {
+    if (!visited.has(id)) roots.push(node);
   }
   return roots;
 }

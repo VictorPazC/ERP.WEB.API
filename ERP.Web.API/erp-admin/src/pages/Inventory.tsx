@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import { inventoryApi } from '../api/inventory';
 import { productsApi } from '../api/products';
 import { productImagesApi } from '../api/productImages';
+import { productVariantsApi } from '../api/productVariants';
 import type { Product, Inventory, CreateInventoryDto, UpdateInventoryDto, ProductImage } from '../types';
 import PageHeader from '../components/PageHeader';
 import Modal from '../components/Modal';
@@ -186,12 +187,13 @@ function InventoryForm({ initial, onSave, onClose }: {
   onSave: (data: CreateInventoryDto | UpdateInventoryDto) => Promise<void>;
   onClose: () => void;
 }) {
-  const { data: rawProducts } = useQuery({ queryKey: ['products'], queryFn: () => productsApi.getAll() });
+  const { data: rawProducts } = useQuery({ queryKey: ['products-select'], queryFn: () => productsApi.getAll() });
   const products = rawProducts?.items ?? [];
-  const { data: rawAllImages } = useQuery({ queryKey: ['product-images'], queryFn: () => productImagesApi.getAll() });
+  const { data: rawAllImages } = useQuery({ queryKey: ['product-images-select'], queryFn: () => productImagesApi.getAll() });
   const allImages = rawAllImages?.items ?? [];
   const [form, setForm] = useState({
     productId: initial?.productId?.toString() ?? '',
+    variantId: initial?.variantId?.toString() ?? '',
     purchaseCost: initial?.purchaseCost?.toString() ?? '',
     suggestedRetailPrice: initial?.suggestedRetailPrice?.toString() ?? '',
     currentStock: initial?.currentStock?.toString() ?? '0',
@@ -201,15 +203,33 @@ function InventoryForm({ initial, onSave, onClose }: {
   const [loading, setLoading] = useState(false);
   const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setForm(f => ({ ...f, [k]: e.target.value }));
 
+  // Load variants when a product is selected (both on create and edit)
+  const activeProductId = form.productId || initial?.productId?.toString() || '';
+  const { data: variants } = useQuery({
+    queryKey: ['variants-select', activeProductId],
+    queryFn: () => productVariantsApi.getByProduct(Number(activeProductId)),
+    enabled: !!activeProductId,
+    staleTime: Infinity,
+  });
+
+  // Reset variant when product changes (only during create)
+  const prevProductId = useRef(form.productId);
+  useEffect(() => {
+    if (!initial && form.productId !== prevProductId.current) {
+      setForm(f => ({ ...f, variantId: '' }));
+      prevProductId.current = form.productId;
+    }
+  }, [form.productId, initial]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!initial && !form.productId) return;
     setLoading(true);
     try {
       if (initial) {
-        await onSave({ inventoryId: initial.inventoryId, purchaseCost: Number(form.purchaseCost), suggestedRetailPrice: Number(form.suggestedRetailPrice), currentStock: Number(form.currentStock), lastRestockDate: form.lastRestockDate, lastSaleDate: form.lastSaleDate || undefined, needsRestock: initial.needsRestock } as UpdateInventoryDto);
+        await onSave({ inventoryId: initial.inventoryId, variantId: form.variantId ? Number(form.variantId) : undefined, purchaseCost: Number(form.purchaseCost), suggestedRetailPrice: Number(form.suggestedRetailPrice), currentStock: Number(form.currentStock), lastRestockDate: form.lastRestockDate, lastSaleDate: form.lastSaleDate || undefined, needsRestock: initial.needsRestock } as UpdateInventoryDto);
       } else {
-        await onSave({ productId: Number(form.productId), purchaseCost: Number(form.purchaseCost), suggestedRetailPrice: Number(form.suggestedRetailPrice), currentStock: Number(form.currentStock), lastRestockDate: form.lastRestockDate, lastSaleDate: form.lastSaleDate || undefined } as CreateInventoryDto);
+        await onSave({ productId: Number(form.productId), variantId: form.variantId ? Number(form.variantId) : undefined, purchaseCost: Number(form.purchaseCost), suggestedRetailPrice: Number(form.suggestedRetailPrice), currentStock: Number(form.currentStock), lastRestockDate: form.lastRestockDate, lastSaleDate: form.lastSaleDate || undefined } as CreateInventoryDto);
       }
       onClose();
     } finally {
@@ -221,6 +241,25 @@ function InventoryForm({ initial, onSave, onClose }: {
     <form onSubmit={handleSubmit} className="space-y-4">
       {!initial && (
         <ProductSelector value={form.productId} onChange={val => setForm(f => ({ ...f, productId: val }))} products={products} allImages={allImages} />
+      )}
+      {variants && variants.length > 0 && (
+        <div className="flex flex-col gap-1.5">
+          <label className="text-sm font-medium text-gray-600 dark:text-gray-400">
+            Variant <span className="text-gray-400 dark:text-gray-600 font-normal">(optional)</span>
+          </label>
+          <select
+            value={form.variantId}
+            onChange={set('variantId')}
+            className="bg-gray-100 dark:bg-gray-800/60 border border-gray-300 dark:border-gray-700/60 rounded-xl px-3.5 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 hover:border-gray-400 dark:hover:border-gray-600 transition-all"
+          >
+            <option value="">No variant (product-level stock)</option>
+            {variants.map(v => (
+              <option key={v.variantId} value={v.variantId}>
+                {v.name}{v.description ? ` — ${v.description}` : ''}
+              </option>
+            ))}
+          </select>
+        </div>
       )}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <FormField label="Purchase Cost *" value={form.purchaseCost} onChange={set('purchaseCost')} type="number" step="0.01" min="0" placeholder="0.00" required />
@@ -262,7 +301,7 @@ export default function InventoryPage() {
     getNextPageParam: (lastPage) => lastPage.hasMore ? lastPage.nextCursor ?? undefined : undefined,
   });
   const inventory = data?.pages.flatMap(p => p.items) ?? [];
-  const { data: rawAllImages } = useQuery({ queryKey: ['product-images'], queryFn: () => productImagesApi.getAll() });
+  const { data: rawAllImages } = useQuery({ queryKey: ['product-images-select'], queryFn: () => productImagesApi.getAll() });
   const allImages = rawAllImages?.items;
 
   const createMut = useMutation({ mutationFn: (dto: CreateInventoryDto) => inventoryApi.create(dto), onSuccess: () => { qc.invalidateQueries({ queryKey: ['inventory'] }); toast.success('Inventory created'); } });
@@ -317,7 +356,10 @@ export default function InventoryPage() {
                           onClick={() => openLightbox(inv.productId, inv.productName ?? '')}
                         />
                       </td>
-                      <td className="px-5 py-3 text-sm font-medium text-gray-900 dark:text-white">{inv.productName ?? `#${inv.productId}`}</td>
+                      <td className="px-5 py-3">
+                        <p className="text-sm font-medium text-gray-900 dark:text-white">{inv.productName ?? `#${inv.productId}`}</p>
+                        {inv.variantName && <p className="text-xs font-medium text-indigo-600 dark:text-indigo-400 mt-0.5">{inv.variantName}</p>}
+                      </td>
                       <td className="px-5 py-3 text-sm text-gray-500 tabular-nums">${inv.purchaseCost.toFixed(2)}</td>
                       <td className="px-5 py-3 text-sm text-gray-500 tabular-nums">${inv.suggestedRetailPrice.toFixed(2)}</td>
                       <td className="px-5 py-3 text-sm font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums">+${inv.estimatedProfit.toFixed(2)}</td>
@@ -369,6 +411,7 @@ export default function InventoryPage() {
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0">
                           <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{inv.productName ?? `#${inv.productId}`}</p>
+                          {inv.variantName && <p className="text-xs font-medium text-indigo-600 dark:text-indigo-400 mt-0.5 truncate">{inv.variantName}</p>}
                           <p className="text-[11px] text-gray-500 dark:text-gray-600 mt-0.5 tabular-nums">Restock: {new Date(inv.lastRestockDate).toLocaleDateString()}</p>
                         </div>
                         <div className="flex gap-1 flex-shrink-0">

@@ -11,5 +11,6 @@ public record InventoryDto(
     DateTime LastRestockDate,
     DateTime? LastSaleDate,
     bool NeedsRestock,
-    int? VariantId
+    int? VariantId,
+    string? VariantName
 );

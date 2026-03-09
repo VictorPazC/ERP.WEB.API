@@ -36,6 +36,10 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, LoginResultDto?
         if (!BCrypt.Net.BCrypt.Verify(request.LoginDto.Password, user.PasswordHash))
             return null;
 
+        // Usuarios normales (no SuperAdmin) deben tener una compañía asignada
+        if (!user.IsSuperAdmin && !user.CompanyId.HasValue)
+            return null;
+
         // Generate JWT token
         var token = _tokenService.GenerateToken(user);
 

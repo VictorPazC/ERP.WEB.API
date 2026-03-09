@@ -21,6 +21,7 @@ public class InventoryRepository : IInventoryRepository
             .Where(i => i.InventoryId > afterId)
             .Include(i => i.Product)
                 .ThenInclude(p => p!.Category)
+            .Include(i => i.Variant)
             .OrderBy(i => i.InventoryId)
             .Take(p.PageSize + 1)
             .ToListAsync(ct);

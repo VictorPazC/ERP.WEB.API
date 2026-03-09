@@ -156,6 +156,14 @@ public class UsersController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<ActionResult> Delete(int id)
     {
+        // Impide que un usuario se elimine a sí mismo
+        var currentUserId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value);
+        if (id == currentUserId)
+        {
+            _logger.LogWarning("[WARN]  User id={Id} attempted self-deletion", id);
+            return BadRequest(new { message = "No puedes eliminar tu propia cuenta." });
+        }
+
         _logger.LogInformation("[INFO]  Deleting user id={Id}", id);
         var result = await _mediator.Send(new DeleteUserCommand(id));
         if (!result)

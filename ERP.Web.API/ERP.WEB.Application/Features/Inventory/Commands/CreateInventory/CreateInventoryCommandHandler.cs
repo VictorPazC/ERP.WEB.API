@@ -40,7 +40,8 @@ public class CreateInventoryCommandHandler : IRequestHandler<CreateInventoryComm
             created.LastRestockDate,
             created.LastSaleDate,
             created.NeedsRestock,
-            created.VariantId
+            created.VariantId,
+            null  // Variant name not needed immediately after create
         );
     }
 }

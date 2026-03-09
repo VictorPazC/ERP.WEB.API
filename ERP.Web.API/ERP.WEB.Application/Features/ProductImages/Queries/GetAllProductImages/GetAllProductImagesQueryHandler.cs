@@ -20,7 +20,7 @@ public class GetAllProductImagesQueryHandler : IRequestHandler<GetAllProductImag
         var hasMore = list.Count > request.Params.PageSize;
         if (hasMore) list.RemoveAt(list.Count - 1);
         var nextCursor = hasMore ? CursorHelper.Encode(list[^1].ImageId) : null;
-        var items = list.Select(i => new ProductImageDto(i.ImageId, i.ProductId, i.ImagePath, i.IsPrimary, i.DisplayOrder, i.RegisteredAt, i.VariantId));
+        var items = list.Select(i => new ProductImageDto(i.ImageId, i.ProductId, i.ImagePath, i.IsPrimary, i.DisplayOrder, i.RegisteredAt, i.VariantId, i.Variant?.Name));
         return new CursorPagedResult<ProductImageDto>(items, nextCursor, hasMore);
     }
 }

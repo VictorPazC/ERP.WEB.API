@@ -233,7 +233,9 @@
       "Bash(npm uninstall axios)",
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\vpaz1\\\\Desktop\\\\ERP.WEB.API\\\\ERP.Web.API\" -Filter \"*.sln\" -Recurse)",
       "Bash(sqlcmd -S \"localhost\\\\SQLEXPRESS\" -d erptest -Q \"SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE=''BASE TABLE'' ORDER BY TABLE_NAME\")",
-      "Bash(npm run test)"
+      "Bash(npm run test)",
+      "Bash(findstr -i \"ERPTest\")",
+      "Bash(sqlcmd -S \"localhost\\\\SQLEXPRESS\" -E -Q \"CREATE LOGIN [IIS APPPOOL\\\\ERPTest] FROM WINDOWS; USE erptest; CREATE USER [IIS APPPOOL\\\\ERPTest] FOR LOGIN [IIS APPPOOL\\\\ERPTest]; ALTER ROLE db_owner ADD MEMBER [IIS APPPOOL\\\\ERPTest];\")"
     ]
   }
 }

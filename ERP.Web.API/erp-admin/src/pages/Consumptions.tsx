@@ -44,7 +44,7 @@ export default function Consumptions() {
   const consumptions = data?.pages.flatMap(p => p.items) ?? [];
 
   const { data: rawInventory } = useQuery({
-    queryKey: ['inventory'],
+    queryKey: ['inventory-select'],
     queryFn: () => inventoryApi.getAll(),
   });
   const inventory = rawInventory?.items ?? [];

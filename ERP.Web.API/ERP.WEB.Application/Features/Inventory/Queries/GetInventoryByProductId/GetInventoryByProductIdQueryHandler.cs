@@ -31,7 +31,8 @@ public class GetInventoryByProductIdQueryHandler : IRequestHandler<GetInventoryB
             inventory.LastRestockDate,
             inventory.LastSaleDate,
             inventory.NeedsRestock,
-            inventory.VariantId
+            inventory.VariantId,
+            null  // Variant not loaded in this query
         );
     }
 }

@@ -83,7 +83,7 @@ function ConsumeModal({ article, primaryImagePath, onClose }: {
     }
   };
 
-  const imgSrc = imageUrl(primaryImagePath);
+  const imgSrc = imageUrl(primaryImagePath); // caller already resolved variant vs product image
 
   return (
     <>
@@ -108,6 +108,9 @@ function ConsumeModal({ article, primaryImagePath, onClose }: {
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{article.productName}</p>
+            {article.variantName && (
+              <p className="text-xs font-medium text-indigo-600 dark:text-indigo-400 mt-0.5 truncate">{article.variantName}</p>
+            )}
             {article.categoryName && (
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{article.categoryName}</p>
             )}
@@ -194,16 +197,30 @@ export default function ArticulosDisponibles() {
   });
 
   const { data: rawAllImages } = useQuery({
-    queryKey: ['product-images'],
+    queryKey: ['product-images-select'],
     queryFn: () => productImagesApi.getAll(),
   });
   const allImages = rawAllImages?.items ?? [];
 
+  // productId → primary image path
   const primaryImageMap = useMemo(() => {
     const map = new Map<number, string>();
     allImages.forEach(img => {
-      if (img.isPrimary || !map.has(img.productId)) {
+      if (!img.variantId && (img.isPrimary || !map.has(img.productId))) {
         map.set(img.productId, img.imagePath);
+      }
+    });
+    return map;
+  }, [allImages]);
+
+  // variantId → first image path for that variant (primary preferred)
+  const variantImageMap = useMemo(() => {
+    const map = new Map<number, string>();
+    allImages.forEach(img => {
+      if (img.variantId != null) {
+        if (img.isPrimary || !map.has(img.variantId)) {
+          map.set(img.variantId, img.imagePath);
+        }
       }
     });
     return map;
@@ -276,7 +293,7 @@ export default function ArticulosDisponibles() {
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-gray-800/40">
                   {filtered?.map(a => {
-                    const imgPath = primaryImageMap.get(a.productId);
+                    const imgPath = (a.variantId != null ? variantImageMap.get(a.variantId) : undefined) ?? primaryImageMap.get(a.productId);
                     const src = imageUrl(imgPath);
                     return (
                       <tr key={a.inventoryId} className="hover:bg-gray-50 dark:hover:bg-white/[0.02] transition-colors group">
@@ -292,7 +309,12 @@ export default function ArticulosDisponibles() {
                           </div>
                         </td>
                         <td className="px-5 py-3">
-                          <span className="text-sm font-medium text-gray-900 dark:text-white">{a.productName}</span>
+                          <div>
+                            <span className="text-sm font-medium text-gray-900 dark:text-white">{a.productName}</span>
+                            {a.variantName && (
+                              <p className="text-xs font-medium text-indigo-600 dark:text-indigo-400 mt-0.5">{a.variantName}</p>
+                            )}
+                          </div>
                         </td>
                         <td className="px-5 py-3 text-sm text-gray-500">{a.categoryName ?? '—'}</td>
                         <td className="px-5 py-3">
@@ -335,6 +357,9 @@ export default function ArticulosDisponibles() {
                         <div className="flex items-start justify-between gap-2">
                           <div className="min-w-0">
                             <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{a.productName}</p>
+                            {a.variantName && (
+                              <p className="text-xs font-medium text-indigo-600 dark:text-indigo-400 mt-0.5 truncate">{a.variantName}</p>
+                            )}
                             {a.categoryName && (
                               <p className="text-xs text-gray-500 dark:text-gray-600 mt-0.5">{a.categoryName}</p>
                             )}
@@ -362,7 +387,10 @@ export default function ArticulosDisponibles() {
         <Modal title="Record Consumption" onClose={() => setConsuming(null)}>
           <ConsumeModal
             article={consuming}
-            primaryImagePath={primaryImageMap.get(consuming.productId)}
+            primaryImagePath={
+              (consuming.variantId != null ? variantImageMap.get(consuming.variantId) : undefined)
+              ?? primaryImageMap.get(consuming.productId)
+            }
             onClose={() => setConsuming(null)}
           />
         </Modal>

@@ -32,4 +32,11 @@ public class RefreshTokenRepository : IRefreshTokenRepository
         _context.RefreshTokens.Update(rt);
         await _context.SaveChangesAsync(ct);
     }
+
+    public async Task RevokeAllByUserIdAsync(int userId, CancellationToken ct = default)
+    {
+        await _context.RefreshTokens
+            .Where(rt => rt.UserId == userId && !rt.IsRevoked)
+            .ExecuteUpdateAsync(s => s.SetProperty(rt => rt.IsRevoked, true), ct);
+    }
 }

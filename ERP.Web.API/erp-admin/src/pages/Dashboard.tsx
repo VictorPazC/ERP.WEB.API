@@ -22,7 +22,7 @@ import { imageUrl } from '../utils/imageUrl';
 
 // ─── Product image thumbnail ─────────────────────────────────────────────────
 function ProductThumb({ productId }: { productId: number }) {
-  const { data: rawImages } = useQuery({ queryKey: ['product-images'], queryFn: () => productImagesApi.getAll() });
+  const { data: rawImages } = useQuery({ queryKey: ['product-images-select'], queryFn: () => productImagesApi.getAll() });
   const images = rawImages?.items ?? [];
   const primary = images.find(img => img.productId === productId && img.isPrimary)
     ?? images.find(img => img.productId === productId);
@@ -136,19 +136,19 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [restockItem, setRestockItem] = useState<Inventory | null>(null);
 
-  const { data: rawCategories } = useQuery({ queryKey: ['categories'], queryFn: () => categoriesApi.getAll() });
+  const { data: rawCategories } = useQuery({ queryKey: ['categories-select'], queryFn: () => categoriesApi.getAll() });
   const categories = rawCategories?.items ?? [];
-  const { data: rawProducts } = useQuery({ queryKey: ['products'], queryFn: () => productsApi.getAll() });
+  const { data: rawProducts } = useQuery({ queryKey: ['products-select'], queryFn: () => productsApi.getAll() });
   const products = rawProducts?.items ?? [];
-  const { data: rawInventory } = useQuery({ queryKey: ['inventory'], queryFn: () => inventoryApi.getAll() });
+  const { data: rawInventory } = useQuery({ queryKey: ['inventory-select'], queryFn: () => inventoryApi.getAll() });
   const inventory = rawInventory?.items ?? [];
-  const { data: rawTags } = useQuery({ queryKey: ['tags'], queryFn: () => tagsApi.getAll() });
+  const { data: rawTags } = useQuery({ queryKey: ['tags-select'], queryFn: () => tagsApi.getAll() });
   const tags = rawTags?.items ?? [];
-  const { data: rawPromotions } = useQuery({ queryKey: ['promotions'], queryFn: () => promotionsApi.getAll() });
+  const { data: rawPromotions } = useQuery({ queryKey: ['promotions-select'], queryFn: () => promotionsApi.getAll() });
   const promotions = rawPromotions?.items ?? [];
-  const { data: rawImages } = useQuery({ queryKey: ['product-images'], queryFn: () => productImagesApi.getAll() });
+  const { data: rawImages } = useQuery({ queryKey: ['product-images-select'], queryFn: () => productImagesApi.getAll() });
   const images = rawImages?.items ?? [];
-  const { data: rawConsumptions } = useQuery({ queryKey: ['consumptions'], queryFn: () => consumptionsApi.getAll() });
+  const { data: rawConsumptions } = useQuery({ queryKey: ['consumptions-select'], queryFn: () => consumptionsApi.getAll() });
   const consumptions = rawConsumptions?.items ?? [];
 
   const activePromotions = promotions.filter(p => p.isActive).length;

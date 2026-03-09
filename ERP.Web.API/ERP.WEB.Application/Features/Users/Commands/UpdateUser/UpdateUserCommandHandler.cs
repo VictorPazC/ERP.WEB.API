@@ -7,10 +7,12 @@ namespace ERP.WEB.Application.Features.Users.Commands.UpdateUser;
 public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, UserDto?>
 {
     private readonly IUserRepository _userRepository;
+    private readonly IRefreshTokenRepository _refreshTokenRepo;
 
-    public UpdateUserCommandHandler(IUserRepository userRepository)
+    public UpdateUserCommandHandler(IUserRepository userRepository, IRefreshTokenRepository refreshTokenRepo)
     {
-        _userRepository = userRepository;
+        _userRepository   = userRepository;
+        _refreshTokenRepo = refreshTokenRepo;
     }
 
     public async ValueTask<UserDto?> Handle(UpdateUserCommand request, CancellationToken cancellationToken)
@@ -24,6 +26,13 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, UserD
         user.Status = request.UserDto.Status;
         if (!string.IsNullOrWhiteSpace(request.UserDto.Password))
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.UserDto.Password);
+
+        // Si cambia la empresa, invalidar todas las sesiones activas del usuario
+        if (request.UserDto.CompanyId.HasValue && request.UserDto.CompanyId.Value != (user.CompanyId ?? 0))
+        {
+            user.CompanyId = request.UserDto.CompanyId.Value;
+            await _refreshTokenRepo.RevokeAllByUserIdAsync(user.UserId, cancellationToken);
+        }
 
         await _userRepository.UpdateAsync(user);
 

@@ -9,7 +9,7 @@ import { productImagesApi } from '../api/productImages';
 import { tagsApi } from '../api/tags';
 import { inventoryApi } from '../api/inventory';
 import { productVariantsApi } from '../api/productVariants';
-import type { Product, CreateProductDto, UpdateProductDto, CreateInventoryDto, CreateProductVariantDto } from '../types';
+import type { Product, ProductImage, CreateProductDto, UpdateProductDto, CreateInventoryDto, CreateProductVariantDto, UpdateProductVariantDto } from '../types';
 import PageHeader from '../components/PageHeader';
 import Modal from '../components/Modal';
 import ConfirmDialog from '../components/ConfirmDialog';
@@ -76,7 +76,7 @@ function ImageLightbox({ src, alt, onClose }: { src: string; alt: string; onClos
 /* ── Tag selector (edit only) ─────────────────────────────── */
 function TagSelector({ productId }: { productId: number }) {
   const qc = useQueryClient();
-  const { data: rawAllTags } = useQuery({ queryKey: ['tags'], queryFn: () => tagsApi.getAll() });
+  const { data: rawAllTags } = useQuery({ queryKey: ['tags-select'], queryFn: () => tagsApi.getAll() });
   const allTags = rawAllTags?.items;
   const { data: productTags, isLoading } = useQuery({
     queryKey: ['product-tags', productId],
@@ -257,9 +257,9 @@ function ProductForm({ initial, onSave, onClose }: {
   onSave: (data: CreateProductDto | UpdateProductDto) => Promise<number>;
   onClose: () => void;
 }) {
-  const { data: rawCategories } = useQuery({ queryKey: ['categories'], queryFn: () => categoriesApi.getAll(), staleTime: Infinity, refetchOnWindowFocus: false });
+  const { data: rawCategories } = useQuery({ queryKey: ['categories-select'], queryFn: () => categoriesApi.getAll(), staleTime: Infinity, refetchOnWindowFocus: false });
   const categories = rawCategories?.items;
-  const { data: rawBrands } = useQuery({ queryKey: ['brands'], queryFn: () => brandsApi.getAll(), staleTime: Infinity, refetchOnWindowFocus: false });
+  const { data: rawBrands } = useQuery({ queryKey: ['brands-select'], queryFn: () => brandsApi.getAll(), staleTime: Infinity, refetchOnWindowFocus: false });
   const brands = rawBrands?.items;
   const defaultBrandApplied = useRef(false);
   // Restore pending image upload if page was reloaded (mobile file picker can kill the tab)
@@ -465,6 +465,10 @@ function VariantPanel({ product, onClose: _onClose }: { product: Product; onClos
     mutationFn: (dto: CreateProductVariantDto) => productVariantsApi.create(dto),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['product-variants', product.productId] }); qc.invalidateQueries({ queryKey: ['products'] }); toast.success('Variant created'); },
   });
+  const updateMut = useMutation({
+    mutationFn: ({ id, dto }: { id: number; dto: UpdateProductVariantDto }) => productVariantsApi.update(id, dto),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['product-variants', product.productId] }); toast.success('Variant updated'); setEditing(null); },
+  });
   const deleteMut = useMutation({
     mutationFn: (id: number) => productVariantsApi.delete(id),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['product-variants', product.productId] }); qc.invalidateQueries({ queryKey: ['products'] }); toast.success('Variant deleted'); },
@@ -475,6 +479,7 @@ function VariantPanel({ product, onClose: _onClose }: { product: Product; onClos
   const [formDesc, setFormDesc] = useState('');
   const [uploadingFor, setUploadingFor] = useState<{ variantId: number; productId: number } | null>(null);
   const [inventoryFor, setInventoryFor] = useState<{ variantId: number } | null>(null);
+  const [editing, setEditing] = useState<{ variantId: number; name: string; description: string } | null>(null);
 
   const handleCreate = async () => {
     const variantId = await createMut.mutateAsync({ productId: product.productId, name: formName || undefined, description: formDesc || undefined });
@@ -483,6 +488,8 @@ function VariantPanel({ product, onClose: _onClose }: { product: Product; onClos
     setFormDesc('');
     setUploadingFor({ variantId, productId: product.productId });
   };
+
+  const inputCls = "w-full bg-gray-100 dark:bg-gray-800/60 border border-gray-300 dark:border-gray-700/60 rounded-lg px-2.5 py-1.5 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all";
 
   if (isLoading) return <LoadingSpinner />;
 
@@ -493,6 +500,7 @@ function VariantPanel({ product, onClose: _onClose }: { product: Product; onClos
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {variants.map(v => {
             const src = imageUrl(v.primaryImagePath);
+            const isEditing = editing?.variantId === v.variantId;
             return (
               <div key={v.variantId} className="bg-white dark:bg-gray-900/60 border border-gray-200 dark:border-gray-800/60 rounded-2xl p-3 flex items-start gap-3">
                 <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800/60 ring-1 ring-gray-200 dark:ring-gray-700/30 flex items-center justify-center flex-shrink-0">
@@ -501,28 +509,64 @@ function VariantPanel({ product, onClose: _onClose }: { product: Product; onClos
                     : <Package size={16} className="text-gray-400" />}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{v.name}</p>
-                  {v.description && <p className="text-xs text-gray-500 dark:text-gray-600 truncate mt-0.5">{v.description}</p>}
-                  <div className="flex items-center gap-1.5 mt-1.5">
-                    {v.hasInventory
-                      ? <Badge color={(v.currentStock ?? 0) > 0 ? 'green' : 'red'}>{v.currentStock ?? 0} units</Badge>
-                      : <Badge color="gray">No inv.</Badge>}
-                  </div>
-                  {isAdmin && (
-                    <div className="flex items-center gap-1 mt-2">
-                      <button onClick={() => setUploadingFor({ variantId: v.variantId, productId: product.productId })}
-                        className="p-1.5 rounded-lg text-gray-500 hover:text-indigo-500 dark:hover:text-indigo-400 hover:bg-indigo-500/10 transition-colors" title="Upload images">
-                        <Camera size={13} />
-                      </button>
-                      <button onClick={() => setInventoryFor({ variantId: v.variantId })}
-                        className="p-1.5 rounded-lg text-gray-500 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-500/10 transition-colors" title="Add inventory">
-                        <Archive size={13} />
-                      </button>
-                      <button onClick={() => deleteMut.mutate(v.variantId)}
-                        className="p-1.5 rounded-lg text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-500/10 transition-colors" title="Delete variant">
-                        <Trash2 size={13} />
-                      </button>
+                  {isEditing ? (
+                    <div className="space-y-2">
+                      <input
+                        className={inputCls}
+                        value={editing.name}
+                        onChange={e => setEditing(ed => ed && { ...ed, name: e.target.value })}
+                        placeholder="Variant name"
+                        autoFocus
+                      />
+                      <input
+                        className={inputCls}
+                        value={editing.description}
+                        onChange={e => setEditing(ed => ed && { ...ed, description: e.target.value })}
+                        placeholder="Description (optional)"
+                      />
+                      <div className="flex gap-1.5">
+                        <button type="button" onClick={() => setEditing(null)}
+                          className="flex-1 text-xs px-2 py-1.5 border border-gray-300 dark:border-gray-700/60 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors font-medium">
+                          Cancel
+                        </button>
+                        <button type="button"
+                          onClick={() => updateMut.mutate({ id: v.variantId, dto: { variantId: v.variantId, name: editing.name || v.name, description: editing.description || undefined } })}
+                          disabled={updateMut.isPending}
+                          className="flex-1 text-xs px-2 py-1.5 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-white font-medium transition-colors disabled:opacity-50">
+                          {updateMut.isPending ? 'Saving…' : 'Save'}
+                        </button>
+                      </div>
                     </div>
+                  ) : (
+                    <>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{v.name}</p>
+                      {v.description && <p className="text-xs text-gray-500 dark:text-gray-600 truncate mt-0.5">{v.description}</p>}
+                      <div className="flex items-center gap-1.5 mt-1.5">
+                        {v.hasInventory
+                          ? <Badge color={(v.currentStock ?? 0) > 0 ? 'green' : 'red'}>{v.currentStock ?? 0} units</Badge>
+                          : <Badge color="gray">No inv.</Badge>}
+                      </div>
+                      {isAdmin && (
+                        <div className="flex items-center gap-1 mt-2">
+                          <button onClick={() => setEditing({ variantId: v.variantId, name: v.name, description: v.description ?? '' })}
+                            className="p-1.5 rounded-lg text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors" title="Edit variant">
+                            <Pencil size={13} />
+                          </button>
+                          <button onClick={() => setUploadingFor({ variantId: v.variantId, productId: product.productId })}
+                            className="p-1.5 rounded-lg text-gray-500 hover:text-indigo-500 dark:hover:text-indigo-400 hover:bg-indigo-500/10 transition-colors" title="Upload images">
+                            <Camera size={13} />
+                          </button>
+                          <button onClick={() => setInventoryFor({ variantId: v.variantId })}
+                            className="p-1.5 rounded-lg text-gray-500 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-500/10 transition-colors" title="Add inventory">
+                            <Archive size={13} />
+                          </button>
+                          <button onClick={() => deleteMut.mutate(v.variantId)}
+                            className="p-1.5 rounded-lg text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-500/10 transition-colors" title="Delete variant">
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
@@ -577,6 +621,120 @@ function VariantPanel({ product, onClose: _onClose }: { product: Product; onClos
   );
 }
 
+/* ── Product detail panel ─────────────────────────────────── */
+function ProductDetailPanel({ product, allImages, onEdit, onDelete, onInventory, onClose, onLightbox }: {
+  product: Product;
+  allImages: ProductImage[] | undefined;
+  onEdit: () => void;
+  onDelete: () => void;
+  onInventory: () => void;
+  onClose: () => void;
+  onLightbox: (src: string, alt: string) => void;
+}) {
+  const qc = useQueryClient();
+  const { isAdmin } = useUser();
+  const toggleFavMut = useMutation({
+    mutationFn: (id: number) => productsApi.toggleFavorite(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['products'] }),
+  });
+  const setStockStatusMut = useMutation({
+    mutationFn: ({ id, status }: { id: number; status: string | null }) => productsApi.setStockStatus(id, status),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['products'] }),
+  });
+
+  // Product-level primary image (variantId = null)
+  const primaryImg =
+    allImages?.find(i => i.productId === product.productId && i.isPrimary && i.variantId == null)
+    ?? allImages?.find(i => i.productId === product.productId && i.variantId == null);
+  const src = primaryImg ? imageUrl(primaryImg.imagePath) : undefined;
+
+  return (
+    <div className="space-y-5">
+      {/* ── Product header ── */}
+      <div className="flex items-start gap-4 p-4 bg-gray-50 dark:bg-white/[0.02] rounded-2xl border border-gray-200 dark:border-gray-800/60">
+        {/* Thumbnail */}
+        <div
+          className={`w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800/60 ring-1 ring-gray-200 dark:ring-gray-700/30 flex items-center justify-center flex-shrink-0 ${src ? 'cursor-zoom-in' : ''}`}
+          onClick={() => { if (src) onLightbox(src, product.name); }}
+        >
+          {src
+            ? <img src={src} alt="" className="w-full h-full object-cover" loading="lazy" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+            : <Package size={24} className="text-gray-400" />}
+        </div>
+
+        {/* Info */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start gap-2 flex-wrap">
+            <span className="text-base font-semibold text-gray-900 dark:text-white">{product.name}</span>
+            <Badge color={product.status === 'Active' ? 'green' : product.status === 'Inactive' ? 'yellow' : 'red'}>{product.status}</Badge>
+            {product.variantCount > 0 && <Badge color="indigo">{product.variantCount} variant{product.variantCount > 1 ? 's' : ''}</Badge>}
+          </div>
+          {product.description && <p className="text-xs text-gray-500 dark:text-gray-600 mt-1 line-clamp-2">{product.description}</p>}
+          <div className="flex items-center gap-1.5 flex-wrap mt-1.5 text-xs text-gray-400 dark:text-gray-600">
+            {product.brandName && <span>{product.brandName}</span>}
+            {product.brandName && product.categoryName && <span>·</span>}
+            {product.categoryName && <span>{product.categoryName}</span>}
+            {product.referenceLink && (
+              <a href={product.referenceLink} target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-1 text-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                <ExternalLink size={11} /> Ref
+              </a>
+            )}
+          </div>
+          <div className="flex flex-wrap items-center gap-1.5 mt-2">
+            {product.hasInventory
+              ? <Badge color={(product.currentStock ?? 0) > 0 ? 'green' : 'red'}>{product.currentStock ?? 0} units</Badge>
+              : <Badge color="gray">Sin inventario</Badge>}
+            {product.stockStatus && <StockStatusBadge status={product.stockStatus} />}
+            <button
+              onClick={() => toggleFavMut.mutate(product.productId)}
+              className={`flex items-center gap-1 px-2 py-0.5 rounded-lg border text-xs font-medium transition-all ${
+                product.isFavorite
+                  ? 'bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400'
+                  : 'border-gray-200 dark:border-gray-700/60 text-gray-400 hover:text-amber-500 hover:border-amber-400'
+              }`}
+            >
+              <Star size={11} className={product.isFavorite ? 'fill-amber-500 text-amber-500' : ''} />
+              Favorito
+            </button>
+            {isAdmin && (!product.hasInventory || (product.currentStock ?? 1) === 0) && (
+              <StockStatusSelect
+                productId={product.productId}
+                value={product.stockStatus ?? null}
+                onChange={(id, s) => setStockStatusMut.mutate({ id, status: s })}
+              />
+            )}
+          </div>
+        </div>
+
+        {/* Product-level actions */}
+        {isAdmin && (
+          <div className="flex flex-col gap-1.5 flex-shrink-0">
+            <button onClick={onEdit}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700/60 hover:border-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all whitespace-nowrap">
+              <Pencil size={12} /> Editar
+            </button>
+            <button onClick={onInventory}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700/60 hover:border-emerald-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all whitespace-nowrap">
+              <Archive size={12} /> Inventario
+            </button>
+            <button onClick={onDelete}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium text-red-600 dark:text-red-400 bg-white dark:bg-gray-800/60 border border-red-200 dark:border-red-900/40 hover:bg-red-500/5 hover:border-red-400 transition-all whitespace-nowrap">
+              <Trash2 size={12} /> Eliminar
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* ── Variants ── */}
+      <div>
+        <p className="text-[11px] font-semibold text-gray-400 dark:text-gray-600 uppercase tracking-wider mb-3">Variantes</p>
+        <VariantPanel product={product} onClose={onClose} />
+      </div>
+    </div>
+  );
+}
+
 /* ── Main page ────────────────────────────────────────────── */
 export default function Products() {
   const qc = useQueryClient();
@@ -602,11 +760,11 @@ export default function Products() {
     getNextPageParam: (lastPage) => lastPage.hasMore ? lastPage.nextCursor ?? undefined : undefined,
   });
   const products = data?.pages.flatMap(p => p.items) ?? [];
-  const { data: rawAllImages } = useQuery({ queryKey: ['product-images'], queryFn: () => productImagesApi.getAll() });
+  const { data: rawAllImages } = useQuery({ queryKey: ['product-images-select'], queryFn: () => productImagesApi.getAll() });
   const allImages = rawAllImages?.items;
-  const { data: rawBrands } = useQuery({ queryKey: ['brands'], queryFn: () => brandsApi.getAll() });
+  const { data: rawBrands } = useQuery({ queryKey: ['brands-select'], queryFn: () => brandsApi.getAll() });
   const brands = rawBrands?.items;
-  const { data: rawCategories } = useQuery({ queryKey: ['categories'], queryFn: () => categoriesApi.getAll() });
+  const { data: rawCategories } = useQuery({ queryKey: ['categories-select'], queryFn: () => categoriesApi.getAll() });
   const categories = rawCategories?.items;
 
   const primaryImageMap = new Map<number, string>();
@@ -626,7 +784,7 @@ export default function Products() {
   });
   const deleteMut = useMutation({
     mutationFn: (id: number) => productsApi.delete(id),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['products'] }); toast.success('Product deleted'); setDeleting(null); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['products'] }); toast.success('Product deleted'); setDeleting(null); setExpandedProduct(null); },
   });
   const toggleFavMut = useMutation({
     mutationFn: (id: number) => productsApi.toggleFavorite(id),
@@ -748,11 +906,11 @@ export default function Products() {
                     const imgPath = primaryImageMap.get(p.productId);
                     const src = imageUrl(imgPath);
                     return (
-                      <tr key={p.productId} className="hover:bg-gray-50 dark:hover:bg-white/[0.02] transition-colors group">
+                      <tr key={p.productId} onClick={() => setExpandedProduct(p)} className="hover:bg-gray-50 dark:hover:bg-white/[0.02] transition-colors group cursor-pointer">
                         <td className="px-5 py-3">
                           <div
                             className={`w-10 h-10 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800/60 ring-1 ring-gray-200 dark:ring-gray-700/30 flex items-center justify-center flex-shrink-0 ${src ? 'cursor-zoom-in' : ''}`}
-                            onClick={() => openLightbox(p.productId, p.name)}
+                            onClick={e => { e.stopPropagation(); openLightbox(p.productId, p.name); }}
                           >
                             {src
                               ? <img src={src} alt="" className="w-full h-full object-cover" loading="lazy"
@@ -770,7 +928,7 @@ export default function Products() {
                               {p.description && <p className="text-xs text-gray-500 dark:text-gray-600 truncate max-w-[200px]">{p.description}</p>}
                             </div>
                             <button
-                              onClick={() => toggleFavMut.mutate(p.productId)}
+                              onClick={e => { e.stopPropagation(); toggleFavMut.mutate(p.productId); }}
                               title={p.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
                               className={`mt-0.5 p-0.5 rounded transition-colors flex-shrink-0 ${p.isFavorite ? 'text-amber-500' : 'text-gray-300 dark:text-gray-700 hover:text-amber-400'}`}
                             >
@@ -785,7 +943,7 @@ export default function Products() {
                             <Badge color={p.status === 'Active' ? 'green' : p.status === 'Inactive' ? 'yellow' : 'red'}>{p.status}</Badge>
                           </div>
                         </td>
-                        <td className="px-5 py-3">
+                        <td className="px-5 py-3" onClick={e => e.stopPropagation()}>
                           <div className="flex flex-col gap-1 items-start">
                             {p.hasInventory
                               ? <Badge color={(p.currentStock ?? 0) > 0 ? 'green' : 'red'}>{p.currentStock ?? 0} units</Badge>
@@ -803,12 +961,11 @@ export default function Products() {
                         </td>
                         <td className="px-5 py-3">
                           <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            {p.referenceLink && <a href={p.referenceLink} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded-lg text-gray-500 hover:text-blue-500 dark:hover:text-blue-400 hover:bg-blue-500/10 transition-colors"><ExternalLink size={14} /></a>}
+                            {p.referenceLink && <a href={p.referenceLink} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="p-1.5 rounded-lg text-gray-500 hover:text-blue-500 dark:hover:text-blue-400 hover:bg-blue-500/10 transition-colors"><ExternalLink size={14} /></a>}
                             {isAdmin && <>
-                              <button onClick={(e) => { e.stopPropagation(); setExpandedProduct(p); }} title="Variants" className="p-1.5 rounded-lg text-gray-500 hover:text-indigo-500 dark:hover:text-indigo-400 hover:bg-indigo-500/10 transition-colors"><Layers size={14} /></button>
-                              <button onClick={() => setInventoryFor(p)} title="Add inventory" className="p-1.5 rounded-lg text-gray-500 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-500/10 transition-colors"><Archive size={14} /></button>
-                              <button onClick={() => { setSelected(p); setModal('edit'); }} className="p-1.5 rounded-lg text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"><Pencil size={14} /></button>
-                              <button onClick={() => setDeleting(p)} className="p-1.5 rounded-lg text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-500/10 transition-colors"><Trash2 size={14} /></button>
+                              <button onClick={e => { e.stopPropagation(); setInventoryFor(p); }} title="Add inventory" className="p-1.5 rounded-lg text-gray-500 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-500/10 transition-colors"><Archive size={14} /></button>
+                              <button onClick={e => { e.stopPropagation(); setSelected(p); setModal('edit'); }} className="p-1.5 rounded-lg text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"><Pencil size={14} /></button>
+                              <button onClick={e => { e.stopPropagation(); setDeleting(p); }} className="p-1.5 rounded-lg text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-500/10 transition-colors"><Trash2 size={14} /></button>
                             </>}
                           </div>
                         </td>

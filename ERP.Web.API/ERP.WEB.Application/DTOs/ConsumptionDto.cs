@@ -33,5 +33,7 @@ public record AvailableArticleDto(
     int CategoryId,
     decimal PurchaseCost,
     decimal SuggestedRetailPrice,
-    int CurrentStock
+    int CurrentStock,
+    int? VariantId,
+    string? VariantName
 );

@@ -7,5 +7,6 @@ public record ProductImageDto(
     bool IsPrimary,
     int DisplayOrder,
     DateTime RegisteredAt,
-    int? VariantId
+    int? VariantId,
+    string? VariantName
 );

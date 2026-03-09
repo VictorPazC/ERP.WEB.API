@@ -7,5 +7,6 @@ public record UpdateInventoryDto(
     int CurrentStock,
     DateTime LastRestockDate,
     DateTime? LastSaleDate,
-    bool NeedsRestock
+    bool NeedsRestock,
+    int? VariantId = null
 );

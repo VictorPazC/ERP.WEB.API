@@ -5,10 +5,10 @@ interface Props {
   title: string;
   onClose: () => void;
   children: ReactNode;
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg' | 'xl';
 }
 
-const sizes = { sm: 'sm:max-w-md', md: 'sm:max-w-lg', lg: 'sm:max-w-2xl' };
+const sizes = { sm: 'sm:max-w-md', md: 'sm:max-w-lg', lg: 'sm:max-w-2xl', xl: 'sm:max-w-4xl' };
 
 export default function Modal({ title, onClose, children, size = 'md' }: Props) {
   return (

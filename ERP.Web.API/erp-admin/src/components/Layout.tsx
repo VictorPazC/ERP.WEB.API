@@ -5,6 +5,7 @@ import {
   ChevronLeft, ChevronRight, Boxes, Menu, X, Sun, Moon, Users, ShoppingBag,
   ShoppingCart, Shield, Eye, LogOut, Bookmark, Factory, ClipboardList,
 } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useTheme } from '../context/ThemeContext';
 import { useUser } from '../context/UserContext';
 import CompanySelector from './CompanySelector';
@@ -31,6 +32,12 @@ export default function Layout() {
   const location = useLocation();
   const { theme, toggle } = useTheme();
   const { user, logout, isAdmin, isSuperAdmin } = useUser();
+  const qc = useQueryClient();
+
+  const handleLogout = () => {
+    qc.clear();
+    logout();
+  };
 
   useEffect(() => {
     setMobileOpen(false);
@@ -134,7 +141,7 @@ export default function Layout() {
         </button>
 
         <button
-          onClick={logout}
+          onClick={handleLogout}
           className={`w-full flex items-center ${!isMobile && collapsed ? 'justify-center' : ''} gap-2 px-3 py-2 rounded-xl text-xs text-red-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-500/10 transition-colors`}
           title={!isMobile && collapsed ? 'Sign out' : undefined}
         >
@@ -194,7 +201,7 @@ export default function Layout() {
             <button onClick={toggle} className="p-2 rounded-xl text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/5 transition-colors">
               {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
             </button>
-            <button onClick={logout} className="p-2 rounded-xl text-red-500 hover:bg-red-500/10 transition-colors">
+            <button onClick={handleLogout} className="p-2 rounded-xl text-red-500 hover:bg-red-500/10 transition-colors">
               <LogOut size={18} />
             </button>
           </div>

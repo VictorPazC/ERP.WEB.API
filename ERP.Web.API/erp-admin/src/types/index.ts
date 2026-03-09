@@ -91,6 +91,8 @@ export interface Inventory {
   inventoryId: number;
   productId: number;
   productName?: string;
+  variantId?: number;
+  variantName?: string;
   purchaseCost: number;
   suggestedRetailPrice: number;
   currentStock: number;
@@ -135,6 +137,7 @@ export interface CreateInventoryDto {
 
 export interface UpdateInventoryDto {
   inventoryId: number;
+  variantId?: number;
   purchaseCost: number;
   suggestedRetailPrice: number;
   currentStock: number;
@@ -191,6 +194,7 @@ export interface ProductImage {
   imageId: number;
   productId: number;
   variantId?: number;
+  variantName?: string;
   imagePath: string;
   isPrimary: boolean;
   displayOrder: number;
@@ -234,6 +238,7 @@ export interface UpdateUserDto {
   role: string;
   status: string;
   password?: string;
+  companyId?: number;
 }
 
 export interface LoginDto {
@@ -303,6 +308,8 @@ export interface AvailableArticle {
   purchaseCost: number;
   suggestedRetailPrice: number;
   currentStock: number;
+  variantId?: number;
+  variantName?: string;
 }
 
 export interface Consumption {

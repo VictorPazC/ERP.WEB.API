@@ -35,7 +35,8 @@ public class CreateProductImageCommandHandler : IRequestHandler<CreateProductIma
             created.IsPrimary,
             created.DisplayOrder,
             created.RegisteredAt,
-            created.VariantId
+            created.VariantId,
+            null  // Variant name not needed immediately after create
         );
     }
 }

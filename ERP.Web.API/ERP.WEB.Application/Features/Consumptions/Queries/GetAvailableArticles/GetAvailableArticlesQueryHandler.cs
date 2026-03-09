@@ -26,7 +26,9 @@ public class GetAvailableArticlesQueryHandler : IRequestHandler<GetAvailableArti
                 i.Product?.CategoryId ?? 0,
                 i.PurchaseCost,
                 i.SuggestedRetailPrice,
-                i.CurrentStock
+                i.CurrentStock,
+                i.VariantId,
+                i.Variant?.Name
             ));
     }
 }

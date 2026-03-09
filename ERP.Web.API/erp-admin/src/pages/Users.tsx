@@ -1,8 +1,9 @@
 ﻿import { useState } from 'react';
-import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Pencil, Trash2, Users as UsersIcon, Search } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { usersApi } from '../api/users';
+import { companiesApi } from '../api/companies';
 import type { User, CreateUserDto, UpdateUserDto } from '../types';
 import PageHeader from '../components/PageHeader';
 import Modal from '../components/Modal';
@@ -15,10 +16,11 @@ import { useUser } from '../context/UserContext';
 
 const selectCls = "bg-gray-100 dark:bg-gray-800/60 border border-gray-300 dark:border-gray-700/60 rounded-xl px-3.5 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 hover:border-gray-400 dark:hover:border-gray-600 transition-all";
 
-function UserForm({ initial, onSave, onClose }: {
+function UserForm({ initial, onSave, onClose, isSuperAdmin }: {
   initial?: User;
   onSave: (data: CreateUserDto | UpdateUserDto) => Promise<void>;
   onClose: () => void;
+  isSuperAdmin?: boolean;
 }) {
   const [form, setForm] = useState({
     name: initial?.name ?? '',
@@ -26,10 +28,18 @@ function UserForm({ initial, onSave, onClose }: {
     role: initial?.role ?? 'Viewer',
     status: initial?.status ?? 'Active',
     password: '',
+    companyId: '',
   });
   const [loading, setLoading] = useState(false);
   const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
     setForm(f => ({ ...f, [k]: e.target.value }));
+
+  const { data: companiesData } = useQuery({
+    queryKey: ['companies-all'],
+    queryFn: () => companiesApi.getAll(undefined, 1000),
+    enabled: !!isSuperAdmin,
+  });
+  const companies = companiesData?.items ?? [];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,7 +47,11 @@ function UserForm({ initial, onSave, onClose }: {
     setLoading(true);
     try {
       if (initial) {
-        await onSave({ userId: initial.userId, name: form.name, email: form.email, role: form.role, status: form.status, password: form.password || undefined } as UpdateUserDto);
+        await onSave({
+          userId: initial.userId, name: form.name, email: form.email,
+          role: form.role, status: form.status, password: form.password || undefined,
+          companyId: form.companyId ? Number(form.companyId) : undefined,
+        } as UpdateUserDto);
       } else {
         await onSave({ name: form.name, email: form.email, role: form.role, password: form.password || undefined } as CreateUserDto);
       }
@@ -77,6 +91,17 @@ function UserForm({ initial, onSave, onClose }: {
           </div>
         )}
       </div>
+      {isSuperAdmin && initial && (
+        <div className="flex flex-col gap-1.5">
+          <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Assign Company</label>
+          <select value={form.companyId} onChange={set('companyId')} className={selectCls}>
+            <option value="">— Keep current —</option>
+            {companies.map(c => (
+              <option key={c.companyId} value={c.companyId}>{c.name}</option>
+            ))}
+          </select>
+        </div>
+      )}
       <div className="flex gap-3 pt-2">
         <button type="button" onClick={onClose} className="flex-1 px-4 py-2.5 border border-gray-300 dark:border-gray-700/60 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors text-sm font-medium">Cancel</button>
         <button type="submit" disabled={loading} className="flex-1 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-white font-medium transition-colors text-sm disabled:opacity-50">
@@ -101,7 +126,7 @@ export default function Users() {
     getNextPageParam: (lastPage) => lastPage.hasMore ? lastPage.nextCursor ?? undefined : undefined,
   });
   const users = data?.pages.flatMap(p => p.items) ?? [];
-  const { isAdmin } = useUser();
+  const { isAdmin, isSuperAdmin } = useUser();
 
   const createMut = useMutation({ mutationFn: (dto: CreateUserDto) => usersApi.create(dto), onSuccess: () => { qc.invalidateQueries({ queryKey: ['users'] }); toast.success('User created'); } });
   const updateMut = useMutation({ mutationFn: ({ id, dto }: { id: number; dto: UpdateUserDto }) => usersApi.update(id, dto), onSuccess: () => { qc.invalidateQueries({ queryKey: ['users'] }); toast.success('User updated'); } });
@@ -230,7 +255,7 @@ export default function Users() {
 
       {isAdmin && (modal === 'create' || modal === 'edit') && (
         <Modal title={modal === 'edit' ? 'Edit User' : 'New User'} onClose={() => setModal(null)}>
-          <UserForm initial={modal === 'edit' ? selected ?? undefined : undefined} onSave={handleSave} onClose={() => setModal(null)} />
+          <UserForm initial={modal === 'edit' ? selected ?? undefined : undefined} onSave={handleSave} onClose={() => setModal(null)} isSuperAdmin={isSuperAdmin} />
         </Modal>
       )}
       {isAdmin && deleting && (

@@ -20,6 +20,7 @@ public class ProductImageRepository : IProductImageRepository
         return await _context.ProductImages
             .Where(i => i.ImageId > afterId)
             .Include(i => i.Product)
+            .Include(i => i.Variant)
             .OrderBy(i => i.ImageId)
             .Take(p.PageSize + 1)
             .ToListAsync(ct);
@@ -29,6 +30,7 @@ public class ProductImageRepository : IProductImageRepository
     {
         return await _context.ProductImages
             .Include(i => i.Product)
+            .Include(i => i.Variant)
             .FirstOrDefaultAsync(i => i.ImageId == id);
     }
 
@@ -36,6 +38,7 @@ public class ProductImageRepository : IProductImageRepository
     {
         return await _context.ProductImages
             .Include(i => i.Product)
+            .Include(i => i.Variant)
             .Where(i => i.ProductId == productId)
             .OrderBy(i => i.DisplayOrder)
             .ToListAsync();
@@ -45,6 +48,7 @@ public class ProductImageRepository : IProductImageRepository
     {
         return await _context.ProductImages
             .Include(i => i.Product)
+            .Include(i => i.Variant)
             .FirstOrDefaultAsync(i => i.ProductId == productId && i.IsPrimary);
     }
 

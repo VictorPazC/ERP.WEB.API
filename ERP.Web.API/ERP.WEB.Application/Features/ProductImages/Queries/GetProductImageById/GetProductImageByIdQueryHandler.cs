@@ -27,7 +27,8 @@ public class GetProductImageByIdQueryHandler : IRequestHandler<GetProductImageBy
             image.IsPrimary,
             image.DisplayOrder,
             image.RegisteredAt,
-            image.VariantId
+            image.VariantId,
+            image.Variant?.Name
         );
     }
 }

@@ -22,7 +22,8 @@ public record UpdateUserDto(
     string Email,
     string Role,
     string Status,
-    string? Password
+    string? Password,
+    int? CompanyId
 );
 
 public record SeedSuperAdminDto(

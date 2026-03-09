@@ -23,7 +23,7 @@ public class GetAllInventoryQueryHandler : IRequestHandler<GetAllInventoryQuery,
         var items = list.Select(i => new InventoryDto(
             i.InventoryId, i.ProductId, i.Product?.Name, i.PurchaseCost, i.SuggestedRetailPrice,
             i.CurrentStock, i.SuggestedRetailPrice - i.PurchaseCost, i.LastRestockDate,
-            i.LastSaleDate, i.NeedsRestock, i.VariantId));
+            i.LastSaleDate, i.NeedsRestock, i.VariantId, i.Variant?.Name));
         return new CursorPagedResult<InventoryDto>(items, nextCursor, hasMore);
     }
 }

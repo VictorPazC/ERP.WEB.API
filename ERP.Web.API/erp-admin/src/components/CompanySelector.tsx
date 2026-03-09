@@ -36,7 +36,7 @@ export default function CompanySelector() {
           <Factory size={14} className="text-indigo-400" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-xs font-medium text-white truncate">{user.companyName ?? 'Select company'}</p>
+          <p className="text-xs font-medium text-gray-900 dark:text-white truncate">{user.companyName ?? 'Select company'}</p>
           <p className="text-[10px] text-gray-500">Switch company</p>
         </div>
         <ChevronDown size={14} className={`text-gray-500 transition-transform ${open ? 'rotate-180' : ''}`} />

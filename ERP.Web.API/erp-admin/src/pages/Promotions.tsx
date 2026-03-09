@@ -21,7 +21,7 @@ function PromotionForm({ initial, onSave, onClose }: {
   onSave: (data: CreatePromotionDto | UpdatePromotionDto) => Promise<void>;
   onClose: () => void;
 }) {
-  const { data: rawProducts } = useQuery({ queryKey: ['products'], queryFn: () => productsApi.getAll() });
+  const { data: rawProducts } = useQuery({ queryKey: ['products-select'], queryFn: () => productsApi.getAll() });
   const products = rawProducts?.items;
   const [form, setForm] = useState({
     productId: initial?.productId?.toString() ?? '',

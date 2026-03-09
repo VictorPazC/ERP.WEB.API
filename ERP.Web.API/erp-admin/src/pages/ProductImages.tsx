@@ -4,6 +4,7 @@ import { Plus, Pencil, Trash2, Image, Star, Upload, X, Camera } from 'lucide-rea
 import toast from 'react-hot-toast';
 import { productImagesApi } from '../api/productImages';
 import { productsApi } from '../api/products';
+import { productVariantsApi } from '../api/productVariants';
 import type { ProductImage, UpdateProductImageDto } from '../types';
 import PageHeader from '../components/PageHeader';
 import Modal from '../components/Modal';
@@ -46,18 +47,20 @@ function ImageLightbox({ src, alt, onClose }: { src: string; alt: string; onClos
 
 function UploadForm({ onClose }: { onClose: () => void }) {
   const qc = useQueryClient();
-  const { data: rawProducts } = useQuery({ queryKey: ['products'], queryFn: () => productsApi.getAll(), staleTime: Infinity, refetchOnWindowFocus: false });
+  const { data: rawProducts } = useQuery({ queryKey: ['products-select'], queryFn: () => productsApi.getAll(), staleTime: Infinity, refetchOnWindowFocus: false });
   const products = rawProducts?.items;
   // staleTime: Infinity + refetchOnWindowFocus: false prevents opening/closing
   // the OS file picker from triggering a refetch that resets the form state
+  // Note: use '-select' suffix to avoid conflicting with useInfiniteQuery of same name
   const { data: rawImages } = useQuery({
-    queryKey: ['product-images'],
+    queryKey: ['product-images-select'],
     queryFn: () => productImagesApi.getAll(),
     staleTime: Infinity,
     refetchOnWindowFocus: false,
   });
   const images = rawImages?.items;
   const [productId, setProductId] = useState('');
+  const [variantId, setVariantId] = useState('');
   const [isPrimary, setIsPrimary] = useState(false);
   const [displayOrder, setDisplayOrder] = useState('0');
   const [files, setFiles] = useState<File[]>([]);
@@ -66,6 +69,13 @@ function UploadForm({ onClose }: { onClose: () => void }) {
   const [dragOver, setDragOver] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const cameraRef = useRef<HTMLInputElement>(null);
+
+  const { data: variants } = useQuery({
+    queryKey: ['variants-select', productId],
+    queryFn: () => productVariantsApi.getByProduct(Number(productId)),
+    enabled: !!productId,
+    staleTime: Infinity,
+  });
 
   // Snapshot of products with image on form mount — does not change during the session
   const productsWithImage = useMemo(
@@ -86,10 +96,10 @@ function UploadForm({ onClose }: { onClose: () => void }) {
     });
   }, [products, productsWithImage]);
 
-  // Auto-mark as primary only when the user changes the selected product
-  // (not when the image snapshot changes due to a background refetch)
+  // Reset variant and auto-mark primary when product changes
   useEffect(() => {
     if (!productId) return;
+    setVariantId('');
     setIsPrimary(!productsWithImageRef.current.has(Number(productId)));
   }, [productId]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -121,6 +131,7 @@ function UploadForm({ onClose }: { onClose: () => void }) {
       Number(productId),
       isPrimary && filesRef.current.indexOf(file) === 0,
       Number(displayOrder),
+      variantId ? Number(variantId) : undefined,
     ),
     // ⚠️ NOT invalidated here — done ONCE in handleSubmit after the loop
     // to avoid intermediate refetches that re-render and confuse the form state
@@ -134,6 +145,7 @@ function UploadForm({ onClose }: { onClose: () => void }) {
       for (const file of files) await uploadMut.mutateAsync(file);
       // Invalidate ONCE, right before closing
       await qc.invalidateQueries({ queryKey: ['product-images'] });
+      await qc.invalidateQueries({ queryKey: ['product-images-select'] });
       await qc.invalidateQueries({ queryKey: ['products'] });
       toast.success(`${files.length} image${files.length > 1 ? 's' : ''} uploaded`);
       onClose();
@@ -159,6 +171,21 @@ function UploadForm({ onClose }: { onClose: () => void }) {
         placeholder="Search product…"
         clearLabel="Select product"
       />
+      {productId && variants && variants.length > 0 && (
+        <div className="flex flex-col gap-1.5">
+          <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Variant <span className="text-gray-400 dark:text-gray-600 font-normal">(optional)</span></label>
+          <select
+            value={variantId}
+            onChange={e => setVariantId(e.target.value)}
+            className="bg-gray-100 dark:bg-gray-800/60 border border-gray-300 dark:border-gray-700/60 rounded-xl px-3.5 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 hover:border-gray-400 dark:hover:border-gray-600 transition-all"
+          >
+            <option value="">All variants (product-level image)</option>
+            {variants.map(v => (
+              <option key={v.variantId} value={v.variantId}>{v.name}{v.description ? ` — ${v.description}` : ''}</option>
+            ))}
+          </select>
+        </div>
+      )}
       <div className="flex gap-2">
         <div
           onDragOver={e => { e.preventDefault(); setDragOver(true); }}
@@ -274,7 +301,7 @@ export default function ProductImages() {
     getNextPageParam: (lastPage) => lastPage.hasMore ? lastPage.nextCursor ?? undefined : undefined,
   });
   const images = imagesData?.pages.flatMap(p => p.items) ?? [];
-  const { data: rawProducts } = useQuery({ queryKey: ['products'], queryFn: () => productsApi.getAll() });
+  const { data: rawProducts } = useQuery({ queryKey: ['products-select'], queryFn: () => productsApi.getAll() });
   const products = rawProducts?.items;
 
   // productId → name map
@@ -342,10 +369,14 @@ export default function ProductImages() {
                   </div>
                   <div className="p-1.5">
                     {/* Product name */}
-                    <p className="text-[10px] font-medium text-gray-700 dark:text-gray-300 truncate leading-tight mb-1">
+                    <p className="text-[10px] font-medium text-gray-700 dark:text-gray-300 truncate leading-tight">
                       {productName ?? `#${img.productId}`}
                     </p>
-                    <div className="flex items-center justify-between gap-0.5">
+                    {/* Variant name */}
+                    {img.variantName && (
+                      <p className="text-[10px] font-medium text-indigo-600 dark:text-indigo-400 truncate leading-tight mb-0.5">{img.variantName}</p>
+                    )}
+                    <div className="flex items-center justify-between gap-0.5 mt-1">
                       <div className="flex gap-0.5 flex-wrap min-w-0">
                         {img.isPrimary && <Badge color="yellow">Primary</Badge>}
                         <Badge color="gray">#{img.displayOrder}</Badge>
