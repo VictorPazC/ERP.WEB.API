@@ -8,14 +8,17 @@ namespace ERP.WEB.Application.Features.Consumptions.Commands.CreateConsumption;
 public class CreateConsumptionCommandHandler : IRequestHandler<CreateConsumptionCommand, ConsumptionDto>
 {
     private readonly IConsumptionRepository _consumptionRepository;
-    private readonly IInventoryRepository _inventoryRepository;
+    private readonly IInventoryRepository   _inventoryRepository;
+    private readonly IActivityLogger        _activityLogger;
 
     public CreateConsumptionCommandHandler(
         IConsumptionRepository consumptionRepository,
-        IInventoryRepository inventoryRepository)
+        IInventoryRepository inventoryRepository,
+        IActivityLogger activityLogger)
     {
         _consumptionRepository = consumptionRepository;
-        _inventoryRepository = inventoryRepository;
+        _inventoryRepository   = inventoryRepository;
+        _activityLogger        = activityLogger;
     }
 
     public async ValueTask<ConsumptionDto> Handle(CreateConsumptionCommand request, CancellationToken cancellationToken)
@@ -39,6 +42,14 @@ public class CreateConsumptionCommandHandler : IRequestHandler<CreateConsumption
         };
 
         var created = await _consumptionRepository.AddAsync(consumption);
+
+        var ganancia = inventory.SuggestedRetailPrice * dto.Quantity;
+        await _activityLogger.LogAsync(
+            "consumption",
+            $"Consumo: {inventory.Product?.Name ?? "Producto"}",
+            $"{dto.Quantity} unidad(es) consumida(s)",
+            ganancia,
+            cancellationToken);
 
         return new ConsumptionDto(
             created.ConsumptionId,

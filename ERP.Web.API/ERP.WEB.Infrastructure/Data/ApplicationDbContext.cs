@@ -28,6 +28,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
+    public DbSet<ActivityLog> ActivityLogs => Set<ActivityLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -65,6 +66,12 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<Consumption>().HasQueryFilter(e => _companyContext == null || _companyContext.CompanyId == 0 || _companyContext.IsSuperAdmin || e.CompanyId == _companyContext.CompanyId);
         modelBuilder.Entity<ProductVariant>().HasQueryFilter(e => _companyContext == null || _companyContext.CompanyId == 0 || _companyContext.IsSuperAdmin || e.CompanyId == _companyContext.CompanyId);
         modelBuilder.Entity<Order>().HasQueryFilter(e => _companyContext == null || _companyContext.CompanyId == 0 || _companyContext.IsSuperAdmin || e.CompanyId == _companyContext.CompanyId);
+        // ActivityLog: nullable CompanyId — tenants see their own; SuperAdmin sees all
+        modelBuilder.Entity<ActivityLog>().HasQueryFilter(e =>
+            _companyContext == null ||
+            _companyContext.CompanyId == 0 ||
+            _companyContext.IsSuperAdmin ||
+            e.CompanyId == _companyContext.CompanyId);
 
         // ── Entity configurations ───────────────────────────────────────────
         modelBuilder.Entity<Brand>(entity =>
@@ -290,6 +297,25 @@ public class ApplicationDbContext : DbContext
                   .WithMany()
                   .HasForeignKey(e => e.UserId)
                   .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // ── ActivityLog entity ──────────────────────────────────────────────
+        modelBuilder.Entity<ActivityLog>(entity =>
+        {
+            entity.HasKey(e => e.ActivityLogId);
+            entity.Property(e => e.Type).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.Title).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.Description).HasMaxLength(500);
+            entity.Property(e => e.Amount).HasColumnType("decimal(18,2)");
+            entity.Property(e => e.Timestamp).HasDefaultValueSql("GETUTCDATE()");
+            entity.Property(e => e.CompanyId).IsRequired(false);
+            // Composite index for efficient recent-activity queries per tenant
+            entity.HasIndex(e => new { e.CompanyId, e.Timestamp });
+            entity.HasOne(e => e.Company)
+                  .WithMany()
+                  .HasForeignKey(e => e.CompanyId)
+                  .IsRequired(false)
+                  .OnDelete(DeleteBehavior.SetNull);
         });
     }
 

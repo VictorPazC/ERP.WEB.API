@@ -362,3 +362,34 @@ export interface CreateOrderDto {
   notes?: string;
   items: CreateOrderItemDto[];
 }
+
+export interface WeeklyStat {
+  day: string;
+  ganancia: number;
+  pedidos: number;
+}
+
+export interface TopProduct {
+  productId: number;
+  name: string;
+  value: number;
+  metric: string;
+}
+
+export interface ActivityLog {
+  activityLogId: number;
+  type: string;
+  title: string;
+  description?: string;
+  amount?: number;
+  timestamp: string;
+}
+
+export interface CriticalInventory {
+  inventoryId: number;
+  productId: number;
+  productName?: string;
+  currentStock: number;
+  variantId?: number;
+  variantName?: string;
+}

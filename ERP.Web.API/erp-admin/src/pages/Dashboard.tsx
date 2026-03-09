@@ -14,11 +14,18 @@ import { tagsApi } from '../api/tags';
 import { promotionsApi } from '../api/promotions';
 import { productImagesApi } from '../api/productImages';
 import { consumptionsApi } from '../api/consumptions';
+import { dashboardApi } from '../api/dashboard';
 import StatsCard from '../components/StatsCard';
 import PageHeader from '../components/PageHeader';
 import Badge from '../components/Badge';
+import AlertBanner from '../components/AlertBanner';
+import WeeklySalesChart from '../components/WeeklySalesChart';
+import ActivityFeed from '../components/ActivityFeed';
+import TopProductsList from '../components/TopProductsList';
+import QuickActions from '../components/QuickActions';
 import type { Inventory } from '../types';
 import { imageUrl } from '../utils/imageUrl';
+import { useUser } from '../context/UserContext';
 
 // ─── Product image thumbnail ─────────────────────────────────────────────────
 function ProductThumb({ productId }: { productId: number }) {
@@ -132,10 +139,15 @@ function RestockModal({ item, onClose }: { item: Inventory; onClose: () => void 
 }
 
 // ─── Main Dashboard ───────────────────────────────────────────────────────────
+type TopMetric = 'revenue' | 'units' | 'consumptions';
+
 export default function Dashboard() {
   const navigate = useNavigate();
+  const { isAdmin } = useUser();
   const [restockItem, setRestockItem] = useState<Inventory | null>(null);
+  const [topMetric, setTopMetric] = useState<TopMetric>('revenue');
 
+  // ── Existing data queries ──
   const { data: rawCategories } = useQuery({ queryKey: ['categories-select'], queryFn: () => categoriesApi.getAll() });
   const categories = rawCategories?.items ?? [];
   const { data: rawProducts } = useQuery({ queryKey: ['products-select'], queryFn: () => productsApi.getAll() });
@@ -151,6 +163,25 @@ export default function Dashboard() {
   const { data: rawConsumptions } = useQuery({ queryKey: ['consumptions-select'], queryFn: () => consumptionsApi.getAll() });
   const consumptions = rawConsumptions?.items ?? [];
 
+  // ── New dashboard queries ──
+  const { data: criticalItems = [] } = useQuery({
+    queryKey: ['dashboard-critical'],
+    queryFn: () => dashboardApi.getCriticalInventory(5),
+  });
+  const { data: weeklyStats = [] } = useQuery({
+    queryKey: ['dashboard-weekly'],
+    queryFn: () => dashboardApi.getWeeklyStats(7),
+  });
+  const { data: activityItems = [] } = useQuery({
+    queryKey: ['dashboard-activity'],
+    queryFn: () => dashboardApi.getActivity(10),
+  });
+  const { data: topProducts = [] } = useQuery({
+    queryKey: ['dashboard-top-products', topMetric],
+    queryFn: () => dashboardApi.getTopProducts(5, topMetric),
+  });
+
+  // ── Derived values ──
   const activePromotions = promotions.filter(p => p.isActive).length;
   const totalStock = inventory.reduce((s, i) => s + i.currentStock, 0);
 
@@ -173,6 +204,9 @@ export default function Dashboard() {
       <PageHeader title="Dashboard" subtitle="ERP system overview" />
       <div className="p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6">
 
+        {/* Alert banner — critical stock */}
+        <AlertBanner items={criticalItems} />
+
         {/* Stats row 1 */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <StatsCard title="Products" value={products.length} icon={Package} color="indigo" />
@@ -189,6 +223,64 @@ export default function Dashboard() {
           <StatsCard title="Tags" value={tags.length} icon={Tag} color="amber" />
           <StatsCard title="Active Promos" value={activePromotions} icon={Percent} color="indigo" />
           <StatsCard title="Images" value={images.length} icon={Image} color="emerald" />
+        </div>
+
+        {/* Quick actions (admin only) */}
+        {isAdmin && <QuickActions />}
+
+        {/* Weekly chart + Activity feed */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
+          <div className="lg:col-span-2">
+            <WeeklySalesChart data={weeklyStats} />
+          </div>
+          <div className="lg:col-span-1">
+            <ActivityFeed items={activityItems} />
+          </div>
+        </div>
+
+        {/* Top products + Estimated margin */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
+          <TopProductsList
+            items={topProducts}
+            metric={topMetric}
+            onMetricChange={setTopMetric}
+          />
+
+          {/* Estimated margin */}
+          <div className="bg-white dark:bg-gray-900/60 border border-gray-200 dark:border-gray-800/60 rounded-2xl p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-indigo-500/10 rounded-xl ring-1 ring-indigo-500/20">
+                  <TrendingUp size={16} className="text-indigo-400" />
+                </div>
+                <div>
+                  <h3 className="text-gray-900 dark:text-white font-semibold text-sm">Estimated Margin</h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-600">Per product in current stock</p>
+                </div>
+              </div>
+              <span className="text-lg font-bold text-gray-900 dark:text-white tabular-nums">${totalEstimatedProfit.toFixed(2)}</span>
+            </div>
+            <div className="space-y-3">
+              {sortedByProfit.slice(0, 6).map((inv, i) => (
+                <div key={inv.inventoryId} className="flex items-center gap-2 sm:gap-3">
+                  <span className="text-[11px] text-gray-400 dark:text-gray-600 w-4 tabular-nums flex-shrink-0">{i + 1}</span>
+                  <span className="text-xs text-gray-600 dark:text-gray-400 w-24 truncate flex-shrink-0">{inv.productName ?? `#${inv.productId}`}</span>
+                  <div className="flex-1 h-2 bg-gray-200 dark:bg-gray-800/80 rounded-full overflow-hidden min-w-0">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 transition-all duration-700"
+                      style={{ width: `${Math.min((inv.estimatedProfit / (maxProfit || 1)) * 100, 100)}%` }}
+                    />
+                  </div>
+                  <span className="text-xs font-semibold text-gray-900 dark:text-white w-16 text-right tabular-nums flex-shrink-0">
+                    ${inv.estimatedProfit.toFixed(2)}
+                  </span>
+                </div>
+              ))}
+              {inventory.length === 0 && (
+                <p className="text-gray-500 dark:text-gray-600 text-sm text-center py-6">No inventory</p>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Needs restock panel */}
@@ -227,7 +319,7 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Profit panels */}
+        {/* Bottom panels */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
           {/* Realized profit */}
           <div className="bg-white dark:bg-gray-900/60 border border-gray-200 dark:border-gray-800/60 rounded-2xl p-4 sm:p-6">
@@ -273,7 +365,6 @@ export default function Dashboard() {
                 <p className="text-gray-500 dark:text-gray-600 text-sm text-center py-6">No consumptions recorded yet</p>
               )}
             </div>
-            {/* Total footer */}
             {consumptions.length > 0 && (
               <div className="border-t border-gray-200 dark:border-gray-800/60 mt-3 pt-3 flex items-center justify-between px-3">
                 <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Total</span>
@@ -287,45 +378,6 @@ export default function Dashboard() {
             )}
           </div>
 
-          {/* Estimated margin */}
-          <div className="bg-white dark:bg-gray-900/60 border border-gray-200 dark:border-gray-800/60 rounded-2xl p-4 sm:p-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-indigo-500/10 rounded-xl ring-1 ring-indigo-500/20">
-                  <TrendingUp size={16} className="text-indigo-400" />
-                </div>
-                <div>
-                  <h3 className="text-gray-900 dark:text-white font-semibold text-sm">Estimated Margin</h3>
-                  <p className="text-xs text-gray-500 dark:text-gray-600">Per product in current stock</p>
-                </div>
-              </div>
-              <span className="text-lg font-bold text-gray-900 dark:text-white tabular-nums">${totalEstimatedProfit.toFixed(2)}</span>
-            </div>
-            <div className="space-y-3">
-              {sortedByProfit.slice(0, 6).map((inv, i) => (
-                <div key={inv.inventoryId} className="flex items-center gap-2 sm:gap-3">
-                  <span className="text-[11px] text-gray-400 dark:text-gray-600 w-4 tabular-nums flex-shrink-0">{i + 1}</span>
-                  <span className="text-xs text-gray-600 dark:text-gray-400 w-24 truncate flex-shrink-0">{inv.productName ?? `#${inv.productId}`}</span>
-                  <div className="flex-1 h-2 bg-gray-200 dark:bg-gray-800/80 rounded-full overflow-hidden min-w-0">
-                    <div
-                      className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 transition-all duration-700"
-                      style={{ width: `${Math.min((inv.estimatedProfit / (maxProfit || 1)) * 100, 100)}%` }}
-                    />
-                  </div>
-                  <span className="text-xs font-semibold text-gray-900 dark:text-white w-16 text-right tabular-nums flex-shrink-0">
-                    ${inv.estimatedProfit.toFixed(2)}
-                  </span>
-                </div>
-              ))}
-              {inventory.length === 0 && (
-                <p className="text-gray-500 dark:text-gray-600 text-sm text-center py-6">No inventory</p>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Bottom panels */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
           {/* Active promotions */}
           <div className="bg-white dark:bg-gray-900/60 border border-gray-200 dark:border-gray-800/60 rounded-2xl p-4 sm:p-6">
             <div className="flex items-center gap-3 mb-5">
@@ -347,41 +399,42 @@ export default function Dashboard() {
               {activePromotions === 0 && <p className="text-gray-500 dark:text-gray-600 text-sm text-center py-6">No active promotions</p>}
             </div>
           </div>
+        </div>
 
-          {/* Low stock — clickable to restock */}
-          <div className="bg-white dark:bg-gray-900/60 border border-gray-200 dark:border-gray-800/60 rounded-2xl p-4 sm:p-6">
-            <div className="flex items-center gap-3 mb-5">
-              <div className="p-2 bg-red-500/10 rounded-xl ring-1 ring-red-500/20">
-                <AlertTriangle size={16} className="text-red-400" />
-              </div>
-              <div>
-                <h3 className="text-gray-900 dark:text-white font-semibold text-sm">Low Stock</h3>
-                <p className="text-xs text-gray-500 dark:text-gray-600">Less than 10 units — click to add stock</p>
-              </div>
+        {/* Low stock — clickable to restock */}
+        <div className="bg-white dark:bg-gray-900/60 border border-gray-200 dark:border-gray-800/60 rounded-2xl p-4 sm:p-6">
+          <div className="flex items-center gap-3 mb-5">
+            <div className="p-2 bg-red-500/10 rounded-xl ring-1 ring-red-500/20">
+              <AlertTriangle size={16} className="text-red-400" />
             </div>
-            <div className="space-y-1">
-              {lowStockItems.slice(0, 5).map(i => (
-                <button
-                  key={i.inventoryId}
-                  onClick={() => setRestockItem(i)}
-                  className="w-full flex items-center justify-between py-2.5 px-3 rounded-xl hover:bg-gray-50 dark:hover:bg-white/[0.02] transition-colors gap-2 group text-left"
-                >
-                  <div className="flex items-center gap-2 min-w-0">
-                    {i.needsRestock
-                      ? <CheckCircle size={14} className="text-amber-500 flex-shrink-0" />
-                      : <XCircle size={14} className="text-gray-300 dark:text-gray-700 flex-shrink-0" />
-                    }
-                    <span className="text-sm text-gray-700 dark:text-gray-300 truncate group-hover:text-gray-900 dark:group-hover:text-white transition-colors">{i.productName ?? `Product #${i.productId}`}</span>
-                  </div>
-                  <Badge color={i.currentStock === 0 ? 'red' : 'yellow'}>{i.currentStock} units</Badge>
-                </button>
-              ))}
-              {lowStockItems.length === 0 && (
-                <p className="text-gray-500 dark:text-gray-600 text-sm text-center py-6">All products well stocked</p>
-              )}
+            <div>
+              <h3 className="text-gray-900 dark:text-white font-semibold text-sm">Low Stock</h3>
+              <p className="text-xs text-gray-500 dark:text-gray-600">Less than 10 units — click to add stock</p>
             </div>
           </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1">
+            {lowStockItems.slice(0, 6).map(i => (
+              <button
+                key={i.inventoryId}
+                onClick={() => setRestockItem(i)}
+                className="flex items-center justify-between py-2.5 px-3 rounded-xl hover:bg-gray-50 dark:hover:bg-white/[0.02] transition-colors gap-2 group text-left"
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  {i.needsRestock
+                    ? <CheckCircle size={14} className="text-amber-500 flex-shrink-0" />
+                    : <XCircle size={14} className="text-gray-300 dark:text-gray-700 flex-shrink-0" />
+                  }
+                  <span className="text-sm text-gray-700 dark:text-gray-300 truncate group-hover:text-gray-900 dark:group-hover:text-white transition-colors">{i.productName ?? `Product #${i.productId}`}</span>
+                </div>
+                <Badge color={i.currentStock === 0 ? 'red' : 'yellow'}>{i.currentStock} units</Badge>
+              </button>
+            ))}
+            {lowStockItems.length === 0 && (
+              <p className="text-gray-500 dark:text-gray-600 text-sm text-center py-6 col-span-full">All products well stocked</p>
+            )}
+          </div>
         </div>
+
       </div>
 
       {restockItem && (

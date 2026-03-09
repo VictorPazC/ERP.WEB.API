@@ -7,10 +7,12 @@ namespace ERP.WEB.Application.Features.Inventory.Commands.RestockInventory;
 public class RestockInventoryCommandHandler : IRequestHandler<RestockInventoryCommand, InventoryDto?>
 {
     private readonly IInventoryRepository _repository;
+    private readonly IActivityLogger      _activityLogger;
 
-    public RestockInventoryCommandHandler(IInventoryRepository repository)
+    public RestockInventoryCommandHandler(IInventoryRepository repository, IActivityLogger activityLogger)
     {
-        _repository = repository;
+        _repository     = repository;
+        _activityLogger = activityLogger;
     }
 
     public async ValueTask<InventoryDto?> Handle(RestockInventoryCommand request, CancellationToken cancellationToken)
@@ -25,6 +27,13 @@ public class RestockInventoryCommandHandler : IRequestHandler<RestockInventoryCo
         inventory.LastRestockDate = DateTime.UtcNow;
 
         await _repository.UpdateAsync(inventory);
+
+        await _activityLogger.LogAsync(
+            "restock",
+            $"Reposición: {inventory.Product?.Name ?? "Producto"}",
+            $"+{request.Dto.AdditionalStock} unidades — Stock actual: {inventory.CurrentStock}",
+            null,
+            cancellationToken);
 
         return new InventoryDto(
             inventory.InventoryId,

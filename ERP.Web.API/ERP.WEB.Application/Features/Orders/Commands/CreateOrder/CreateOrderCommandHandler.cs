@@ -8,8 +8,13 @@ namespace ERP.WEB.Application.Features.Orders.Commands.CreateOrder;
 public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, OrderDto>
 {
     private readonly IOrderRepository _repo;
+    private readonly IActivityLogger  _activityLogger;
 
-    public CreateOrderCommandHandler(IOrderRepository repo) => _repo = repo;
+    public CreateOrderCommandHandler(IOrderRepository repo, IActivityLogger activityLogger)
+    {
+        _repo           = repo;
+        _activityLogger = activityLogger;
+    }
 
     public async ValueTask<OrderDto> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
     {
@@ -29,6 +34,13 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Ord
         };
 
         var saved = await _repo.AddAsync(order, cancellationToken);
+
+        await _activityLogger.LogAsync(
+            "order_created",
+            $"Pedido #{saved.OrderId} creado",
+            $"Total: ${saved.TotalAmount:N2} — {saved.Items.Count} artículo(s)",
+            saved.TotalAmount,
+            cancellationToken);
 
         return new OrderDto(
             saved.OrderId,

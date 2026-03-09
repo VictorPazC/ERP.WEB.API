@@ -95,6 +95,11 @@ builder.Services.AddScoped<IProductVariantRepository, ProductVariantRepository>(
 builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 
+// Dashboard + Activity
+builder.Services.AddScoped<IActivityLogRepository, ActivityLogRepository>();
+builder.Services.AddScoped<IDashboardRepository, DashboardRepository>();
+builder.Services.AddScoped<IActivityLogger, ActivityLogger>();
+
 // CORS — orígenes permitidos desde config (Cors:AllowedOrigins, separados por coma).
 // En producción, poner solo el dominio del frontend. En desarrollo: appsettings.Development.json hereda.
 var allowedOrigins = builder.Configuration["Cors:AllowedOrigins"]?

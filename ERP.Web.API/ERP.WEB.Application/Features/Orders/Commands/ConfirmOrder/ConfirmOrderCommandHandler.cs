@@ -16,11 +16,16 @@ public class ConfirmOrderCommandHandler : IRequestHandler<ConfirmOrderCommand, b
 {
     private readonly IOrderRepository     _orderRepo;
     private readonly IInventoryRepository _inventoryRepo;
+    private readonly IActivityLogger      _activityLogger;
 
-    public ConfirmOrderCommandHandler(IOrderRepository orderRepo, IInventoryRepository inventoryRepo)
+    public ConfirmOrderCommandHandler(
+        IOrderRepository orderRepo,
+        IInventoryRepository inventoryRepo,
+        IActivityLogger activityLogger)
     {
-        _orderRepo     = orderRepo;
-        _inventoryRepo = inventoryRepo;
+        _orderRepo      = orderRepo;
+        _inventoryRepo  = inventoryRepo;
+        _activityLogger = activityLogger;
     }
 
     public async ValueTask<bool> Handle(ConfirmOrderCommand request, CancellationToken cancellationToken)
@@ -49,6 +54,13 @@ public class ConfirmOrderCommandHandler : IRequestHandler<ConfirmOrderCommand, b
         // Paso 3: confirmar orden — SaveChangesAsync guarda orden + inventarios en una sola transacción
         order.Status = "Confirmed";
         await _orderRepo.UpdateAsync(order, cancellationToken);
+
+        await _activityLogger.LogAsync(
+            "order_confirmed",
+            $"Pedido #{order.OrderId} confirmado",
+            $"Total: ${order.TotalAmount:N2}",
+            order.TotalAmount,
+            cancellationToken);
 
         return true;
     }

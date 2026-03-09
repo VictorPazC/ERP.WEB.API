@@ -43,6 +43,16 @@ public class InventoryRepository : IInventoryRepository
             .FirstOrDefaultAsync(i => i.ProductId == productId);
     }
 
+    public async Task<List<Inventory>> GetCriticalAsync(int threshold, CancellationToken ct = default)
+    {
+        return await _context.Inventories
+            .Where(i => i.CurrentStock <= threshold)
+            .Include(i => i.Product)
+            .Include(i => i.Variant)
+            .OrderBy(i => i.CurrentStock)
+            .ToListAsync(ct);
+    }
+
     public async Task<Inventory> AddAsync(Inventory inventory)
     {
         _context.Inventories.Add(inventory);

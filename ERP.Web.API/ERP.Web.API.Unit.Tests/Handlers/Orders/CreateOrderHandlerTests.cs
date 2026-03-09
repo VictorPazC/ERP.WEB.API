@@ -8,11 +8,12 @@ namespace ERP.Web.API.Unit.Tests.Handlers.Orders;
 public class CreateOrderHandlerTests
 {
     private readonly IOrderRepository _repo = Substitute.For<IOrderRepository>();
+    private readonly IActivityLogger  _activityLogger = Substitute.For<IActivityLogger>();
     private readonly CreateOrderCommandHandler _sut;
 
     public CreateOrderHandlerTests()
     {
-        _sut = new CreateOrderCommandHandler(_repo);
+        _sut = new CreateOrderCommandHandler(_repo, _activityLogger);
 
         // Default: return the order passed in, with an auto-assigned ID
         _repo.AddAsync(Arg.Any<Order>(), Arg.Any<CancellationToken>())
