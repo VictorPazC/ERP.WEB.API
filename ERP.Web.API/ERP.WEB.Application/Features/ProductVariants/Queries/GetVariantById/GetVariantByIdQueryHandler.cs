@@ -30,7 +30,8 @@ public class GetVariantByIdQueryHandler : IRequestHandler<GetVariantByIdQuery, P
             v.Inventory is not null,
             v.Inventory?.CurrentStock,
             v.Images.FirstOrDefault(i => i.IsPrimary)?.ImagePath
-                ?? v.Images.FirstOrDefault()?.ImagePath
+                ?? v.Images.FirstOrDefault()?.ImagePath,
+            v.StockStatus
         );
     }
 }

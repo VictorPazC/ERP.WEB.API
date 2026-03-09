@@ -111,6 +111,7 @@ export interface ProductVariant {
   hasInventory: boolean;
   currentStock?: number;
   primaryImagePath?: string;
+  stockStatus?: string | null;
 }
 
 export interface CreateProductVariantDto {
@@ -123,6 +124,7 @@ export interface UpdateProductVariantDto {
   variantId: number;
   name: string;
   description?: string;
+  stockStatus?: string | null;
 }
 
 export interface CreateInventoryDto {

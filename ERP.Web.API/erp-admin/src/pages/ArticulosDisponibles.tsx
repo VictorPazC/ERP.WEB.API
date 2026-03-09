@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ShoppingBag, Search, CheckCircle, Package, Filter, X, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -186,8 +187,10 @@ function ConsumeModal({ article, primaryImagePath, onClose }: {
 
 /* ── Main page ────────────────────────────────────────────── */
 export default function ArticulosDisponibles() {
+  const [searchParams] = useSearchParams();
   const [search, setSearch] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('');
+  // Initialized from URL ?category= param so Categories page can link directly here
+  const [categoryFilter, setCategoryFilter] = useState(() => searchParams.get('category') ?? '');
   const [consuming, setConsuming] = useState<AvailableArticle | null>(null);
   const [lightboxSrc, setLightboxSrc] = useState<{ src: string; alt: string } | null>(null);
 
@@ -339,7 +342,7 @@ export default function ArticulosDisponibles() {
             {/* Mobile cards */}
             <div className="md:hidden space-y-3">
               {filtered?.map(a => {
-                const imgPath = primaryImageMap.get(a.productId);
+                const imgPath = (a.variantId != null ? variantImageMap.get(a.variantId) : undefined) ?? primaryImageMap.get(a.productId);
                 const src = imageUrl(imgPath);
                 return (
                   <div key={a.inventoryId} className="bg-white dark:bg-gray-900/60 border border-gray-200 dark:border-gray-800/60 rounded-xl p-4">

@@ -22,6 +22,7 @@ public class UpdateVariantCommandHandler : IRequestHandler<UpdateVariantCommand,
 
         variant.Name        = request.Dto.Name;
         variant.Description = request.Dto.Description;
+        variant.StockStatus = request.Dto.StockStatus;
 
         await _repo.UpdateAsync(variant);
         return true;

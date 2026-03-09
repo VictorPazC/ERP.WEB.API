@@ -24,6 +24,9 @@ public class ProductVariant : ICompanyEntity
 
     public string? Description { get; set; }
 
+    [MaxLength(50)]
+    public string? StockStatus { get; set; }
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     [ForeignKey(nameof(ProductId))]

@@ -1,6 +1,7 @@
 ﻿import { useState, useRef, useCallback, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Pencil, Trash2, Package, ExternalLink, Search, Upload, X, Tag as TagIcon, Camera, Archive, TrendingUp, Star, Layers } from 'lucide-react';
+import { Plus, Pencil, Trash2, Package, ExternalLink, Search, Upload, X, Tag as TagIcon, Camera, Archive, TrendingUp, Star } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { productsApi } from '../api/products';
 import { brandsApi } from '../api/brands';
@@ -342,9 +343,9 @@ function ProductForm({ initial, onSave, onClose }: {
             {brands?.map(b => <option key={b.brandId} value={b.brandId}>{b.name}</option>)}
           </select>
         </div>
-        <FormField label="Purchase location" value={form.purchaseLocation} onChange={set('purchaseLocation')} placeholder="Where to buy it" />
+        {initial && <FormField label="Purchase location" value={form.purchaseLocation} onChange={set('purchaseLocation')} placeholder="Where to buy it" />}
       </div>
-      <FormField label="Reference link" value={form.referenceLink} onChange={set('referenceLink')} placeholder="https://…" type="url" />
+      {initial && <FormField label="Reference link" value={form.referenceLink} onChange={set('referenceLink')} placeholder="https://…" type="url" />}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <SearchableSelect
           label="Category"
@@ -382,9 +383,16 @@ function ProductForm({ initial, onSave, onClose }: {
 }
 
 /* ── Quick inventory form ─────────────────────────────────── */
-function QuickInventoryForm({ product, variantId, onClose }: { product: Product; variantId?: number; onClose: () => void }) {
+function QuickInventoryForm({ product, variantId: initVariantId, onClose }: { product: Product; variantId?: number; onClose: () => void }) {
   const qc = useQueryClient();
   const today = new Date().toISOString().slice(0, 10);
+
+  // When called without a pre-selected variantId and the product has variants,
+  // show a picker first so the user can choose which target to add inventory for.
+  const needsPicker = initVariantId === undefined && product.variantCount > 0;
+  const [step, setStep] = useState<'pick' | 'form'>(needsPicker ? 'pick' : 'form');
+  const [chosenVariantId, setChosenVariantId] = useState<number | undefined>(initVariantId);
+
   const [form, setForm] = useState({
     purchaseCost: '',
     suggestedRetailPrice: '',
@@ -393,6 +401,25 @@ function QuickInventoryForm({ product, variantId, onClose }: { product: Product;
   });
   const [loading, setLoading] = useState(false);
   const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) => setForm(f => ({ ...f, [k]: e.target.value }));
+
+  // Load variants for the picker (served from cache if parent already loaded them)
+  const { data: variants, isLoading: variantsLoading } = useQuery({
+    queryKey: ['product-variants', product.productId],
+    queryFn: () => productVariantsApi.getByProduct(product.productId),
+    enabled: needsPicker,
+    staleTime: 60_000,
+  });
+
+  // Product-level primary image (served from cache via 'product-images-select')
+  const { data: rawImgCache } = useQuery({
+    queryKey: ['product-images-select'],
+    queryFn: () => productImagesApi.getAll(),
+    enabled: needsPicker,
+    staleTime: 5 * 60_000,
+  });
+  const productImgPath = rawImgCache?.items?.find(
+    img => img.productId === product.productId && img.variantId == null
+  )?.imagePath;
 
   const createMut = useMutation({
     mutationFn: (dto: CreateInventoryDto) => inventoryApi.create(dto),
@@ -405,7 +432,7 @@ function QuickInventoryForm({ product, variantId, onClose }: { product: Product;
     try {
       await createMut.mutateAsync({
         productId: product.productId,
-        variantId,
+        variantId: chosenVariantId,
         purchaseCost: Number(form.purchaseCost),
         suggestedRetailPrice: Number(form.suggestedRetailPrice),
         currentStock: Number(form.currentStock),
@@ -421,14 +448,74 @@ function QuickInventoryForm({ product, variantId, onClose }: { product: Product;
     ? Number(form.suggestedRetailPrice) - Number(form.purchaseCost)
     : null;
 
+  /* ── Picker step ── */
+  if (step === 'pick') {
+    if (variantsLoading) return <LoadingSpinner />;
+
+    const options = [
+      { id: undefined as number | undefined, name: product.name, subtitle: 'Producto base', imgPath: productImgPath, stock: undefined as number | undefined },
+      ...(variants ?? []).map(v => ({ id: v.variantId, name: v.name, subtitle: v.description, imgPath: v.primaryImagePath, stock: v.hasInventory ? v.currentStock : undefined })),
+    ];
+
+    return (
+      <div className="space-y-2">
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">¿A cuál agregar inventario?</p>
+        {options.map(opt => {
+          const src = imageUrl(opt.imgPath);
+          return (
+            <button
+              key={opt.id ?? 'base'}
+              type="button"
+              onClick={() => { setChosenVariantId(opt.id); setStep('form'); }}
+              className="w-full flex items-center gap-3 p-3 bg-gray-50 dark:bg-white/[0.03] border border-gray-200 dark:border-gray-800/60 rounded-xl hover:border-indigo-400 dark:hover:border-indigo-500/60 hover:bg-indigo-500/5 transition-all text-left"
+            >
+              <div className="w-12 h-12 rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800/60 ring-1 ring-gray-200 dark:ring-gray-700/30 flex items-center justify-center flex-shrink-0">
+                {src
+                  ? <img src={src} alt="" className="w-full h-full object-cover" loading="lazy" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                  : <Package size={16} className="text-gray-400" />}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{opt.name}</p>
+                {opt.subtitle && <p className="text-xs text-gray-500 dark:text-gray-500 truncate">{opt.subtitle}</p>}
+                {opt.stock !== undefined && (
+                  <Badge color={opt.stock > 0 ? 'green' : 'red'}>{opt.stock} units</Badge>
+                )}
+              </div>
+            </button>
+          );
+        })}
+        <button type="button" onClick={onClose}
+          className="w-full mt-1 px-4 py-2.5 border border-gray-300 dark:border-gray-700/60 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors text-sm font-medium">
+          Cancel
+        </button>
+      </div>
+    );
+  }
+
+  /* ── Form step ── */
+  const chosenVariant = variants?.find(v => v.variantId === chosenVariantId);
+  const selectedName = chosenVariantId == null ? product.name : (chosenVariant?.name ?? product.name);
+  const selectedImgPath = chosenVariantId == null ? productImgPath : chosenVariant?.primaryImagePath;
+  const selectedImgSrc = imageUrl(selectedImgPath);
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="flex items-center gap-2.5 px-3 py-2.5 bg-gray-50 dark:bg-white/[0.03] rounded-xl border border-gray-200 dark:border-gray-800/60">
-        <Package size={14} className="text-indigo-500 flex-shrink-0" />
-        <div className="min-w-0">
-          <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{product.name}</p>
+      <div className="flex items-center gap-3 px-3 py-2.5 bg-gray-50 dark:bg-white/[0.03] rounded-xl border border-gray-200 dark:border-gray-800/60">
+        <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800/60 ring-1 ring-gray-200 dark:ring-gray-700/30 flex items-center justify-center flex-shrink-0">
+          {selectedImgSrc
+            ? <img src={selectedImgSrc} alt="" className="w-full h-full object-cover" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+            : <Package size={14} className="text-indigo-500" />}
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{selectedName}</p>
           {product.brandName && <p className="text-xs text-gray-500 dark:text-gray-500">{product.brandName}</p>}
         </div>
+        {needsPicker && (
+          <button type="button" onClick={() => setStep('pick')}
+            className="text-xs text-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 flex-shrink-0 transition-colors">
+            Cambiar
+          </button>
+        )}
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <FormField label="Purchase Cost *" value={form.purchaseCost} onChange={set('purchaseCost')} type="number" step="0.01" min="0" placeholder="0.00" required />
@@ -468,6 +555,11 @@ function VariantPanel({ product, onClose: _onClose }: { product: Product; onClos
   const updateMut = useMutation({
     mutationFn: ({ id, dto }: { id: number; dto: UpdateProductVariantDto }) => productVariantsApi.update(id, dto),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['product-variants', product.productId] }); toast.success('Variant updated'); setEditing(null); },
+  });
+  const setStockStatusMut = useMutation({
+    mutationFn: ({ v, status }: { v: import('../types').ProductVariant; status: string | null }) =>
+      productVariantsApi.update(v.variantId, { variantId: v.variantId, name: v.name, description: v.description, stockStatus: status }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['product-variants', product.productId] }),
   });
   const deleteMut = useMutation({
     mutationFn: (id: number) => productVariantsApi.delete(id),
@@ -541,11 +633,21 @@ function VariantPanel({ product, onClose: _onClose }: { product: Product; onClos
                     <>
                       <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{v.name}</p>
                       {v.description && <p className="text-xs text-gray-500 dark:text-gray-600 truncate mt-0.5">{v.description}</p>}
-                      <div className="flex items-center gap-1.5 mt-1.5">
+                      <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
                         {v.hasInventory
                           ? <Badge color={(v.currentStock ?? 0) > 0 ? 'green' : 'red'}>{v.currentStock ?? 0} units</Badge>
                           : <Badge color="gray">No inv.</Badge>}
+                        {v.stockStatus && <StockStatusBadge status={v.stockStatus} />}
                       </div>
+                      {isAdmin && (!v.hasInventory || (v.currentStock ?? 1) === 0) && (
+                        <div className="mt-1.5">
+                          <StockStatusSelect
+                            productId={v.variantId}
+                            value={v.stockStatus ?? null}
+                            onChange={(_, s) => setStockStatusMut.mutate({ v, status: s })}
+                          />
+                        </div>
+                      )}
                       {isAdmin && (
                         <div className="flex items-center gap-1 mt-2">
                           <button onClick={() => setEditing({ variantId: v.variantId, name: v.name, description: v.description ?? '' })}
@@ -739,6 +841,7 @@ function ProductDetailPanel({ product, allImages, onEdit, onDelete, onInventory,
 export default function Products() {
   const qc = useQueryClient();
   const { isAdmin } = useUser();
+  const [searchParams] = useSearchParams();
   // Auto-open modal to resume image upload if page was reloaded on mobile
   const [modal, setModal] = useState<'create' | 'edit' | null>(() => loadPendingImage() ? 'create' : null);
   const [selected, setSelected] = useState<Product | null>(null);
@@ -748,7 +851,11 @@ export default function Products() {
   const [search, setSearch] = useState('');
   const [lightbox, setLightbox] = useState<{ src: string; alt: string } | null>(null);
   const [filterBrand, setFilterBrand] = useState<number | null>(null);
-  const [filterCategory, setFilterCategory] = useState<number | null>(null);
+  // Initialized from URL ?categoryId= param so Categories eye-icon can deep-link here
+  const [filterCategory, setFilterCategory] = useState<number | null>(() => {
+    const v = searchParams.get('categoryId');
+    return v ? Number(v) : null;
+  });
   const [filterStatus, setFilterStatus] = useState<string | null>(null);
   const [filterStock, setFilterStock] = useState<'noInventory' | 'noStock' | null>(null);
   const [filterFavorites, setFilterFavorites] = useState(false);
@@ -769,6 +876,7 @@ export default function Products() {
 
   const primaryImageMap = new Map<number, string>();
   allImages?.forEach(img => {
+    if (img.variantId != null) return; // skip variant-level images
     if (img.isPrimary || !primaryImageMap.has(img.productId)) {
       primaryImageMap.set(img.productId, img.imagePath);
     }
@@ -993,11 +1101,11 @@ export default function Products() {
                 const imgPath = primaryImageMap.get(p.productId);
                 const src = imageUrl(imgPath);
                 return (
-                  <div key={p.productId} className="bg-white dark:bg-gray-900/60 border border-gray-200 dark:border-gray-800/60 rounded-xl p-4">
+                  <div key={p.productId} onClick={() => setExpandedProduct(p)} className="bg-white dark:bg-gray-900/60 border border-gray-200 dark:border-gray-800/60 rounded-xl p-4 cursor-pointer">
                     <div className="flex items-start gap-3">
                       <div
                         className={`w-14 h-14 rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800/60 ring-1 ring-gray-200 dark:ring-gray-700/30 flex items-center justify-center flex-shrink-0 ${src ? 'cursor-zoom-in' : ''}`}
-                        onClick={() => openLightbox(p.productId, p.name)}
+                        onClick={e => { e.stopPropagation(); openLightbox(p.productId, p.name); }}
                       >
                         {src
                           ? <img src={src} alt="" className="w-full h-full object-cover" loading="lazy"
@@ -1012,19 +1120,18 @@ export default function Products() {
                               {p.description && <p className="text-xs text-gray-500 dark:text-gray-600 line-clamp-2 mt-0.5">{p.description}</p>}
                             </div>
                             <button
-                              onClick={() => toggleFavMut.mutate(p.productId)}
+                              onClick={e => { e.stopPropagation(); toggleFavMut.mutate(p.productId); }}
                               className={`mt-0.5 p-0.5 rounded flex-shrink-0 transition-colors ${p.isFavorite ? 'text-amber-500' : 'text-gray-300 dark:text-gray-700'}`}
                             >
                               <Star size={13} className={p.isFavorite ? 'fill-amber-500' : ''} />
                             </button>
                           </div>
                           <div className="flex gap-1 flex-shrink-0">
-                            {p.referenceLink && <a href={p.referenceLink} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded-lg text-gray-500 hover:text-blue-500 hover:bg-blue-500/10 transition-colors"><ExternalLink size={13} /></a>}
+                            {p.referenceLink && <a href={p.referenceLink} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="p-1.5 rounded-lg text-gray-500 hover:text-blue-500 hover:bg-blue-500/10 transition-colors"><ExternalLink size={13} /></a>}
                             {isAdmin && <>
-                              <button onClick={(e) => { e.stopPropagation(); setExpandedProduct(p); }} title="Variants" className="p-1.5 rounded-lg text-gray-500 hover:text-indigo-500 dark:hover:text-indigo-400 hover:bg-indigo-500/10 transition-colors"><Layers size={13} /></button>
-                              <button onClick={() => setInventoryFor(p)} title="Add inventory" className="p-1.5 rounded-lg text-gray-500 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-500/10 transition-colors"><Archive size={13} /></button>
-                              <button onClick={() => { setSelected(p); setModal('edit'); }} className="p-1.5 rounded-lg text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"><Pencil size={13} /></button>
-                              <button onClick={() => setDeleting(p)} className="p-1.5 rounded-lg text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-500/10 transition-colors"><Trash2 size={13} /></button>
+                              <button onClick={e => { e.stopPropagation(); setInventoryFor(p); }} title="Add inventory" className="p-1.5 rounded-lg text-gray-500 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-500/10 transition-colors"><Archive size={13} /></button>
+                              <button onClick={e => { e.stopPropagation(); setSelected(p); setModal('edit'); }} className="p-1.5 rounded-lg text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"><Pencil size={13} /></button>
+                              <button onClick={e => { e.stopPropagation(); setDeleting(p); }} className="p-1.5 rounded-lg text-gray-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-500/10 transition-colors"><Trash2 size={13} /></button>
                             </>}
                           </div>
                         </div>
@@ -1083,8 +1190,16 @@ export default function Products() {
       )}
 
       {expandedProduct && (
-        <Modal title={`${expandedProduct.name} — Variants`} onClose={() => setExpandedProduct(null)} size="lg">
-          <VariantPanel product={expandedProduct} onClose={() => setExpandedProduct(null)} />
+        <Modal title={expandedProduct.name} onClose={() => setExpandedProduct(null)} size="xl">
+          <ProductDetailPanel
+            product={expandedProduct}
+            allImages={allImages}
+            onEdit={() => { setSelected(expandedProduct); setModal('edit'); }}
+            onDelete={() => setDeleting(expandedProduct)}
+            onInventory={() => setInventoryFor(expandedProduct)}
+            onClose={() => setExpandedProduct(null)}
+            onLightbox={(src, alt) => setLightbox({ src, alt })}
+          />
         </Modal>
       )}
 

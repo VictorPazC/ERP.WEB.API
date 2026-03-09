@@ -24,7 +24,8 @@ public class GetVariantsByProductQueryHandler : IRequestHandler<GetVariantsByPro
         var items = list.Select(v => new ProductVariantDto(
             v.VariantId, v.ProductId, v.Name, v.Description, v.CreatedAt,
             v.Inventory is not null, v.Inventory?.CurrentStock,
-            v.Images.FirstOrDefault(i => i.IsPrimary)?.ImagePath ?? v.Images.FirstOrDefault()?.ImagePath));
+            v.Images.FirstOrDefault(i => i.IsPrimary)?.ImagePath ?? v.Images.FirstOrDefault()?.ImagePath,
+            v.StockStatus));
         return new CursorPagedResult<ProductVariantDto>(items, nextCursor, hasMore);
     }
 }
