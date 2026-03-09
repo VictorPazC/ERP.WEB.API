@@ -334,8 +334,17 @@ function ProductForm({ initial, onSave, onClose }: {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <FormField label="Name *" value={form.name} onChange={set('name')} placeholder="Product name" required />
-      <FormField label="Description" value={form.description} onChange={set('description')} placeholder="Optional description" />
+
+      {/* Category + Brand — category always first */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <SearchableSelect
+          label="Category"
+          value={form.categoryId}
+          onChange={v => setForm(f => ({ ...f, categoryId: v }))}
+          options={(categories ?? []).slice().sort((a, b) => a.name.localeCompare(b.name)).map(c => ({ value: String(c.categoryId), label: c.name }))}
+          placeholder="Search category…"
+          clearLabel="No category"
+        />
         <div className="flex flex-col gap-1.5">
           <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Brand</label>
           <select value={form.brandId} onChange={set('brandId')} className={selectCls}>
@@ -343,19 +352,13 @@ function ProductForm({ initial, onSave, onClose }: {
             {brands?.map(b => <option key={b.brandId} value={b.brandId}>{b.name}</option>)}
           </select>
         </div>
-        {initial && <FormField label="Purchase location" value={form.purchaseLocation} onChange={set('purchaseLocation')} placeholder="Where to buy it" />}
       </div>
-      {initial && <FormField label="Reference link" value={form.referenceLink} onChange={set('referenceLink')} placeholder="https://…" type="url" />}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <SearchableSelect
-          label="Category"
-          value={form.categoryId}
-          onChange={v => setForm(f => ({ ...f, categoryId: v }))}
-          options={(categories ?? []).map(c => ({ value: String(c.categoryId), label: c.name }))}
-          placeholder="Search category…"
-          clearLabel="No category"
-        />
-        {initial && (
+
+      <FormField label="Description" value={form.description} onChange={set('description')} placeholder="Optional description" />
+
+      {initial && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <FormField label="Purchase location" value={form.purchaseLocation} onChange={set('purchaseLocation')} placeholder="Where to buy it" />
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Status</label>
             <select value={form.status} onChange={set('status')} className={selectCls}>
@@ -364,8 +367,9 @@ function ProductForm({ initial, onSave, onClose }: {
               <option>Discontinued</option>
             </select>
           </div>
-        )}
-      </div>
+        </div>
+      )}
+      {initial && <FormField label="Reference link" value={form.referenceLink} onChange={set('referenceLink')} placeholder="https://…" type="url" />}
 
       {/* Tags — edit only */}
       {initial && <TagSelector productId={initial.productId} />}
@@ -744,24 +748,102 @@ function ProductDetailPanel({ product, allImages, onEdit, onDelete, onInventory,
     onSuccess: () => qc.invalidateQueries({ queryKey: ['products'] }),
   });
 
+  // ── Variant image switcher ──────────────────────────────────
+  const [activeVariantId, setActiveVariantId] = useState<number | null>(null);
+
+  // Load variants (served from cache when VariantPanel is also mounted)
+  const { data: variantsForSwitch } = useQuery({
+    queryKey: ['product-variants', product.productId],
+    queryFn: () => productVariantsApi.getByProduct(product.productId),
+    enabled: product.variantCount > 0,
+    staleTime: 60_000,
+  });
+
+  // Helper: resolve image URL for a variant
+  const variantThumbSrc = (variantId: number): string | undefined => {
+    const v = variantsForSwitch?.find(vv => vv.variantId === variantId);
+    if (v?.primaryImagePath) return imageUrl(v.primaryImagePath);
+    const img = allImages?.find(i => i.variantId === variantId && i.isPrimary)
+      ?? allImages?.find(i => i.variantId === variantId);
+    return img ? imageUrl(img.imagePath) : undefined;
+  };
+
+  // Variants that have at least one image (eligible for switcher)
+  const switchableVariants = (variantsForSwitch ?? []).filter(
+    v => v.primaryImagePath || allImages?.some(i => i.variantId === v.variantId),
+  );
+
   // Product-level primary image (variantId = null)
   const primaryImg =
     allImages?.find(i => i.productId === product.productId && i.isPrimary && i.variantId == null)
     ?? allImages?.find(i => i.productId === product.productId && i.variantId == null);
-  const src = primaryImg ? imageUrl(primaryImg.imagePath) : undefined;
+  const productSrc = primaryImg ? imageUrl(primaryImg.imagePath) : undefined;
+
+  // Displayed image: follows the active variant selection
+  const src = activeVariantId !== null
+    ? (variantThumbSrc(activeVariantId) ?? productSrc)
+    : productSrc;
 
   return (
     <div className="space-y-5">
       {/* ── Product header ── */}
       <div className="flex items-start gap-4 p-4 bg-gray-50 dark:bg-white/[0.02] rounded-2xl border border-gray-200 dark:border-gray-800/60">
-        {/* Thumbnail */}
-        <div
-          className={`w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800/60 ring-1 ring-gray-200 dark:ring-gray-700/30 flex items-center justify-center flex-shrink-0 ${src ? 'cursor-zoom-in' : ''}`}
-          onClick={() => { if (src) onLightbox(src, product.name); }}
-        >
-          {src
-            ? <img src={src} alt="" className="w-full h-full object-cover" loading="lazy" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-            : <Package size={24} className="text-gray-400" />}
+        {/* Thumbnail + variant image switcher */}
+        <div className="flex flex-col items-center gap-2 flex-shrink-0">
+          {/* Main image */}
+          <div
+            className={`w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800/60 ring-1 ring-gray-200 dark:ring-gray-700/30 flex items-center justify-center ${src ? 'cursor-zoom-in' : ''}`}
+            onClick={() => { if (src) onLightbox(src, product.name); }}
+          >
+            {src
+              ? <img src={src} alt="" className="w-full h-full object-cover" loading="lazy" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+              : <Package size={24} className="text-gray-400" />}
+          </div>
+
+          {/* Variant image chips — only shown when ≥1 variant has an image */}
+          {switchableVariants.length > 0 && (
+            <div className="flex items-center gap-1 flex-wrap justify-center max-w-[6rem]">
+              {/* Product-level chip */}
+              <button
+                type="button"
+                title="Imagen del producto"
+                onClick={() => setActiveVariantId(null)}
+                className={`w-7 h-7 rounded-md overflow-hidden flex-shrink-0 transition-all ${
+                  activeVariantId === null
+                    ? 'ring-2 ring-indigo-500'
+                    : 'ring-1 ring-gray-200 dark:ring-gray-700/40 hover:ring-indigo-400 opacity-70 hover:opacity-100'
+                }`}
+              >
+                {productSrc
+                  ? <img src={productSrc} alt="" className="w-full h-full object-cover" />
+                  : <div className="w-full h-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center"><Package size={10} className="text-gray-400" /></div>
+                }
+              </button>
+              {/* One chip per switchable variant */}
+              {switchableVariants.map(v => {
+                const vSrc = variantThumbSrc(v.variantId);
+                const active = activeVariantId === v.variantId;
+                return (
+                  <button
+                    key={v.variantId}
+                    type="button"
+                    title={v.name}
+                    onClick={() => setActiveVariantId(active ? null : v.variantId)}
+                    className={`w-7 h-7 rounded-md overflow-hidden flex-shrink-0 transition-all ${
+                      active
+                        ? 'ring-2 ring-indigo-500'
+                        : 'ring-1 ring-gray-200 dark:ring-gray-700/40 hover:ring-indigo-400 opacity-70 hover:opacity-100'
+                    }`}
+                  >
+                    {vSrc
+                      ? <img src={vSrc} alt="" className="w-full h-full object-cover" />
+                      : <div className="w-full h-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center"><Package size={10} className="text-gray-400" /></div>
+                    }
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Info */}
@@ -963,7 +1045,7 @@ export default function Products() {
             <select value={filterCategory ?? ''} onChange={e => setFilterCategory(e.target.value ? Number(e.target.value) : null)}
               className={`${selectCls} py-2 text-xs shrink-0`}>
               <option value="">All categories</option>
-              {categories?.map(c => <option key={c.categoryId} value={c.categoryId}>{c.name}</option>)}
+              {categories?.slice().sort((a, b) => a.name.localeCompare(b.name)).map(c => <option key={c.categoryId} value={c.categoryId}>{c.name}</option>)}
             </select>
             <select value={filterStatus ?? ''} onChange={e => setFilterStatus(e.target.value || null)}
               className={`${selectCls} py-2 text-xs shrink-0`}>

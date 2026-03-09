@@ -84,11 +84,13 @@ export default function SearchableSelect({ label, options, value, onChange, plac
     return () => document.removeEventListener('mousedown', handle);
   }, []);
 
-  // Close on scroll of any ancestor (modal scrolls)
+  // Close on scroll of any ancestor, but NOT when scrolling inside the dropdown itself
   useEffect(() => {
     if (!open) return;
-    const close = () => setOpen(false);
-    // Use capture to catch scroll on any scrollable parent
+    const close = (e: Event) => {
+      if (dropdownRef.current && dropdownRef.current.contains(e.target as Node)) return;
+      setOpen(false);
+    };
     window.addEventListener('scroll', close, true);
     return () => window.removeEventListener('scroll', close, true);
   }, [open]);

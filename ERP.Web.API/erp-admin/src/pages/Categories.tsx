@@ -27,9 +27,15 @@ function CategoryForm({ initial, categories, onSave, onClose }: {
   const [parentId, setParentId] = useState<string>(initial?.parentCategoryId?.toString() ?? '');
   const [loading, setLoading] = useState(false);
 
+  // Duplicate check: same name (case-insensitive), different id
+  const isDuplicate = name.trim().length > 0 && categories.some(
+    c => c.name.trim().toLowerCase() === name.trim().toLowerCase()
+      && c.categoryId !== initial?.categoryId,
+  );
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return;
+    if (!name.trim() || isDuplicate) return;
     setLoading(true);
     try {
       if (initial) {
@@ -44,11 +50,20 @@ function CategoryForm({ initial, categories, onSave, onClose }: {
   };
 
   const descendantIds = initial ? getDescendantIds(initial.categoryId, categories) : new Set<number>();
-  const available = categories.filter(c => c.categoryId !== initial?.categoryId && !descendantIds.has(c.categoryId));
+  const available = categories
+    .filter(c => c.categoryId !== initial?.categoryId && !descendantIds.has(c.categoryId))
+    .sort((a, b) => a.name.localeCompare(b.name));
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <FormField label="Name *" value={name} onChange={e => setName(e.target.value)} placeholder="Category name" required />
+      <FormField
+        label="Name *"
+        value={name}
+        onChange={e => setName(e.target.value)}
+        placeholder="Category name"
+        required
+        error={isDuplicate ? `"${name.trim()}" already exists` : undefined}
+      />
       <FormField label="Description" value={description} onChange={e => setDescription(e.target.value)} placeholder="Optional description" />
       <div className="flex flex-col gap-1.5">
         <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Parent Category</label>
@@ -59,7 +74,7 @@ function CategoryForm({ initial, categories, onSave, onClose }: {
       </div>
       <div className="flex gap-3 pt-2">
         <button type="button" onClick={onClose} className="flex-1 px-4 py-2.5 border border-gray-300 dark:border-gray-700/60 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors text-sm font-medium">Cancel</button>
-        <button type="submit" disabled={loading} className="flex-1 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-white font-medium transition-colors text-sm disabled:opacity-50">
+        <button type="submit" disabled={loading || isDuplicate} className="flex-1 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-white font-medium transition-colors text-sm disabled:opacity-50">
           {loading ? 'Saving...' : initial ? 'Update' : 'Create'}
         </button>
       </div>
@@ -109,6 +124,11 @@ function buildTree(categories: Category[]): TreeNode[] {
   }
   for (const [id, node] of map) {
     if (!visited.has(id)) roots.push(node);
+  }
+  // Sort roots and children alphabetically
+  roots.sort((a, b) => a.name.localeCompare(b.name));
+  for (const node of map.values()) {
+    node.children.sort((a, b) => a.name.localeCompare(b.name));
   }
   return roots;
 }

@@ -6,7 +6,7 @@ import { inventoryApi } from '../api/inventory';
 import { productsApi } from '../api/products';
 import { productImagesApi } from '../api/productImages';
 import { productVariantsApi } from '../api/productVariants';
-import type { Product, Inventory, CreateInventoryDto, UpdateInventoryDto, ProductImage } from '../types';
+import type { Product, Inventory, CreateInventoryDto, UpdateInventoryDto, ProductImage, ProductVariant } from '../types';
 import PageHeader from '../components/PageHeader';
 import Modal from '../components/Modal';
 import ConfirmDialog from '../components/ConfirmDialog';
@@ -181,6 +181,96 @@ function ProductSelector({ value, onChange, products, allImages }: {
   );
 }
 
+/* ── Variant card picker ────────────────────────────────────── */
+function VariantPicker({
+  variants, value, onChange, allImages, productId,
+}: {
+  variants: ProductVariant[];
+  value: string;
+  onChange: (v: string) => void;
+  allImages: ProductImage[];
+  productId: string;
+}) {
+  const pid = Number(productId) || 0;
+
+  // Best image for a given variant (variant-specific → product-level fallback)
+  const variantImg = (v: ProductVariant): string | null => {
+    if (v.primaryImagePath) return imageUrl(v.primaryImagePath) ?? null;
+    const img = allImages.find(i => i.variantId === v.variantId)
+      ?? allImages.find(i => i.productId === v.productId && !i.variantId && i.isPrimary)
+      ?? allImages.find(i => i.productId === v.productId);
+    return img ? (imageUrl(img.imagePath) ?? null) : null;
+  };
+
+  const productLevelImg = (): string | null => {
+    const img = allImages.find(i => i.productId === pid && !i.variantId && i.isPrimary)
+      ?? allImages.find(i => i.productId === pid && !i.variantId)
+      ?? allImages.find(i => i.productId === pid);
+    return img ? (imageUrl(img.imagePath) ?? null) : null;
+  };
+
+  type Card = { id: string; label: string; sub?: string; src: string | null };
+
+  const cards: Card[] = [
+    { id: '', label: 'Product-level stock', sub: 'No specific variant', src: productLevelImg() },
+    ...variants.map(v => ({
+      id: v.variantId.toString(),
+      label: v.name,
+      sub: v.description,
+      src: variantImg(v),
+    })),
+  ];
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <label className="text-sm font-medium text-gray-600 dark:text-gray-400">
+        Variant <span className="font-normal text-gray-400 dark:text-gray-600">(optional)</span>
+      </label>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        {cards.map(card => {
+          const active = value === card.id;
+          return (
+            <button
+              key={card.id}
+              type="button"
+              onClick={() => onChange(card.id)}
+              className={`flex items-center gap-3 p-3 rounded-xl border text-left transition-all ${
+                active
+                  ? 'border-indigo-500/60 bg-indigo-500/10 ring-1 ring-indigo-500/30'
+                  : 'border-gray-200 dark:border-gray-700/60 bg-gray-50 dark:bg-gray-800/40 hover:border-gray-300 dark:hover:border-gray-600'
+              }`}
+            >
+              {/* Thumbnail */}
+              <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700/60 flex-shrink-0 flex items-center justify-center ring-1 ring-gray-200 dark:ring-gray-700/40">
+                {card.src ? (
+                  <img
+                    src={card.src}
+                    alt=""
+                    className="w-full h-full object-cover"
+                    onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                  />
+                ) : (
+                  <Package size={15} className="text-gray-400 dark:text-gray-500" />
+                )}
+              </div>
+              {/* Info */}
+              <div className="min-w-0 flex-1">
+                <p className={`text-sm font-medium truncate ${active ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-900 dark:text-white'}`}>
+                  {card.label}
+                </p>
+                {card.sub && (
+                  <p className="text-[11px] text-gray-500 dark:text-gray-500 truncate mt-0.5">{card.sub}</p>
+                )}
+              </div>
+              {active && <Check size={14} className="text-indigo-500 flex-shrink-0" />}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 /* ── Inventory form ─────────────────────────────────────────── */
 function InventoryForm({ initial, onSave, onClose }: {
   initial?: Inventory;
@@ -243,23 +333,13 @@ function InventoryForm({ initial, onSave, onClose }: {
         <ProductSelector value={form.productId} onChange={val => setForm(f => ({ ...f, productId: val }))} products={products} allImages={allImages} />
       )}
       {variants && variants.length > 0 && (
-        <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium text-gray-600 dark:text-gray-400">
-            Variant <span className="text-gray-400 dark:text-gray-600 font-normal">(optional)</span>
-          </label>
-          <select
-            value={form.variantId}
-            onChange={set('variantId')}
-            className="bg-gray-100 dark:bg-gray-800/60 border border-gray-300 dark:border-gray-700/60 rounded-xl px-3.5 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 hover:border-gray-400 dark:hover:border-gray-600 transition-all"
-          >
-            <option value="">No variant (product-level stock)</option>
-            {variants.map(v => (
-              <option key={v.variantId} value={v.variantId}>
-                {v.name}{v.description ? ` — ${v.description}` : ''}
-              </option>
-            ))}
-          </select>
-        </div>
+        <VariantPicker
+          variants={variants}
+          value={form.variantId}
+          onChange={val => setForm(f => ({ ...f, variantId: val }))}
+          allImages={allImages}
+          productId={activeProductId}
+        />
       )}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <FormField label="Purchase Cost *" value={form.purchaseCost} onChange={set('purchaseCost')} type="number" step="0.01" min="0" placeholder="0.00" required />
