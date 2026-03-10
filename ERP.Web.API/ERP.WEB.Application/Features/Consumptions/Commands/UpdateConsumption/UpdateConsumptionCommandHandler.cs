@@ -28,8 +28,9 @@ public class UpdateConsumptionCommandHandler : IRequestHandler<UpdateConsumption
         consumption.Inventory.CurrentStock = Math.Max(0, consumption.Inventory.CurrentStock - delta);
 
         // Actualiza campos del consumo.
-        consumption.Quantity = request.Quantity;
-        consumption.Notes    = request.Notes;
+        consumption.Quantity       = request.Quantity;
+        consumption.Notes          = request.Notes;
+        consumption.PaymentMethod  = request.PaymentMethod;
 
         await _consumptionRepository.UpdateAsync(consumption);
         return true;

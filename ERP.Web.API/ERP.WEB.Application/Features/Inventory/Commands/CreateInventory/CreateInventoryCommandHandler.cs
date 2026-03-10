@@ -22,6 +22,7 @@ public class CreateInventoryCommandHandler : IRequestHandler<CreateInventoryComm
             PurchaseCost = request.InventoryDto.PurchaseCost,
             SuggestedRetailPrice = request.InventoryDto.SuggestedRetailPrice,
             CurrentStock = request.InventoryDto.CurrentStock,
+            LowStockThreshold = request.InventoryDto.LowStockThreshold,
             LastRestockDate = request.InventoryDto.LastRestockDate,
             LastSaleDate = request.InventoryDto.LastSaleDate,
             VariantId = request.InventoryDto.VariantId
@@ -41,7 +42,8 @@ public class CreateInventoryCommandHandler : IRequestHandler<CreateInventoryComm
             created.LastSaleDate,
             created.NeedsRestock,
             created.VariantId,
-            null  // Variant name not needed immediately after create
+            null,  // Variant name not needed immediately after create
+            created.LowStockThreshold
         );
     }
 }

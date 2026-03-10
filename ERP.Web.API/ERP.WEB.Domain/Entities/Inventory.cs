@@ -28,6 +28,9 @@ public class Inventory : ICompanyEntity
 
     public int CurrentStock { get; set; } = 0;
 
+    /// <summary>Items at or below this count trigger a low-stock alert. Default 5; set to 0 for unique pieces.</summary>
+    public int LowStockThreshold { get; set; } = 5;
+
     public DateTime LastRestockDate { get; set; } = DateTime.UtcNow;
 
     public DateTime? LastSaleDate { get; set; }

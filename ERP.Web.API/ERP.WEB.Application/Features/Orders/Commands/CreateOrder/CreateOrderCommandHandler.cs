@@ -27,10 +27,11 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Ord
 
         var order = new Order
         {
-            Status      = "Draft",
-            Notes       = request.Dto.Notes,
-            TotalAmount = items.Sum(i => i.Quantity * i.UnitPrice),
-            Items       = items
+            Status        = "Draft",
+            Notes         = request.Dto.Notes,
+            PaymentMethod = request.Dto.PaymentMethod,
+            TotalAmount   = items.Sum(i => i.Quantity * i.UnitPrice),
+            Items         = items
         };
 
         var saved = await _repo.AddAsync(order, cancellationToken);
@@ -55,7 +56,8 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Ord
                 i.Quantity,
                 i.UnitPrice,
                 i.Quantity * i.UnitPrice
-            )).ToList()
+            )).ToList(),
+            saved.PaymentMethod
         );
     }
 }

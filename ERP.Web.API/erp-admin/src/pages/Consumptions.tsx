@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useInfiniteQuery, useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ShoppingCart, Trash2, Calendar } from 'lucide-react';
+import { ShoppingCart, Trash2, Calendar, Banknote, CreditCard, ArrowLeftRight, AlertTriangle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { consumptionsApi } from '../api/consumptions';
 import { inventoryApi } from '../api/inventory';
@@ -11,6 +11,24 @@ import ConfirmDialog from '../components/ConfirmDialog';
 import Badge from '../components/Badge';
 import { useUser } from '../context/UserContext';
 import type { Consumption } from '../types';
+
+function PaymentBadge({ method }: { method?: string }) {
+  if (!method) return <span className="text-gray-300 dark:text-gray-600">—</span>;
+  const map: Record<string, { label: string; icon: React.ElementType; cls: string }> = {
+    Cash:     { label: 'Efectivo',      icon: Banknote,       cls: 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10' },
+    Card:     { label: 'Tarjeta',       icon: CreditCard,     cls: 'text-indigo-600  dark:text-indigo-400  bg-indigo-500/10'  },
+    Transfer: { label: 'Transferencia', icon: ArrowLeftRight, cls: 'text-violet-600  dark:text-violet-400  bg-violet-500/10'  },
+    Damaged:  { label: 'Dañado',        icon: AlertTriangle,  cls: 'text-red-600     dark:text-red-400     bg-red-500/10'     },
+  };
+  const m = map[method];
+  if (!m) return <span className="text-xs text-gray-500">{method}</span>;
+  const Icon = m.icon;
+  return (
+    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-medium ${m.cls}`}>
+      <Icon size={11} />{m.label}
+    </span>
+  );
+}
 
 const todayStr = () => new Date().toISOString().slice(0, 10);
 const firstOfMonth = () => {
@@ -166,7 +184,7 @@ export default function Consumptions() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-200 dark:border-gray-800/60">
-                    {['Product', 'Category', 'Qty', 'Profit', 'Date', 'Notes', ''].map(h => (
+                    {['Product', 'Category', 'Qty', 'Profit', 'Pago', 'Date', 'Notes', ''].map(h => (
                       <th key={h} className="text-left px-6 py-3.5 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">{h}</th>
                     ))}
                   </tr>
@@ -190,6 +208,9 @@ export default function Consumptions() {
                           <span className={profit >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'}>
                             ${profit.toFixed(2)}
                           </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <PaymentBadge method={c.paymentMethod} />
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-600 tabular-nums">
                           {new Date(c.consumedAt).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' })}
@@ -260,6 +281,7 @@ export default function Consumptions() {
                       <span className={`text-sm font-semibold tabular-nums ${profit >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'}`}>
                         ${profit.toFixed(2)}
                       </span>
+                      {c.paymentMethod && <PaymentBadge method={c.paymentMethod} />}
                       <span className="text-[11px] text-gray-400 dark:text-gray-600 ml-auto tabular-nums">
                         {new Date(c.consumedAt).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' })}
                       </span>

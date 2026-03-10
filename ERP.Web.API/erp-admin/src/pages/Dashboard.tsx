@@ -197,7 +197,7 @@ export default function Dashboard() {
   const totalConsumptions = consumptions.reduce((s, c) => s + c.quantity, 0);
 
   const needsRestockItems = inventory.filter(i => i.needsRestock);
-  const lowStockItems = inventory.filter(i => i.currentStock < 10);
+  const lowStockItems = inventory.filter(i => i.currentStock <= (i.lowStockThreshold ?? 5));
 
   return (
     <div>

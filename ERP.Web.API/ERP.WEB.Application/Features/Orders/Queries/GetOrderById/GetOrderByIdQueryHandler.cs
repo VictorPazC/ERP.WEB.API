@@ -28,7 +28,8 @@ public class GetOrderByIdQueryHandler : IRequestHandler<GetOrderByIdQuery, Order
                 i.Quantity,
                 i.UnitPrice,
                 i.Quantity * i.UnitPrice
-            )).ToList()
+            )).ToList(),
+            order.PaymentMethod
         );
     }
 }

@@ -6,7 +6,8 @@ public record OrderDto(
     string? Notes,
     decimal TotalAmount,
     DateTime CreatedAt,
-    List<OrderItemDto> Items
+    List<OrderItemDto> Items,
+    string? PaymentMethod = null
 );
 
 public record OrderItemDto(
@@ -20,7 +21,8 @@ public record OrderItemDto(
 
 public record CreateOrderDto(
     string? Notes,
-    List<CreateOrderItemDto> Items
+    List<CreateOrderItemDto> Items,
+    string? PaymentMethod = null
 );
 
 public record CreateOrderItemDto(

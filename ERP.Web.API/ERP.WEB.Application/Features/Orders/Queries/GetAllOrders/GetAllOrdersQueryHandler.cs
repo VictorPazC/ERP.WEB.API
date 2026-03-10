@@ -32,7 +32,8 @@ public class GetAllOrdersQueryHandler : IRequestHandler<GetAllOrdersQuery, Curso
                 i.Quantity,
                 i.UnitPrice,
                 i.Quantity * i.UnitPrice
-            )).ToList()
+            )).ToList(),
+            o.PaymentMethod
         ));
 
         return new CursorPagedResult<OrderDto>(items, nextCursor, hasMore);

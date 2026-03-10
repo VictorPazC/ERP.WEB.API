@@ -1,7 +1,7 @@
-﻿import { useState, useMemo } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Pencil, Trash2, Layers, ChevronRight, ChevronDown, FolderOpen, Folder, Eye } from 'lucide-react';
+import { Plus, Pencil, Trash2, Layers, ChevronRight, ChevronDown, FolderOpen, Folder, Eye, ImageIcon, Upload, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { categoriesApi } from '../api/categories';
 import type { Category, CreateCategoryDto, UpdateCategoryDto } from '../types';
@@ -13,9 +13,105 @@ import EmptyState from '../components/EmptyState';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Badge from '../components/Badge';
 import { useUser } from '../context/UserContext';
+import { imageUrl } from '../utils/imageUrl';
 
 const selectCls = "bg-gray-100 dark:bg-gray-800/60 border border-gray-300 dark:border-gray-700/60 rounded-xl px-3.5 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 hover:border-gray-400 dark:hover:border-gray-600 transition-all";
 
+/* ── Image upload widget ──────────────────────────────────────── */
+function CategoryImageUpload({
+  categoryId,
+  currentImagePath,
+  onUploaded,
+}: {
+  categoryId?: number;
+  currentImagePath?: string;
+  onUploaded: (path: string) => void;
+}) {
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [preview, setPreview] = useState<string | null>(currentImagePath ? imageUrl(currentImagePath) ?? null : null);
+  const [uploading, setUploading] = useState(false);
+
+  const handleFile = async (file: File) => {
+    // Local preview immediately
+    const reader = new FileReader();
+    reader.onload = e => setPreview(e.target?.result as string);
+    reader.readAsDataURL(file);
+
+    if (!categoryId) {
+      // Category not yet saved — caller will handle upload after creation
+      onUploaded('__pending__');
+      // Store file ref for later
+      (handleFile as any).__pendingFile = file;
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const res = await categoriesApi.uploadImage(categoryId, file);
+      onUploaded(res.imagePath);
+      toast.success('Imagen guardada');
+    } catch {
+      toast.error('Error al subir imagen');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <label className="text-sm font-medium text-gray-600 dark:text-gray-400">
+        Imagen de portada <span className="font-normal text-gray-400 dark:text-gray-600">(opcional, máx. 5 MB)</span>
+      </label>
+      <div
+        onClick={() => fileRef.current?.click()}
+        className={`relative group cursor-pointer rounded-xl overflow-hidden border-2 border-dashed transition-all ${
+          preview
+            ? 'border-transparent'
+            : 'border-gray-300 dark:border-gray-700/60 hover:border-indigo-400 dark:hover:border-indigo-500/60'
+        }`}
+        style={{ height: 120 }}
+      >
+        {preview ? (
+          <>
+            <img src={preview} alt="" className="w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+              <Upload size={18} className="text-white" />
+              <span className="text-white text-sm font-medium">Cambiar imagen</span>
+            </div>
+          </>
+        ) : (
+          <div className="flex flex-col items-center justify-center h-full gap-2 text-gray-400 dark:text-gray-600 hover:text-indigo-400 transition-colors">
+            <ImageIcon size={24} />
+            <span className="text-xs font-medium">Clic para subir imagen</span>
+          </div>
+        )}
+        {uploading && (
+          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          </div>
+        )}
+      </div>
+      {preview && !uploading && (
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); setPreview(null); onUploaded(''); }}
+          className="self-start flex items-center gap-1 text-xs text-red-500 hover:text-red-600 transition-colors"
+        >
+          <X size={12} /> Quitar imagen
+        </button>
+      )}
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp,image/gif"
+        className="hidden"
+        onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = ''; }}
+      />
+    </div>
+  );
+}
+
+/* ── Category form ────────────────────────────────────────────── */
 function CategoryForm({ initial, categories, onSave, onClose }: {
   initial?: Category;
   categories: Category[];
@@ -25,9 +121,9 @@ function CategoryForm({ initial, categories, onSave, onClose }: {
   const [name, setName] = useState(initial?.name ?? '');
   const [description, setDescription] = useState(initial?.description ?? '');
   const [parentId, setParentId] = useState<string>(initial?.parentCategoryId?.toString() ?? '');
+  const [imagePath, setImagePath] = useState<string>(initial?.imagePath ?? '');
   const [loading, setLoading] = useState(false);
 
-  // Duplicate check: same name (case-insensitive), different id
   const isDuplicate = name.trim().length > 0 && categories.some(
     c => c.name.trim().toLowerCase() === name.trim().toLowerCase()
       && c.categoryId !== initial?.categoryId,
@@ -38,10 +134,11 @@ function CategoryForm({ initial, categories, onSave, onClose }: {
     if (!name.trim() || isDuplicate) return;
     setLoading(true);
     try {
+      const img = imagePath === '__pending__' ? undefined : (imagePath || undefined);
       if (initial) {
-        await onSave({ categoryId: initial.categoryId, name, description: description || undefined, parentCategoryId: parentId ? Number(parentId) : undefined } as UpdateCategoryDto);
+        await onSave({ categoryId: initial.categoryId, name, description: description || undefined, parentCategoryId: parentId ? Number(parentId) : undefined, imagePath: img } as UpdateCategoryDto);
       } else {
-        await onSave({ name, description: description || undefined, parentCategoryId: parentId ? Number(parentId) : undefined } as CreateCategoryDto);
+        await onSave({ name, description: description || undefined, parentCategoryId: parentId ? Number(parentId) : undefined, imagePath: img } as CreateCategoryDto);
       }
       onClose();
     } finally {
@@ -72,6 +169,11 @@ function CategoryForm({ initial, categories, onSave, onClose }: {
           {available.map(c => <option key={c.categoryId} value={c.categoryId}>{c.name}</option>)}
         </select>
       </div>
+      <CategoryImageUpload
+        categoryId={initial?.categoryId}
+        currentImagePath={initial?.imagePath}
+        onUploaded={setImagePath}
+      />
       <div className="flex gap-3 pt-2">
         <button type="button" onClick={onClose} className="flex-1 px-4 py-2.5 border border-gray-300 dark:border-gray-700/60 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors text-sm font-medium">Cancel</button>
         <button type="submit" disabled={loading || isDuplicate} className="flex-1 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-white font-medium transition-colors text-sm disabled:opacity-50">
@@ -113,7 +215,6 @@ function buildTree(categories: Category[]): TreeNode[] {
       roots.push(node);
     }
   }
-  // Nodos atrapados en un ciclo no son alcanzables desde la raíz — los surfaceamos
   const visited = new Set<number>();
   const stack = [...roots];
   while (stack.length > 0) {
@@ -125,7 +226,6 @@ function buildTree(categories: Category[]): TreeNode[] {
   for (const [id, node] of map) {
     if (!visited.has(id)) roots.push(node);
   }
-  // Sort roots and children alphabetically
   roots.sort((a, b) => a.name.localeCompare(b.name));
   for (const node of map.values()) {
     node.children.sort((a, b) => a.name.localeCompare(b.name));
@@ -143,11 +243,12 @@ function CategoryTreeNode({ node, depth, onEdit, onDelete, onView, isAdmin }: {
 }) {
   const [expanded, setExpanded] = useState(true);
   const hasChildren = node.children.length > 0;
+  const imgSrc = node.imagePath ? imageUrl(node.imagePath) : null;
 
   return (
     <div>
       <div
-        className={`flex items-center gap-2 px-3 sm:px-4 py-3 hover:bg-gray-50 dark:hover:bg-white/[0.03] transition-colors group border-b border-gray-100 dark:border-gray-800/40 ${depth > 0 ? 'bg-gray-50/50 dark:bg-white/[0.01]' : ''}`}
+        className={`flex items-center gap-2 px-3 sm:px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-white/[0.03] transition-colors group border-b border-gray-100 dark:border-gray-800/40 ${depth > 0 ? 'bg-gray-50/50 dark:bg-white/[0.01]' : ''}`}
         style={{ paddingLeft: `${12 + depth * 20}px` }}
       >
         <button
@@ -157,11 +258,14 @@ function CategoryTreeNode({ node, depth, onEdit, onDelete, onView, isAdmin }: {
           {hasChildren ? (expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />) : <ChevronRight size={14} />}
         </button>
 
-        <div className={`p-1.5 rounded-lg flex-shrink-0 ${depth === 0 ? 'bg-indigo-500/10 ring-1 ring-indigo-500/20' : 'bg-gray-200/60 dark:bg-gray-700/30 ring-1 ring-gray-300/40 dark:ring-gray-700/40'}`}>
-          {hasChildren && expanded ? (
-            <FolderOpen size={14} className={depth === 0 ? 'text-indigo-400' : 'text-gray-500 dark:text-gray-400'} />
+        {/* Category thumbnail */}
+        <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0 ring-1 ring-gray-200 dark:ring-gray-700/40 flex items-center justify-center bg-gray-100 dark:bg-gray-800/60">
+          {imgSrc ? (
+            <img src={imgSrc} alt="" className="w-full h-full object-cover" loading="lazy" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
           ) : (
-            <Folder size={14} className={depth === 0 ? 'text-indigo-400' : 'text-gray-500 dark:text-gray-400'} />
+            depth === 0
+              ? <FolderOpen size={13} className="text-indigo-400" />
+              : <Folder size={13} className="text-gray-400" />
           )}
         </div>
 
@@ -182,6 +286,7 @@ function CategoryTreeNode({ node, depth, onEdit, onDelete, onView, isAdmin }: {
             : <Badge color="gray">leaf</Badge>
           }
           {node.productsCount > 0 && <Badge color="gray">{node.productsCount} products</Badge>}
+          {node.imagePath && <Badge color="green"><ImageIcon size={10} className="inline mr-0.5" />img</Badge>}
         </div>
 
         <div className="flex gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity flex-shrink-0">

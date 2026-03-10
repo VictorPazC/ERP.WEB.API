@@ -46,7 +46,7 @@ public class InventoryRepository : IInventoryRepository
     public async Task<List<Inventory>> GetCriticalAsync(int threshold, CancellationToken ct = default)
     {
         return await _context.Inventories
-            .Where(i => i.CurrentStock <= threshold)
+            .Where(i => i.CurrentStock <= i.LowStockThreshold)
             .Include(i => i.Product)
             .Include(i => i.Variant)
             .OrderBy(i => i.CurrentStock)

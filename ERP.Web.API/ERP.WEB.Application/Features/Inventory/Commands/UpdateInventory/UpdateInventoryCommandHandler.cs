@@ -26,6 +26,7 @@ public class UpdateInventoryCommandHandler : IRequestHandler<UpdateInventoryComm
         inventory.LastRestockDate = request.InventoryDto.LastRestockDate;
         inventory.LastSaleDate = request.InventoryDto.LastSaleDate;
         inventory.NeedsRestock = request.InventoryDto.NeedsRestock;
+        inventory.LowStockThreshold = request.InventoryDto.LowStockThreshold;
         inventory.VariantId = request.InventoryDto.VariantId;
 
         await _repository.UpdateAsync(inventory);
@@ -42,7 +43,8 @@ public class UpdateInventoryCommandHandler : IRequestHandler<UpdateInventoryComm
             inventory.LastSaleDate,
             inventory.NeedsRestock,
             inventory.VariantId,
-            inventory.Variant?.Name
+            inventory.Variant?.Name,
+            inventory.LowStockThreshold
         );
     }
 }

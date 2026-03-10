@@ -47,7 +47,7 @@ public class Product : ICompanyEntity
     [ForeignKey(nameof(BrandId))]
     public Brand? Brand { get; set; }
 
-    public Inventory? Inventory { get; set; }
+    public ICollection<Inventory> Inventories { get; set; } = new List<Inventory>();
 
     public ICollection<Tag> Tags { get; set; } = new List<Tag>();
 

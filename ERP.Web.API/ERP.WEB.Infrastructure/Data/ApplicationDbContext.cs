@@ -134,14 +134,15 @@ public class ApplicationDbContext : DbContext
             entity.HasIndex(e => e.CompanyId);
             entity.HasIndex(e => e.ProductId);
             entity.HasIndex(e => e.VariantId);
-            // 1:many — one product can have one base inventory + one per variant
+            // 1:many — one product/variant can have multiple inventory lots (different purchase costs)
             entity.HasOne(e => e.Product)
-                  .WithOne(p => p.Inventory)
-                  .HasForeignKey<Inventory>(e => e.ProductId)
+                  .WithMany(p => p.Inventories)
+                  .HasForeignKey(e => e.ProductId)
                   .OnDelete(DeleteBehavior.Restrict);
             entity.HasOne(e => e.Variant)
-                  .WithOne(v => v.Inventory)
-                  .HasForeignKey<Inventory>(e => e.VariantId)
+                  .WithMany(v => v.Inventories)
+                  .HasForeignKey(e => e.VariantId)
+                  .IsRequired(false)
                   .OnDelete(DeleteBehavior.Restrict);
             entity.HasOne(e => e.Company)
                   .WithMany(c => c.Inventories)

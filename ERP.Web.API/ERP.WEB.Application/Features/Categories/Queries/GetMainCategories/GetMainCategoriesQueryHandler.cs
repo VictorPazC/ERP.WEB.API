@@ -24,7 +24,8 @@ public class GetMainCategoriesQueryHandler : IRequestHandler<GetMainCategoriesQu
             c.ParentCategoryId,
             c.ParentCategory?.Name,
             c.SubCategories?.Count ?? 0,
-            c.Products?.Count ?? 0
+            c.Products?.Count ?? 0,
+            c.ImagePath
         ));
     }
 }

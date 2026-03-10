@@ -67,7 +67,7 @@ public class ConsumptionsController : ControllerBase
         }
 
         _logger.LogInformation("[INFO]  Updating consumption id={Id} quantity={Quantity}", id, dto.Quantity);
-        var result = await _mediator.Send(new UpdateConsumptionCommand(dto.ConsumptionId, dto.Quantity, dto.Notes));
+        var result = await _mediator.Send(new UpdateConsumptionCommand(dto.ConsumptionId, dto.Quantity, dto.Notes, dto.PaymentMethod));
 
         if (!result)
         {

@@ -34,8 +34,8 @@ public class GetProductByIdQueryHandler : IRequestHandler<GetProductByIdQuery, P
             product.CreatedAt,
             product.IsFavorite,
             product.StockStatus,
-            product.Inventory is not null,
-            product.Inventory?.CurrentStock,
+            product.Inventories.Any(),
+            product.Inventories.Any() ? product.Inventories.Sum(i => i.CurrentStock) : (int?)null,
             product.Variants.Count
         );
     }

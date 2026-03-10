@@ -20,7 +20,8 @@ public class CreateCategoryCommandHandler : IRequestHandler<CreateCategoryComman
         {
             Name = request.CategoryDto.Name,
             Description = request.CategoryDto.Description,
-            ParentCategoryId = request.CategoryDto.ParentCategoryId
+            ParentCategoryId = request.CategoryDto.ParentCategoryId,
+            ImagePath = request.CategoryDto.ImagePath
         };
 
         var created = await _repository.AddAsync(category);
@@ -32,7 +33,8 @@ public class CreateCategoryCommandHandler : IRequestHandler<CreateCategoryComman
             created.ParentCategoryId,
             created.ParentCategory?.Name,
             0,
-            0
+            0,
+            created.ImagePath
         );
     }
 }

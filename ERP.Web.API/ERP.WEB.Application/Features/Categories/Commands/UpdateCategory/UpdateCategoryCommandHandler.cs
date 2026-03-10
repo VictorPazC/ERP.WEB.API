@@ -23,6 +23,7 @@ public class UpdateCategoryCommandHandler : IRequestHandler<UpdateCategoryComman
         category.Name = request.CategoryDto.Name;
         category.Description = request.CategoryDto.Description;
         category.ParentCategoryId = request.CategoryDto.ParentCategoryId;
+        category.ImagePath = request.CategoryDto.ImagePath;
 
         await _repository.UpdateAsync(category);
 
@@ -33,7 +34,8 @@ public class UpdateCategoryCommandHandler : IRequestHandler<UpdateCategoryComman
             category.ParentCategoryId,
             category.ParentCategory?.Name,
             category.SubCategories?.Count ?? 0,
-            category.Products?.Count ?? 0
+            category.Products?.Count ?? 0,
+            category.ImagePath
         );
     }
 }

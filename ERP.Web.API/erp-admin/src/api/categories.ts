@@ -10,4 +10,9 @@ export const categoriesApi = {
   create: (dto: CreateCategoryDto) => client.post<Category>('/api/categories', dto),
   update: (id: number, dto: UpdateCategoryDto) => client.put<Category>(`/api/categories/${id}`, dto),
   delete: (id: number) => client.delete(`/api/categories/${id}`),
+  uploadImage: (id: number, file: File) => {
+    const fd = new FormData();
+    fd.append('file', file);
+    return client.post<{ imagePath: string }>(`/api/categories/${id}/image`, fd);
+  },
 };

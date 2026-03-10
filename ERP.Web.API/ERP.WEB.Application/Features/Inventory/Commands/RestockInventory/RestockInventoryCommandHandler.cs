@@ -47,7 +47,8 @@ public class RestockInventoryCommandHandler : IRequestHandler<RestockInventoryCo
             inventory.LastSaleDate,
             inventory.NeedsRestock,
             inventory.VariantId,
-            null  // Variant not loaded in this query
+            null,  // Variant not loaded in this query
+            inventory.LowStockThreshold
         );
     }
 }

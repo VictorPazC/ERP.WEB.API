@@ -8,21 +8,24 @@ public record ConsumptionDto(
     string? CategoryName,
     int Quantity,
     DateTime ConsumedAt,
-    string? Notes
+    string? Notes,
+    string? PaymentMethod
 );
 
 public record CreateConsumptionDto(
     int InventoryId,
     int Quantity,
     DateTime ConsumedAt,
-    string? Notes
+    string? Notes,
+    string? PaymentMethod = null
 );
 
 // Decisión 7B: edición de Quantity + Notes con ajuste de stock por delta.
 public record UpdateConsumptionDto(
     int ConsumptionId,
     int Quantity,
-    string? Notes
+    string? Notes,
+    string? PaymentMethod = null
 );
 
 public record AvailableArticleDto(

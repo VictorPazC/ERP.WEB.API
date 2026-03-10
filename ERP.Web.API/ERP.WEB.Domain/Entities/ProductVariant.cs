@@ -32,7 +32,7 @@ public class ProductVariant : ICompanyEntity
     [ForeignKey(nameof(ProductId))]
     public Product Product { get; set; } = null!;
 
-    public Inventory? Inventory { get; set; }
+    public ICollection<Inventory> Inventories { get; set; } = new List<Inventory>();
 
     public ICollection<ProductImage> Images { get; set; } = new List<ProductImage>();
 }

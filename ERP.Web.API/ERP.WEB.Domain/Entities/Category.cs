@@ -22,6 +22,9 @@ public class Category : ICompanyEntity
 
 	public string? Description { get; set; }
 
+	/// <summary>Relative path or URL to the category hero/banner image (optional).</summary>
+	public string? ImagePath { get; set; }
+
 	public int? ParentCategoryId { get; set; }
 
 	// Navigation Properties

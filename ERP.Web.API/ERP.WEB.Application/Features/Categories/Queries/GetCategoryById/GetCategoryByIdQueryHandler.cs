@@ -27,7 +27,8 @@ public class GetCategoryByIdQueryHandler : IRequestHandler<GetCategoryByIdQuery,
             category.ParentCategoryId,
             category.ParentCategory?.Name,
             category.SubCategories?.Count ?? 0,
-            category.Products?.Count ?? 0
+            category.Products?.Count ?? 0,
+            category.ImagePath
         );
     }
 }

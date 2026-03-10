@@ -7,6 +7,7 @@ using ERP.WEB.Application.Features.Categories.Queries.GetAllCategories;
 using ERP.WEB.Application.Features.Categories.Queries.GetCategoryById;
 using ERP.WEB.Application.Features.Categories.Queries.GetMainCategories;
 using ERP.WEB.Application.Features.Categories.Queries.GetSubCategories;
+using ERP.WEB.Domain.Interfaces;
 using Mediator;
 using Microsoft.AspNetCore.Authorization;
 using ERP.Web.API.Authorization;
@@ -21,11 +22,16 @@ public class CategoriesController : ControllerBase
 {
     private readonly IMediator _mediator;
     private readonly ILogger<CategoriesController> _logger;
+    private readonly ICategoryRepository _categoryRepo;
+    private readonly IWebHostEnvironment _env;
 
-    public CategoriesController(IMediator mediator, ILogger<CategoriesController> logger)
+    public CategoriesController(IMediator mediator, ILogger<CategoriesController> logger,
+        ICategoryRepository categoryRepo, IWebHostEnvironment env)
     {
-        _mediator = mediator;
-        _logger   = logger;
+        _mediator     = mediator;
+        _logger       = logger;
+        _categoryRepo = categoryRepo;
+        _env          = env;
     }
 
     [HttpGet]
@@ -120,5 +126,43 @@ public class CategoriesController : ControllerBase
 
         _logger.LogInformation("[INFO]  Category id={Id} deleted", id);
         return NoContent();
+    }
+
+    /// <summary>Upload or replace the banner image for a category (max 5 MB).</summary>
+    [Authorize(Policy = Policies.Admin)]
+    [HttpPost("{id}/image")]
+    [RequestSizeLimit(5 * 1024 * 1024)]
+    public async Task<ActionResult<object>> UploadImage(int id, IFormFile file)
+    {
+        var category = await _categoryRepo.GetByIdAsync(id);
+        if (category is null) return NotFound();
+
+        // Validate
+        if (file is null || file.Length == 0) return BadRequest("No file provided.");
+        var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+        if (ext is not (".jpg" or ".jpeg" or ".png" or ".webp" or ".gif"))
+            return BadRequest("Unsupported file type.");
+
+        // Save to wwwroot/uploads/categories/
+        var uploadDir = Path.Combine(_env.WebRootPath, "uploads", "categories");
+        Directory.CreateDirectory(uploadDir);
+
+        // Delete old image file if it was locally stored
+        if (!string.IsNullOrEmpty(category.ImagePath) && category.ImagePath.StartsWith("/uploads/"))
+        {
+            var oldPath = Path.Combine(_env.WebRootPath, category.ImagePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+            if (System.IO.File.Exists(oldPath)) System.IO.File.Delete(oldPath);
+        }
+
+        var fileName  = $"cat_{id}_{Guid.NewGuid():N}{ext}";
+        var fullPath  = Path.Combine(uploadDir, fileName);
+        await using var stream = System.IO.File.Create(fullPath);
+        await file.CopyToAsync(stream);
+
+        category.ImagePath = $"/uploads/categories/{fileName}";
+        await _categoryRepo.UpdateAsync(category);
+
+        _logger.LogInformation("[INFO]  Category {Id} image updated to {Path}", id, category.ImagePath);
+        return Ok(new { imagePath = category.ImagePath });
     }
 }

@@ -20,7 +20,7 @@ public class GetAllCategoriesQueryHandler : IRequestHandler<GetAllCategoriesQuer
         var hasMore = list.Count > request.Params.PageSize;
         if (hasMore) list.RemoveAt(list.Count - 1);
         var nextCursor = hasMore ? CursorHelper.Encode(list[^1].CategoryId) : null;
-        var items = list.Select(c => new CategoryDto(c.CategoryId, c.Name, c.Description, c.ParentCategoryId, c.ParentCategory?.Name, c.SubCategories?.Count ?? 0, c.Products?.Count ?? 0));
+        var items = list.Select(c => new CategoryDto(c.CategoryId, c.Name, c.Description, c.ParentCategoryId, c.ParentCategory?.Name, c.SubCategories?.Count ?? 0, c.Products?.Count ?? 0, c.ImagePath));
         return new CursorPagedResult<CategoryDto>(items, nextCursor, hasMore);
     }
 }

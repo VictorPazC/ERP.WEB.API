@@ -21,7 +21,7 @@ public class ProductVariantRepository : IProductVariantRepository
         var afterId = CursorHelper.Decode(p.Cursor) ?? 0;
         return await _context.ProductVariants
             .Where(v => v.ProductId == productId && v.VariantId > afterId)
-            .Include(v => v.Inventory)
+            .Include(v => v.Inventories)
             .Include(v => v.Images)
             .OrderBy(v => v.VariantId)
             .Take(p.PageSize + 1)
@@ -36,10 +36,10 @@ public class ProductVariantRepository : IProductVariantRepository
 
     public async Task<ProductVariant?> GetByIdWithDetailsAsync(int variantId)
     {
-        // Carga Images e Inventory — necesario para GetVariantById y DeleteVariantHandler.
+        // Carga Images e Inventories — necesario para GetVariantById y DeleteVariantHandler.
         return await _context.ProductVariants
             .Include(v => v.Images)
-            .Include(v => v.Inventory)
+            .Include(v => v.Inventories)
             .FirstOrDefaultAsync(v => v.VariantId == variantId);
     }
 
@@ -65,13 +65,10 @@ public class ProductVariantRepository : IProductVariantRepository
 
     public async Task DeleteAsync(ProductVariant variant)
     {
-        // Elimina en cascada: Images → Inventory → Variant en un solo SaveChanges.
+        // Elimina en cascada: Images → Inventories → Variant en un solo SaveChanges.
         // El borrado de archivos físicos queda en DeleteVariantCommandHandler.
         _context.ProductImages.RemoveRange(variant.Images);
-
-        if (variant.Inventory is not null)
-            _context.Inventories.Remove(variant.Inventory);
-
+        _context.Inventories.RemoveRange(variant.Inventories);
         _context.ProductVariants.Remove(variant);
         await _context.SaveChangesAsync();
     }

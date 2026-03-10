@@ -7,5 +7,6 @@ public record CategoryDto(
     int? ParentCategoryId,
     string? ParentCategoryName,
     int SubCategoriesCount,
-    int ProductsCount
+    int ProductsCount,
+    string? ImagePath = null
 );

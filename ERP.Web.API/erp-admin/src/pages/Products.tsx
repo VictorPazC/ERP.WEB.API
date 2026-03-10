@@ -414,17 +414,6 @@ function QuickInventoryForm({ product, variantId: initVariantId, onClose }: { pr
     staleTime: 60_000,
   });
 
-  // Product-level primary image (served from cache via 'product-images-select')
-  const { data: rawImgCache } = useQuery({
-    queryKey: ['product-images-select'],
-    queryFn: () => productImagesApi.getAll(),
-    enabled: needsPicker,
-    staleTime: 5 * 60_000,
-  });
-  const productImgPath = rawImgCache?.items?.find(
-    img => img.productId === product.productId && img.variantId == null
-  )?.imagePath;
-
   const createMut = useMutation({
     mutationFn: (dto: CreateInventoryDto) => inventoryApi.create(dto),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['inventory'] }); toast.success('Inventory created'); },
@@ -456,10 +445,7 @@ function QuickInventoryForm({ product, variantId: initVariantId, onClose }: { pr
   if (step === 'pick') {
     if (variantsLoading) return <LoadingSpinner />;
 
-    const options = [
-      { id: undefined as number | undefined, name: product.name, subtitle: 'Producto base', imgPath: productImgPath, stock: undefined as number | undefined },
-      ...(variants ?? []).map(v => ({ id: v.variantId, name: v.name, subtitle: v.description, imgPath: v.primaryImagePath, stock: v.hasInventory ? v.currentStock : undefined })),
-    ];
+    const options = (variants ?? []).map(v => ({ id: v.variantId, name: v.name, subtitle: v.description, imgPath: v.primaryImagePath, stock: v.hasInventory ? v.currentStock : undefined }));
 
     return (
       <div className="space-y-2">
@@ -468,7 +454,7 @@ function QuickInventoryForm({ product, variantId: initVariantId, onClose }: { pr
           const src = imageUrl(opt.imgPath);
           return (
             <button
-              key={opt.id ?? 'base'}
+              key={opt.id}
               type="button"
               onClick={() => { setChosenVariantId(opt.id); setStep('form'); }}
               className="w-full flex items-center gap-3 p-3 bg-gray-50 dark:bg-white/[0.03] border border-gray-200 dark:border-gray-800/60 rounded-xl hover:border-indigo-400 dark:hover:border-indigo-500/60 hover:bg-indigo-500/5 transition-all text-left"
@@ -499,7 +485,7 @@ function QuickInventoryForm({ product, variantId: initVariantId, onClose }: { pr
   /* ── Form step ── */
   const chosenVariant = variants?.find(v => v.variantId === chosenVariantId);
   const selectedName = chosenVariantId == null ? product.name : (chosenVariant?.name ?? product.name);
-  const selectedImgPath = chosenVariantId == null ? productImgPath : chosenVariant?.primaryImagePath;
+  const selectedImgPath = chosenVariantId == null ? undefined : chosenVariant?.primaryImagePath;
   const selectedImgSrc = imageUrl(selectedImgPath);
 
   return (
@@ -749,7 +735,16 @@ function ProductDetailPanel({ product, allImages, onEdit, onDelete, onInventory,
   });
 
   // ── Variant image switcher ──────────────────────────────────
-  const [activeVariantId, setActiveVariantId] = useState<number | null>(null);
+  const variantImgKey = `erp-primary-variant-${product.productId}`;
+  const [activeVariantId, setActiveVariantId] = useState<number | null>(() => {
+    const stored = localStorage.getItem(variantImgKey);
+    return stored !== null ? Number(stored) : null;
+  });
+  const persistVariantId = (id: number | null) => {
+    if (id === null) localStorage.removeItem(variantImgKey);
+    else localStorage.setItem(variantImgKey, String(id));
+    setActiveVariantId(id);
+  };
 
   // Load variants (served from cache when VariantPanel is also mounted)
   const { data: variantsForSwitch } = useQuery({
@@ -807,7 +802,7 @@ function ProductDetailPanel({ product, allImages, onEdit, onDelete, onInventory,
               <button
                 type="button"
                 title="Imagen del producto"
-                onClick={() => setActiveVariantId(null)}
+                onClick={() => persistVariantId(null)}
                 className={`w-7 h-7 rounded-md overflow-hidden flex-shrink-0 transition-all ${
                   activeVariantId === null
                     ? 'ring-2 ring-indigo-500'
@@ -828,7 +823,7 @@ function ProductDetailPanel({ product, allImages, onEdit, onDelete, onInventory,
                     key={v.variantId}
                     type="button"
                     title={v.name}
-                    onClick={() => setActiveVariantId(active ? null : v.variantId)}
+                    onClick={() => persistVariantId(active ? null : v.variantId)}
                     className={`w-7 h-7 rounded-md overflow-hidden flex-shrink-0 transition-all ${
                       active
                         ? 'ring-2 ring-indigo-500'
@@ -881,7 +876,7 @@ function ProductDetailPanel({ product, allImages, onEdit, onDelete, onInventory,
               <Star size={11} className={product.isFavorite ? 'fill-amber-500 text-amber-500' : ''} />
               Favorito
             </button>
-            {isAdmin && (!product.hasInventory || (product.currentStock ?? 1) === 0) && (
+            {isAdmin && (
               <StockStatusSelect
                 productId={product.productId}
                 value={product.stockStatus ?? null}
@@ -1140,7 +1135,7 @@ export default function Products() {
                               : <Badge color="gray">No inv.</Badge>
                             }
                             {p.stockStatus && <StockStatusBadge status={p.stockStatus} />}
-                            {isAdmin && (!p.hasInventory || (p.currentStock ?? 1) === 0) && (
+                            {isAdmin && (
                               <StockStatusSelect
                                 productId={p.productId}
                                 value={p.stockStatus ?? null}
@@ -1228,7 +1223,7 @@ export default function Products() {
                           {p.brandName && <Badge color="gray">{p.brandName}</Badge>}
                           {p.categoryName && <Badge color="indigo">{p.categoryName}</Badge>}
                         </div>
-                        {isAdmin && (!p.hasInventory || (p.currentStock ?? 1) === 0) && (
+                        {isAdmin && (
                           <div className="mt-2">
                             <StockStatusSelect
                               productId={p.productId}

@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ShoppingBag, Search, CheckCircle, Package, Filter, X, RefreshCw } from 'lucide-react';
+import { ShoppingBag, Search, CheckCircle, Package, Filter, X, RefreshCw, Banknote, CreditCard, ArrowLeftRight, AlertTriangle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { consumptionsApi } from '../api/consumptions';
 import { inventoryApi } from '../api/inventory';
@@ -48,6 +48,7 @@ function ConsumeModal({ article, primaryImagePath, onClose }: {
   const [quantity, setQuantity] = useState(1);
   const [date, setDate] = useState(today);
   const [notes, setNotes] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState<string>('');
   const [willRestock, setWillRestock] = useState(true);
   const [loading, setLoading] = useState(false);
   const [lightbox, setLightbox] = useState(false);
@@ -78,6 +79,7 @@ function ConsumeModal({ article, primaryImagePath, onClose }: {
         quantity,
         consumedAt: new Date(date + 'T12:00:00').toISOString(),
         notes: notes.trim() || undefined,
+        paymentMethod: paymentMethod || undefined,
       });
     } finally {
       setLoading(false);
@@ -148,6 +150,38 @@ function ConsumeModal({ article, primaryImagePath, onClose }: {
             placeholder="Reason or notes…"
             className="bg-gray-100 dark:bg-gray-800/60 border border-gray-300 dark:border-gray-700/60 rounded-xl px-3.5 py-2.5 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
           />
+        </div>
+
+        {/* Payment method */}
+        <div className="flex flex-col gap-1.5">
+          <label className="text-sm font-medium text-gray-600 dark:text-gray-400">Forma de pago</label>
+          <div className="grid grid-cols-2 gap-2">
+            {([
+              { value: 'Cash',     label: 'Efectivo',       icon: Banknote,        color: 'emerald' },
+              { value: 'Card',     label: 'Tarjeta',        icon: CreditCard,      color: 'indigo'  },
+              { value: 'Transfer', label: 'Transferencia',  icon: ArrowLeftRight,  color: 'violet'  },
+              { value: 'Damaged',  label: 'Dañado',         icon: AlertTriangle,   color: 'red'     },
+            ] as const).map(({ value, label, icon: Icon, color }) => {
+              const active = paymentMethod === value;
+              const colors = {
+                emerald: active ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-600 dark:text-emerald-400' : 'border-gray-200 dark:border-gray-700/60 text-gray-500 dark:text-gray-400 hover:border-emerald-400/60 hover:text-emerald-500',
+                indigo:  active ? 'bg-indigo-500/10  border-indigo-500/40  text-indigo-600  dark:text-indigo-400'  : 'border-gray-200 dark:border-gray-700/60 text-gray-500 dark:text-gray-400 hover:border-indigo-400/60  hover:text-indigo-500',
+                violet:  active ? 'bg-violet-500/10  border-violet-500/40  text-violet-600  dark:text-violet-400'  : 'border-gray-200 dark:border-gray-700/60 text-gray-500 dark:text-gray-400 hover:border-violet-400/60  hover:text-violet-500',
+                red:     active ? 'bg-red-500/10     border-red-500/40     text-red-600     dark:text-red-400'     : 'border-gray-200 dark:border-gray-700/60 text-gray-500 dark:text-gray-400 hover:border-red-400/60     hover:text-red-500',
+              }[color];
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setPaymentMethod(v => v === value ? '' : value)}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-sm font-medium transition-all ${colors}`}
+                >
+                  <Icon size={14} />
+                  {label}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* Restock toggle */}

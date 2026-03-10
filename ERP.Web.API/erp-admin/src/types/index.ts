@@ -31,12 +31,14 @@ export interface Category {
   parentCategoryName?: string;
   subCategoriesCount: number;
   productsCount: number;
+  imagePath?: string;
 }
 
 export interface CreateCategoryDto {
   name: string;
   description?: string;
   parentCategoryId?: number;
+  imagePath?: string;
 }
 
 export interface UpdateCategoryDto {
@@ -44,6 +46,7 @@ export interface UpdateCategoryDto {
   name: string;
   description?: string;
   parentCategoryId?: number;
+  imagePath?: string;
 }
 
 export type StockStatus = 'NeedToOrder' | 'OnTheWay' | 'Disabled' | 'OrderLater';
@@ -96,6 +99,7 @@ export interface Inventory {
   purchaseCost: number;
   suggestedRetailPrice: number;
   currentStock: number;
+  lowStockThreshold: number;
   estimatedProfit: number;
   lastRestockDate: string;
   lastSaleDate?: string;
@@ -133,6 +137,7 @@ export interface CreateInventoryDto {
   purchaseCost: number;
   suggestedRetailPrice: number;
   currentStock: number;
+  lowStockThreshold?: number;
   lastRestockDate: string;
   lastSaleDate?: string;
 }
@@ -143,6 +148,7 @@ export interface UpdateInventoryDto {
   purchaseCost: number;
   suggestedRetailPrice: number;
   currentStock: number;
+  lowStockThreshold?: number;
   lastRestockDate: string;
   lastSaleDate?: string;
   needsRestock: boolean;
@@ -323,6 +329,7 @@ export interface Consumption {
   quantity: number;
   consumedAt: string;
   notes?: string;
+  paymentMethod?: string;
 }
 
 export interface CreateConsumptionDto {
@@ -330,6 +337,7 @@ export interface CreateConsumptionDto {
   quantity: number;
   consumedAt: string;
   notes?: string;
+  paymentMethod?: string;
 }
 
 export type OrderStatus = 'Draft' | 'Confirmed' | 'Cancelled';
@@ -350,6 +358,7 @@ export interface Order {
   totalAmount: number;
   createdAt: string;
   items: OrderItem[];
+  paymentMethod?: string;
 }
 
 export interface CreateOrderItemDto {
@@ -361,6 +370,7 @@ export interface CreateOrderItemDto {
 export interface CreateOrderDto {
   notes?: string;
   items: CreateOrderItemDto[];
+  paymentMethod?: string;
 }
 
 export interface WeeklyStat {

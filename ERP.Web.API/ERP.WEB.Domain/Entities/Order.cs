@@ -21,6 +21,10 @@ public class Order : ICompanyEntity
 
     public string? Notes { get; set; }
 
+    /// <summary>Payment method: Cash, Card (null = not specified / draft).</summary>
+    [MaxLength(50)]
+    public string? PaymentMethod { get; set; }
+
     [Column(TypeName = "decimal(18,2)")]
     public decimal TotalAmount { get; set; }
 

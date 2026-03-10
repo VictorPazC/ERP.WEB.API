@@ -39,6 +39,7 @@ public class CreateConsumptionCommandHandler : IRequestHandler<CreateConsumption
             Quantity = dto.Quantity,
             ConsumedAt = dto.ConsumedAt,
             Notes = dto.Notes,
+            PaymentMethod = dto.PaymentMethod,
         };
 
         var created = await _consumptionRepository.AddAsync(consumption);
@@ -59,7 +60,8 @@ public class CreateConsumptionCommandHandler : IRequestHandler<CreateConsumption
             inventory.Product?.Category?.Name,
             created.Quantity,
             created.ConsumedAt,
-            created.Notes
+            created.Notes,
+            created.PaymentMethod
         );
     }
 }

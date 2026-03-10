@@ -23,8 +23,8 @@ public class GetAllProductsQueryHandler : IRequestHandler<GetAllProductsQuery, C
         var items = list.Select(p => new ProductDto(
             p.ProductId, p.Name, p.Description, p.BrandId, p.Brand?.Name,
             p.ReferenceLink, p.PurchaseLocation, p.Status, p.CategoryId, p.Category?.Name,
-            p.CreatedAt, p.IsFavorite, p.StockStatus, p.Inventory is not null,
-            p.Inventory?.CurrentStock, p.Variants.Count));
+            p.CreatedAt, p.IsFavorite, p.StockStatus, p.Inventories.Any(),
+            p.Inventories.Any() ? p.Inventories.Sum(i => i.CurrentStock) : (int?)null, p.Variants.Count));
         return new CursorPagedResult<ProductDto>(items, nextCursor, hasMore);
     }
 }

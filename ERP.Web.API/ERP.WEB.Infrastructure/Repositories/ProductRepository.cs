@@ -21,7 +21,7 @@ public class ProductRepository : IProductRepository
             .Where(p => p.ProductId > afterId)
             .Include(p => p.Category)
             .Include(p => p.Brand)
-            .Include(p => p.Inventory)
+            .Include(p => p.Inventories)
             .Include(p => p.Variants)
             .OrderBy(p => p.ProductId)
             .Take(p.PageSize + 1)
@@ -33,7 +33,7 @@ public class ProductRepository : IProductRepository
         return await _context.Products
             .Include(p => p.Category)
             .Include(p => p.Brand)
-            .Include(p => p.Inventory)
+            .Include(p => p.Inventories)
             .Include(p => p.Variants)
             .FirstOrDefaultAsync(p => p.ProductId == id);
     }

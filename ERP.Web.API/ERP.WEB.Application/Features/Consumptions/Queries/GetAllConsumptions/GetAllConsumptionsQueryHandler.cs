@@ -23,7 +23,7 @@ public class GetAllConsumptionsQueryHandler : IRequestHandler<GetAllConsumptions
         var items = list.Select(c => new ConsumptionDto(
             c.ConsumptionId, c.InventoryId, c.Inventory.ProductId,
             c.Inventory.Product?.Name, c.Inventory.Product?.Category?.Name,
-            c.Quantity, c.ConsumedAt, c.Notes));
+            c.Quantity, c.ConsumedAt, c.Notes, c.PaymentMethod));
         return new CursorPagedResult<ConsumptionDto>(items, nextCursor, hasMore);
     }
 }

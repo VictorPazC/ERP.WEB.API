@@ -3,5 +3,6 @@
 public record CreateCategoryDto(
     string Name,
     string? Description,
-    int? ParentCategoryId
+    int? ParentCategoryId,
+    string? ImagePath = null
 );

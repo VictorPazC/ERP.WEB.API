@@ -7,5 +7,6 @@ public record CreateInventoryDto(
     int CurrentStock,
     DateTime LastRestockDate,
     DateTime? LastSaleDate,
-    int? VariantId = null
+    int? VariantId = null,
+    int LowStockThreshold = 5
 );

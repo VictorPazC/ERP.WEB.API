@@ -287,6 +287,7 @@ function InventoryForm({ initial, onSave, onClose }: {
     purchaseCost: initial?.purchaseCost?.toString() ?? '',
     suggestedRetailPrice: initial?.suggestedRetailPrice?.toString() ?? '',
     currentStock: initial?.currentStock?.toString() ?? '0',
+    lowStockThreshold: initial?.lowStockThreshold?.toString() ?? '5',
     lastRestockDate: initial?.lastRestockDate?.slice(0, 10) ?? new Date().toISOString().slice(0, 10),
     lastSaleDate: initial?.lastSaleDate?.slice(0, 10) ?? '',
   });
@@ -317,9 +318,9 @@ function InventoryForm({ initial, onSave, onClose }: {
     setLoading(true);
     try {
       if (initial) {
-        await onSave({ inventoryId: initial.inventoryId, variantId: form.variantId ? Number(form.variantId) : undefined, purchaseCost: Number(form.purchaseCost), suggestedRetailPrice: Number(form.suggestedRetailPrice), currentStock: Number(form.currentStock), lastRestockDate: form.lastRestockDate, lastSaleDate: form.lastSaleDate || undefined, needsRestock: initial.needsRestock } as UpdateInventoryDto);
+        await onSave({ inventoryId: initial.inventoryId, variantId: form.variantId ? Number(form.variantId) : undefined, purchaseCost: Number(form.purchaseCost), suggestedRetailPrice: Number(form.suggestedRetailPrice), currentStock: Number(form.currentStock), lowStockThreshold: Number(form.lowStockThreshold), lastRestockDate: form.lastRestockDate, lastSaleDate: form.lastSaleDate || undefined, needsRestock: initial.needsRestock } as UpdateInventoryDto);
       } else {
-        await onSave({ productId: Number(form.productId), variantId: form.variantId ? Number(form.variantId) : undefined, purchaseCost: Number(form.purchaseCost), suggestedRetailPrice: Number(form.suggestedRetailPrice), currentStock: Number(form.currentStock), lastRestockDate: form.lastRestockDate, lastSaleDate: form.lastSaleDate || undefined } as CreateInventoryDto);
+        await onSave({ productId: Number(form.productId), variantId: form.variantId ? Number(form.variantId) : undefined, purchaseCost: Number(form.purchaseCost), suggestedRetailPrice: Number(form.suggestedRetailPrice), currentStock: Number(form.currentStock), lowStockThreshold: Number(form.lowStockThreshold), lastRestockDate: form.lastRestockDate, lastSaleDate: form.lastSaleDate || undefined } as CreateInventoryDto);
       }
       onClose();
     } finally {
@@ -345,7 +346,10 @@ function InventoryForm({ initial, onSave, onClose }: {
         <FormField label="Purchase Cost *" value={form.purchaseCost} onChange={set('purchaseCost')} type="number" step="0.01" min="0" placeholder="0.00" required />
         <FormField label="Retail Price *" value={form.suggestedRetailPrice} onChange={set('suggestedRetailPrice')} type="number" step="0.01" min="0" placeholder="0.00" required />
       </div>
-      <FormField label="Current Stock *" value={form.currentStock} onChange={set('currentStock')} type="number" min="0" placeholder="0" required />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <FormField label="Current Stock *" value={form.currentStock} onChange={set('currentStock')} type="number" min="0" placeholder="0" required />
+        <FormField label="Low Stock Alert At" value={form.lowStockThreshold} onChange={set('lowStockThreshold')} type="number" min="0" placeholder="5" title="Alert when stock reaches this level. Use 0 for unique pieces." />
+      </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <FormField label="Last Restock Date" value={form.lastRestockDate} onChange={set('lastRestockDate')} type="date" />
         <FormField label="Last Sale Date" value={form.lastSaleDate} onChange={set('lastSaleDate')} type="date" />
@@ -444,7 +448,7 @@ export default function InventoryPage() {
                       <td className="px-5 py-3 text-sm text-gray-500 tabular-nums">${inv.suggestedRetailPrice.toFixed(2)}</td>
                       <td className="px-5 py-3 text-sm font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums">+${inv.estimatedProfit.toFixed(2)}</td>
                       <td className="px-5 py-3">
-                        <Badge color={inv.currentStock === 0 ? 'red' : inv.currentStock < 10 ? 'yellow' : 'green'}>{inv.currentStock} units</Badge>
+                        <Badge color={inv.currentStock === 0 ? 'red' : inv.currentStock <= inv.lowStockThreshold ? 'yellow' : 'green'}>{inv.currentStock} units</Badge>
                       </td>
                       <td className="px-5 py-3 text-sm text-gray-500 dark:text-gray-600 tabular-nums">{new Date(inv.lastRestockDate).toLocaleDateString()}</td>
                       <td className="px-5 py-3">
@@ -514,7 +518,7 @@ export default function InventoryPage() {
                         </div>
                       </div>
                       <div className="mt-3">
-                        <Badge color={inv.currentStock === 0 ? 'red' : inv.currentStock < 10 ? 'yellow' : 'green'}>{inv.currentStock} units</Badge>
+                        <Badge color={inv.currentStock === 0 ? 'red' : inv.currentStock <= inv.lowStockThreshold ? 'yellow' : 'green'}>{inv.currentStock} units</Badge>
                       </div>
                     </div>
                   </div>

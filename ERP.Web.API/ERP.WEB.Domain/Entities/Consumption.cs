@@ -24,6 +24,9 @@ public class Consumption : ICompanyEntity
 
     public string? Notes { get; set; }
 
+    /// <summary>Payment method: Cash, Card, Transfer, Damaged (null = not specified).</summary>
+    public string? PaymentMethod { get; set; }
+
     [ForeignKey(nameof(InventoryId))]
     public Inventory Inventory { get; set; } = null!;
 }
